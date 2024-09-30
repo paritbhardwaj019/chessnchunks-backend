@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String      @id @default(uuid())
+  email    String      @unique
+  password String?
+  role     ROLE
+  subRole  COACH_ROLE?
+
+  profile Profile?
+
+  coachOfBatches   Batch[]   @relation("BatchCoaches")
+  studentOfBatches Batch[]   @relation("BatchStudents")
+  adminOfAcademies Academy[] @relation("AcademyAdmins")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Profile {
+  id        String @id @default(uuid())
+  firstName String
+  lastName  String
+
+  userId String? @unique
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("profiles")
+}
+
+model Academy {
+  id String @id @default(uuid())
+
+  name String
+
+  admins  User[]  @relation("AcademyAdmins")
+  batches Batch[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("academies")
+}
+
+model Batch {
+  id String @id @default(uuid())
+
+  academyId String
+  academy   Academy @relation(fields: [academyId], references: [id])
+
+  coaches  User[] @relation("BatchCoaches")
+  students User[] @relation("BatchStudents")
+
+studentCapacity Int
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("batches")
+}
+
+model Invitation {
+  id String @id @default(uuid())
+
+  type  INVITATION_TYPE
+  email String          @unique
+
+  data      Json?
+  expiresAt DateTime?
+
+  status INVITATION_STATUS @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("invitations")
+}
+
+enum INVITATION_TYPE {
+  CREATE_ACADEMY
+  BATCH_STUDENT
+  BATCH_COACH
+}
+
+enum INVITATION_STATUS {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REJECTED
+}
+
+enum ROLE {
+  SUPER_ADMIN
+  ADMIN
+  COACH
+  STUDENT
+  SUBSCRIBER
+}
+
+enum COACH_ROLE {
+  HEAD_COACH
+  SENIOR_COACH
+  JUNIOR_COACH
+  PUZZLE_MASTER
+  PUZZLE_MASTER_SCHOLAR
+}

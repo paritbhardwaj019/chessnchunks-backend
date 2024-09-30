@@ -1,0 +1,27 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const helmet = require('helmet');
+const cors = require('cors');
+const config = require('./config');
+const errorHandler = require('./middlewares/errorHandler');
+const router = require('./routes/v1');
+
+const app = express();
+
+app.use(
+  cors({
+    origin: config.allowedOrigins,
+    credentials: true,
+  })
+);
+
+app.use(bodyParser.json({ limit: '4mb' }));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(helmet());
+
+app.use(errorHandler);
+
+/* ALL ROUTES */
+app.use('/api/v1', router);
+
+module.exports = app;
