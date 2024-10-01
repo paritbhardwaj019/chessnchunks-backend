@@ -183,6 +183,12 @@ const fetchAllAcademiesHandler = async (page, limit) => {
     select: {
       id: true,
       name: true,
+      batches: {
+        select: {
+          id: true,
+          batchId: true,
+        },
+      },
     },
   });
   return allAcademies;
