@@ -1,16 +1,34 @@
 const express = require('express');
 const batchController = require('../../controllers/batch.controller');
+const checkJWT = require('../../middlewares/checkJWT');
+const checkRole = require('../../middlewares/checkRole');
 
 const batchRouter = express.Router();
 
 batchRouter
   .route('/')
-  .post(batchController.createBatchHandler)
-  .get(batchController.fetchAllBatches);
+  .post(
+    checkJWT,
+    checkRole(['SUPER_ADMIN', 'COACH']),
+    batchController.createBatchHandler
+  )
+  .get(
+    checkJWT,
+    checkRole(['SUPER_ADMIN', 'COACH']),
+    batchController.fetchAllBatchesByAcademyId
+  );
 
 batchRouter
   .route('/:id')
-  .put(batchController.updateBatchHandler)
-  .delete(batchController.deleteBatchHandler);
+  .put(
+    checkJWT,
+    checkRole(['SUPER_ADMIN', 'COACH']),
+    batchController.updateBatchHandler
+  )
+  .delete(
+    checkJWT,
+    checkRole(['SUPER_ADMIN', 'COACH']),
+    batchController.deleteBatchHandler
+  );
 
 module.exports = batchRouter;

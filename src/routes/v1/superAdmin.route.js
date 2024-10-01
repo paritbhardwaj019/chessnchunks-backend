@@ -8,33 +8,31 @@ const superAdminRouter = express.Router();
 superAdminRouter.post(
   '/invite-academy-admin',
   checkJWT,
-  checkRole(['superAdmin']),
+  checkRole(['SUPER_ADMIN']),
   superAdminController.inviteAcademyAdminHandler
 );
 
 superAdminRouter.post(
   '/verify-academy-admin',
-  checkJWT,
-  checkRole(['superAdmin']),
   superAdminController.verifyAcademyAdminHandler
 );
 
 superAdminRouter.get(
   '/all-admins',
   checkJWT,
-  checkRole(['superAdmin']),
+  checkRole(['SUPER_ADMIN']),
   superAdminController.fetchAllAdminsByAcademyId
 );
 superAdminRouter.get(
   '/all-invitations',
   checkJWT,
-  checkRole(['superAdmin']),
+  checkRole(['SUPER_ADMIN']),
   superAdminController.fetchAllInvitationsHandler
 );
 superAdminRouter.get(
   '/all-academies',
   checkJWT,
-  checkRole(['superAdmin']),
+  checkRole(['SUPER_ADMIN']),
   superAdminController.fetchAllAcademiesHandler
 );
 

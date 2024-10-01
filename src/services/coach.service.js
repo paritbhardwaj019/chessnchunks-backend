@@ -3,6 +3,8 @@ const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const createToken = require('../utils/createToken');
 const logger = require('../utils/logger');
+const config = require('../config');
+const decodeToken = require('../utils/decodeToken');
 
 const inviteCoachHandler = async (data) => {
   const { firstName, lastName, email, batchId, subRole } = data;
@@ -79,6 +81,9 @@ const verifyCoachInvitationHandler = async (token) => {
     where: {
       id: batchId,
     },
+    select: {
+      id: true,
+    },
   });
 
   if (!batch) {
@@ -103,7 +108,9 @@ const verifyCoachInvitationHandler = async (token) => {
           id: coachProfile.id,
         },
       },
-      coachOfBatches: [batchId],
+      coachOfBatches: {
+        connect: [{ id: batch.id }],
+      },
       role: 'COACH',
       subRole: subRole,
     },
@@ -119,7 +126,9 @@ const verifyCoachInvitationHandler = async (token) => {
       id: batchId,
     },
     data: {
-      coaches: [coach.id],
+      coaches: {
+        connect: [{ id: coach.id }],
+      },
     },
     select: {
       id: true,
@@ -128,7 +137,7 @@ const verifyCoachInvitationHandler = async (token) => {
 
   await db.invitation.update({
     where: {
-      id: academyAdminInvitation.id,
+      id: coachInvitation.id,
     },
     data: {
       status: 'ACCEPTED',
@@ -136,8 +145,7 @@ const verifyCoachInvitationHandler = async (token) => {
   });
 
   return {
-    newAcademy,
-    academyAdmin,
+    coach,
     updatedBatch,
   };
 };

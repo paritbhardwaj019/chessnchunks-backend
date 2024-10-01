@@ -8,6 +8,7 @@ const checkRole = (roles) => async (req, res, next) => {
     const token = req.token;
 
     const decoded = await decodeToken(token, config.jwt.secret);
+
     const { role, id } = decoded;
 
     if (!roles.includes(role)) {

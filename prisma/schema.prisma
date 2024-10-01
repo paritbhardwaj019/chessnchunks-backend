@@ -55,13 +55,15 @@ model Academy {
 model Batch {
   id String @id @default(uuid())
 
+  batchId String
   academyId String
   academy   Academy @relation(fields: [academyId], references: [id])
+
 
   coaches  User[] @relation("BatchCoaches")
   students User[] @relation("BatchStudents")
 
-studentCapacity Int
+  studentCapacity Int
   description String?
 
   createdAt DateTime @default(now())
@@ -85,6 +87,23 @@ model Invitation {
   updatedAt DateTime @updatedAt
 
   @@map("invitations")
+}
+
+model Code {
+  id String @id @default(uuid())
+  email String
+
+  code String
+  expiresAt DateTime
+
+  type CODE_TYPE
+
+  @@map("codes")
+}
+
+enum CODE_TYPE {
+  FORGOT_PASSWORD
+  LOGIN_WITHOUT_PASSWORD
 }
 
 enum INVITATION_TYPE {

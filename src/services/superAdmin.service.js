@@ -118,6 +118,17 @@ const verifyAcademyAdminHandler = async (token) => {
     },
   });
 
+  await db.user.update({
+    where: {
+      id: academyAdmin.id,
+    },
+    data: {
+      adminOfAcademies: {
+        connect: [{ id: newAcademy.id }],
+      },
+    },
+  });
+
   await db.invitation.update({
     where: {
       id: academyAdminInvitation.id,
@@ -134,21 +145,16 @@ const verifyAcademyAdminHandler = async (token) => {
 };
 
 const fetchAllAdminsByAcademyId = async (page, limit, academyId) => {
-  const allAdmins = await db.admin.findMany({
+  const allAdmins = await db.user.findMany({
     where: {
-      academy: {
-        id: academyId,
-      },
-    },
-    select: {
-      id: true,
-      email: true,
-      profile: {
-        select: {
-          firstName: true,
-          lastName: true,
+      adminOfAcademies: {
+        some: {
+          id: academyId,
         },
       },
+    },
+    include: {
+      profile: true,
     },
   });
 
