@@ -135,12 +135,9 @@ const verifyCoachInvitationHandler = async (token) => {
     },
   });
 
-  await db.invitation.update({
+  await db.invitation.delete({
     where: {
       id: coachInvitation.id,
-    },
-    data: {
-      status: 'ACCEPTED',
     },
   });
 

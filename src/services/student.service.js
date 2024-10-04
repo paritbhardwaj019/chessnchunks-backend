@@ -125,12 +125,9 @@ const verifyStudentHandler = async (token) => {
     },
   });
 
-  await db.invitation.update({
+  await db.invitation.delete({
     where: {
       id: studentInvitation.id,
-    },
-    data: {
-      status: 'ACCEPTED',
     },
   });
 

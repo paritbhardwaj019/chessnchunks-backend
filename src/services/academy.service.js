@@ -49,8 +49,44 @@ const updateAcademyByIdHandler = async (data, id, loggedInUser) => {
   }
 };
 
+const fetchAcademyByIdHandler = async (id, loggedInUser) => {
+  if (loggedInUser.role === 'SUPER_ADMIN') {
+    const academy = await db.academy.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    return {
+      academy,
+    };
+  } else if (loggedInUser.role === 'ADMIN') {
+    const academy = await db.academy.findFirst({
+      where: {
+        id,
+        admins: {
+          some: {
+            id: loggedInUser.id,
+          },
+        },
+      },
+    });
+
+    if (!academy)
+      throw new ApiError(
+        httpStatus.UNAUTHORIZED,
+        "User isn't authorized to perform this action"
+      );
+
+    return {
+      academy,
+    };
+  }
+};
+
 const academyService = {
   updateAcademyByIdHandler,
+  fetchAcademyByIdHandler,
 };
 
 module.exports = academyService;

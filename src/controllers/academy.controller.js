@@ -15,8 +15,17 @@ const updateAcademyByIdHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(updatedAcademy);
 });
 
+const fetchAcademyByIdHandler = catchAsync(async (req, res) => {
+  const { id } = _.pick(req.params, ['id']);
+
+  const academy = await academyService.fetchAcademyByIdHandler(id, req.user);
+
+  res.status(httpStatus.OK).send(academy);
+});
+
 const academyController = {
   updateAcademyByIdHandler,
+  fetchAcademyByIdHandler,
 };
 
 module.exports = academyController;

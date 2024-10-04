@@ -129,12 +129,9 @@ const verifyAcademyAdminHandler = async (token) => {
     },
   });
 
-  await db.invitation.update({
+  await db.invitation.delete({
     where: {
       id: academyAdminInvitation.id,
-    },
-    data: {
-      status: 'ACCEPTED',
     },
   });
 

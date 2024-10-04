@@ -6,6 +6,7 @@ const adminRouter = require('./admin.route');
 const batchRouter = require('./batch.route');
 const authRouter = require('./auth.route');
 const studentRouter = require('./student.route');
+const invitationRouter = require('./invitation.route');
 
 const router = express.Router();
 
@@ -16,5 +17,6 @@ router.use('/coach', coachRouter);
 router.use('/batch', batchRouter);
 router.use('/auth', authRouter);
 router.use('/student', studentRouter);
+router.use('/invitation', invitationRouter);
 
 module.exports = router;
