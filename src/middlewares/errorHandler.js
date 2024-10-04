@@ -4,6 +4,8 @@ const logger = require('../utils/logger');
 function errorHandler(err, req, res, next) {
   const { statusCode = 500, message } = err;
 
+  console.log(err);
+
   const response = {
     statusCode,
     message,

@@ -23,17 +23,26 @@ superAdminRouter.get(
   checkRole(['SUPER_ADMIN']),
   superAdminController.fetchAllAdminsByAcademyId
 );
+
 superAdminRouter.get(
   '/all-invitations',
   checkJWT,
   checkRole(['SUPER_ADMIN']),
   superAdminController.fetchAllInvitationsHandler
 );
+
 superAdminRouter.get(
   '/all-academies',
   checkJWT,
   checkRole(['SUPER_ADMIN']),
   superAdminController.fetchAllAcademiesHandler
+);
+
+superAdminRouter.get(
+  '/all-users',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN']),
+  superAdminController.fetchAllUsersHandler
 );
 
 module.exports = superAdminRouter;

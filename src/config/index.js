@@ -8,7 +8,7 @@ const config = {
   port: process.env.PORT,
   allowedOrigins:
     process.env.NODE_ENV === 'development'
-      ? ['http://locahost:3000']
+      ? ['http://localhost:3000']
       : process.env.ALLOWED_ORIGINS,
   jwt: {
     invitationSecret: process.env.INVITATION_SECRET,

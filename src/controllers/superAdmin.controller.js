@@ -56,12 +56,26 @@ const fetchAllAcademiesHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(allAcademies);
 });
 
+const fetchAllUsersHandler = catchAsync(async (req, res) => {
+  const { page, limit, query } = _.pick(req.query, ['page', 'limit', 'query']);
+
+  const allUsers = await superAdminService.fetchAllUsersHandler(
+    page,
+    limit,
+    query,
+    req.user
+  );
+
+  res.status(httpStatus.OK).send(allUsers);
+});
+
 const superAdminController = {
   inviteAcademyAdminHandler,
   verifyAcademyAdminHandler,
   fetchAllAdminsByAcademyId,
   fetchAllInvitationsHandler,
   fetchAllAcademiesHandler,
+  fetchAllUsersHandler,
 };
 
 module.exports = superAdminController;

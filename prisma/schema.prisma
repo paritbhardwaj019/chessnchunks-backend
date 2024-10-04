@@ -20,6 +20,8 @@ model User {
   studentOfBatches Batch[]   @relation("BatchStudents")
   adminOfAcademies Academy[] @relation("AcademyAdmins")
 
+  subscriptions Subscription[]  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -46,6 +48,12 @@ model Academy {
   admins  User[]  @relation("AcademyAdmins")
   batches Batch[]
 
+  planId String?
+  plan Plan? @relation(fields: [planId], references: [id])
+
+  subsriptions Subscription[]
+  purchasedPlans PurchasedPlan[]  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -55,16 +63,15 @@ model Academy {
 model Batch {
   id String @id @default(uuid())
 
-  batchId String
+  batchId   String
   academyId String
   academy   Academy @relation(fields: [academyId], references: [id])
-
 
   coaches  User[] @relation("BatchCoaches")
   students User[] @relation("BatchStudents")
 
   studentCapacity Int
-  description String?
+  description     String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -90,15 +97,97 @@ model Invitation {
 }
 
 model Code {
-  id String @id @default(uuid())
+  id    String @id @default(uuid())
   email String
 
-  code String
+  code      String
   expiresAt DateTime
 
   type CODE_TYPE
 
   @@map("codes")
+}
+
+model Subscription {
+  id   String @id @default(uuid())
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+
+  planId   String
+  plan     Plan   @relation(fields: [planId], references: [id])
+
+  academyId String?  
+  academy   Academy? @relation(fields: [academyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+   @@map("subscriptions")
+}
+
+model Plan {
+  id   String @id @default(uuid())
+  name String
+
+  type PLAN_TYPE
+
+  priceMonthly Float
+  priceYearly  Float?
+
+  academies Academy[]
+  subscriptions Subscription[]
+  purchasedPlan PurchasedPlan[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("plans")
+}
+
+model Coupon {
+  id       String @id @default(uuid())
+
+  code     String @unique
+
+  discount Float
+  maxUses  Int
+
+
+  expiresAt DateTime?
+
+  purchasedPlans PurchasedPlan[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("coupons")
+
+}
+
+model PurchasedPlan {
+  id       String @id @default(uuid())
+
+  academyId  String
+  academy    Academy @relation(fields: [academyId], references: [id])
+
+  planId     String
+  plan       Plan    @relation(fields: [planId], references: [id])
+
+  couponId   String?  
+  coupon     Coupon?  @relation(fields: [couponId], references: [id])
+
+  totalPrice Float
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+   @@map("purchasedplans")
+}
+
+enum PLAN_TYPE {
+  ACADEMY
+  SUBSCRIBER
 }
 
 enum CODE_TYPE {

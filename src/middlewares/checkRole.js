@@ -40,6 +40,7 @@ const checkRole = (roles) => async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
+    console.log(error);
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       message: 'Internal Server Error',
       statusCode: httpStatus.INTERNAL_SERVER_ERROR,
