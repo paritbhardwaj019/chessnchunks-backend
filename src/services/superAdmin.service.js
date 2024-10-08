@@ -191,9 +191,12 @@ const fetchAllAcademiesHandler = async (page, limit) => {
   return allAcademies;
 };
 
-const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
-  const numberPage = Number(page);
-  const numberLimit = Number(limit);
+const fetchAllUsersHandler = async (page = 1, limit = 10, query = '', loggedInUser) => {
+  const numberPage = Math.max(1, Number(page));
+  const numberLimit = Math.max(1, Number(limit));
+  const searchQuery = query || '';  // Default to an empty string if query is undefined or null
+
+  console.log('Request Parameters:', { page, limit, query, loggedInUser });
 
   const user = await db.user.findUnique({
     where: {
@@ -204,34 +207,30 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
     },
   });
 
+  if (!user) {
+    console.error('User not found:', loggedInUser.id);
+    return { allUsers: [] };
+  }
+
+  console.log('Logged In User:', user);
+
   let allUsers = [];
+
+  // Only include valid search filters (i.e., skip undefined or empty values)
+  const searchFilters = [
+    query ? { email: { contains: searchQuery } } : null,
+    query ? { profile: { firstName: { contains: searchQuery } } } : null,
+    query ? { profile: { lastName: { contains: searchQuery } } } : null,
+  ].filter(Boolean);  // Remove null values from the filters
+
+  console.log('Search Filters:', searchFilters);
 
   if (user.role === 'SUPER_ADMIN') {
     allUsers = await db.user.findMany({
       skip: (numberPage - 1) * numberLimit,
       take: numberLimit,
       where: {
-        OR: [
-          {
-            email: {
-              contains: query,
-            },
-          },
-          {
-            profile: {
-              firstName: {
-                contains: query,
-              },
-            },
-          },
-          {
-            profile: {
-              lastName: {
-                contains: query,
-              },
-            },
-          },
-        ],
+        OR: searchFilters,  // Only include valid search filters
       },
       select: {
         email: true,
@@ -247,6 +246,7 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
     });
   } else if (user.role === 'ADMIN') {
     const academyIDs = user.adminOfAcademies.map((el) => el.id);
+    console.log('Academy IDs for Admin:', academyIDs);
 
     allUsers = await db.user.findMany({
       skip: (numberPage - 1) * numberLimit,
@@ -281,15 +281,7 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
             },
           },
         ],
-        AND: [
-          {
-            OR: [
-              { email: { contains: query } },
-              { profile: { firstName: { contains: query } } },
-              { profile: { lastName: { contains: query } } },
-            ],
-          },
-        ],
+        AND: searchFilters,  // Apply search filters in the AND clause
       },
       select: {
         id: true,
@@ -305,6 +297,8 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
       },
     });
   }
+
+  console.log('Fetched Users:', allUsers);
 
   return {
     allUsers,

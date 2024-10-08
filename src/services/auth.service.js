@@ -10,7 +10,7 @@ const logger = require('../utils/logger');
 const loginWithPasswordHandler = async (data) => {
   const { email, password } = data;
 
-  //   TODO: BODY VALIDATION
+  console.log('Login Request Body:', { email, password }); // Log request body
 
   const user = await db.user.findUnique({
     where: {
@@ -31,13 +31,19 @@ const loginWithPasswordHandler = async (data) => {
     },
   });
 
-  if (!user || !user.password)
+  console.log('Found User:', user); // Log found user
+
+  if (!user || !user.password) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
+  }
 
   const isPasswordValid = await comparePassword(password, user.password);
 
-  if (!isPasswordValid)
+  console.log('Is Password Valid:', isPasswordValid); // Log password validation result
+
+  if (!isPasswordValid) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
+  }
 
   const token = await createToken(
     {
