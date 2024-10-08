@@ -8,12 +8,16 @@ const router = require('./routes/v1');
 
 const app = express();
 
+
+
 app.use(
   cors({
     origin: config.allowedOrigins,
     credentials: true,
   })
 );
+
+
 
 app.use(bodyParser.json({ limit: '4mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -23,5 +27,7 @@ app.use(errorHandler);
 
 /* ALL ROUTES */
 app.use('/api/v1', router);
+
+
 
 module.exports = app;
