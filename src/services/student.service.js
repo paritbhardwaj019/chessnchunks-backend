@@ -6,7 +6,7 @@ const ApiError = require('../utils/apiError');
 const decodeToken = require('../utils/decodeToken');
 const config = require('../config');
 
-const inviteStudentHandler = async (data) => {
+const inviteStudentHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, batchId } = data;
 
   const studentInvitation = await db.invitation.create({
@@ -19,6 +19,11 @@ const inviteStudentHandler = async (data) => {
       },
       email,
       type: 'BATCH_STUDENT',
+      createdBy: {
+        connect: {
+          id: loggedInUser.id,
+        },
+      },
     },
     select: {
       id: true,
@@ -26,6 +31,7 @@ const inviteStudentHandler = async (data) => {
       type: true,
       status: true,
       data: true,
+      createdBy: true,
     },
   });
 

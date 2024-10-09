@@ -6,7 +6,7 @@ const logger = require('../utils/logger');
 const config = require('../config');
 const decodeToken = require('../utils/decodeToken');
 
-const inviteCoachHandler = async (data) => {
+const inviteCoachHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, batchId, subRole } = data;
 
   // TODO: BODY VALIDATION
@@ -22,6 +22,11 @@ const inviteCoachHandler = async (data) => {
       },
       email,
       type: 'BATCH_COACH',
+      createdBy: {
+        connect: {
+          id: loggedInUser.id,
+        },
+      },
     },
     select: {
       id: true,
@@ -29,6 +34,7 @@ const inviteCoachHandler = async (data) => {
       type: true,
       status: true,
       data: true,
+      createdBy: true,
     },
   });
 

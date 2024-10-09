@@ -6,7 +6,7 @@ const createToken = require('../utils/createToken');
 const decodeToken = require('../utils/decodeToken');
 const logger = require('../utils/logger');
 
-const inviteAcademyAdminHandler = async (data) => {
+const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyName } = data;
 
   const academyAdminInvitation = await db.invitation.create({
@@ -19,6 +19,12 @@ const inviteAcademyAdminHandler = async (data) => {
       },
       email,
       type: 'CREATE_ACADEMY',
+      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
+      createdBy: {
+        connect: {
+          id: loggedInUser.id,
+        },
+      },
     },
     select: {
       id: true,
@@ -26,6 +32,7 @@ const inviteAcademyAdminHandler = async (data) => {
       type: true,
       status: true,
       data: true,
+      createdBy: true,
     },
   });
 
@@ -158,36 +165,30 @@ const fetchAllAdminsByAcademyId = async (page, limit, academyId) => {
   return allAdmins;
 };
 
-const fetchAllInvitationsHandler = async (page, limit, type) => {
-  const allInvitations = await db.invitation.findMany({
-    where: {
-      type,
-    },
-    select: {
-      id: true,
-      type: true,
-      email: true,
-      data: true,
-      status: true,
-    },
-  });
-
-  return allInvitations;
-};
-
-const fetchAllAcademiesHandler = async (page, limit) => {
+const fetchAllAcademiesHandler = async (page, limit, query) => {
   const allAcademies = await db.academy.findMany({
+    where: {
+      OR: [
+        {
+          name: {
+            contains: query,
+          },
+        },
+      ],
+    },
     select: {
       id: true,
       name: true,
-      batches: {
+      _count: {
         select: {
-          id: true,
-          batchId: true,
+          batches: true,
+          admins: true,
         },
       },
+      createdAt: true,
     },
   });
+
   return allAcademies;
 };
 
@@ -315,7 +316,6 @@ const superAdminService = {
   inviteAcademyAdminHandler,
   verifyAcademyAdminHandler,
   fetchAllAdminsByAcademyId,
-  fetchAllInvitationsHandler,
   fetchAllAcademiesHandler,
   fetchAllUsersHandler,
 };

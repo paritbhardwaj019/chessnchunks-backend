@@ -19,9 +19,9 @@ app.use(bodyParser.json({ limit: '4mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(helmet());
 
-app.use(errorHandler);
-
 /* ALL ROUTES */
 app.use('/api/v1', router);
+
+app.use(errorHandler);
 
 module.exports = app;

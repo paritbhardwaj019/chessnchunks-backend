@@ -5,7 +5,7 @@ const _ = require('lodash');
 
 const inviteAcademyAdminHandler = catchAsync(async (req, res) => {
   const academyAdminInvitation =
-    await superAdminService.inviteAcademyAdminHandler(req.body);
+    await superAdminService.inviteAcademyAdminHandler(req.body, req.user);
 
   res.status(httpStatus.CREATED).send(academyAdminInvitation);
 });
@@ -33,49 +33,23 @@ const fetchAllAdminsByAcademyId = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(allUsers);
 });
 
-const fetchAllInvitationsHandler = catchAsync(async (req, res) => {
-  const { page, limit, type } = _.pick(req.query, ['page', 'limit', 'type']);
-
-  const allInvitations = await superAdminService.fetchAllInvitationsHandler(
-    page,
-    limit,
-    type
-  );
-
-  res.status(httpStatus.OK).send(allInvitations);
-});
-
 const fetchAllAcademiesHandler = catchAsync(async (req, res) => {
-  const { page, limit } = _.pick(req.query, ['page', 'limit']);
+  const { page, limit, query } = _.pick(req.query, ['page', 'limit', 'query']);
 
   const allAcademies = await superAdminService.fetchAllAcademiesHandler(
     page,
-    limit
+    limit,
+    query
   );
 
   res.status(httpStatus.OK).send(allAcademies);
-});
-
-const fetchAllUsersHandler = catchAsync(async (req, res) => {
-  const { page, limit, query } = _.pick(req.query, ['page', 'limit', 'query']);
-
-  const allUsers = await superAdminService.fetchAllUsersHandler(
-    page,
-    limit,
-    query,
-    req.user
-  );
-
-  res.status(httpStatus.OK).send(allUsers);
 });
 
 const superAdminController = {
   inviteAcademyAdminHandler,
   verifyAcademyAdminHandler,
   fetchAllAdminsByAcademyId,
-  fetchAllInvitationsHandler,
   fetchAllAcademiesHandler,
-  fetchAllUsersHandler,
 };
 
 module.exports = superAdminController;

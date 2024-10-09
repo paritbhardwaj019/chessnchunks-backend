@@ -6,6 +6,8 @@ const createToken = require('../utils/createToken');
 const config = require('../config');
 const codeGenerator = require('otp-generator');
 const logger = require('../utils/logger');
+const decodeToken = require('../utils/decodeToken');
+const hashedPassword = require('../utils/hashPassword');
 
 const loginWithPasswordHandler = async (data) => {
   const { email, password } = data;
@@ -190,10 +192,67 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
   };
 };
 
+const resetPasswordHandler = async (email) => {
+  const user = await db.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      email: true,
+    },
+  });
+
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
+
+  const resetToken = await createToken(
+    { id: user.id, email: user.email },
+    config.jwt.resetPasswordSecret,
+    '1h'
+  );
+
+  logger.info(resetToken);
+
+  return {
+    resetToken,
+  };
+};
+
+const verifyResetPasswordHandler = async (data) => {
+  const { token, newPassword } = data;
+
+  const decoded = await decodeToken(token, config.jwt.resetPasswordSecret);
+
+  if (!decoded || !decoded.id)
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid or expired token!');
+
+  const { id, email } = decoded;
+
+  const user = await db.user.findUnique({
+    where: { id, email },
+    select: { id: true, email: true, password: true },
+  });
+
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
+
+  const newUpdatePassword = await hashedPassword(newPassword, 10);
+
+  const updatedUser = await db.user.update({
+    where: { id: user.id },
+    data: { password: newUpdatePassword },
+    select: {
+      id: true,
+      email: true,
+    },
+  });
+
+  return { updatedUser };
+};
+
 const authService = {
   loginWithPasswordHandler,
   loginWithoutPasswordHandler,
   verifyLoginWithoutPasswordHandler,
+  resetPasswordHandler,
+  verifyResetPasswordHandler,
 };
 
 module.exports = authService;

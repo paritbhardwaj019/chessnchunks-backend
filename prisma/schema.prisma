@@ -20,6 +20,8 @@ model User {
   studentOfBatches Batch[]   @relation("BatchStudents")
   adminOfAcademies Academy[] @relation("AcademyAdmins")
 
+  invitationsCreated Invitation[]
+
   subscriptions Subscription[]  
 
   createdAt DateTime @default(now())
@@ -89,6 +91,9 @@ model Invitation {
   expiresAt DateTime?
 
   status INVITATION_STATUS @default(PENDING)
+
+  createdById String
+  createdBy   User @relation(fields: [createdById], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -199,6 +204,7 @@ enum INVITATION_TYPE {
   CREATE_ACADEMY
   BATCH_STUDENT
   BATCH_COACH
+  USER_INVITATION
 }
 
 enum INVITATION_STATUS {

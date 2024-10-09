@@ -18,4 +18,11 @@ authRouter.post(
   authController.verifyLoginWithoutPasswordHandler
 );
 
+authRouter.post('/forgot-password', authController.resetPasswordHandler);
+
+authRouter.post(
+  '/verify-forgot-password',
+  authController.verifyResetPasswordHandler
+);
+
 module.exports = authRouter;
