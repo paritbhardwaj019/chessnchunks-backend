@@ -213,29 +213,53 @@ const fetchAllAdminsByAcademyId = async (page, limit, academyId) => {
   return allAdmins;
 };
 
-const fetchAllAcademiesHandler = async (page, limit, query) => {
-  const allAcademies = await db.academy.findMany({
-    where: {
-      OR: [
-        {
-          name: {
-            contains: query,
-          },
-        },
-      ],
-    },
-    select: {
-      id: true,
-      name: true,
-      _count: {
-        select: {
-          batches: true,
-          admins: true,
-        },
-      },
-      createdAt: true,
-    },
+const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
+  const numberPage = Number(page);
+  const numberLimit = Number(limit);
+
+  const user = await db.user.findUnique({
+    where: { id: loggedInUser.id },
+    include: { adminOfAcademies: true },
   });
+
+  let allAcademies = [];
+
+  if (user.role === 'SUPER_ADMIN') {
+    allAcademies = await db.academy.findMany({
+      skip: (numberPage - 1) * numberLimit,
+      take: numberLimit,
+      where: {
+        name: { contains: query },
+      },
+      select: {
+        id: true,
+        name: true,
+        _count: {
+          select: { batches: true, admins: true },
+        },
+        createdAt: true,
+      },
+    });
+  } else if (user.role === 'ADMIN') {
+    const academyIDs = user.adminOfAcademies.map((el) => el.id);
+
+    allAcademies = await db.academy.findMany({
+      skip: (numberPage - 1) * numberLimit,
+      take: numberLimit,
+      where: {
+        id: { in: academyIDs },
+        name: { contains: query },
+      },
+      select: {
+        id: true,
+        name: true,
+        _count: {
+          select: { batches: true, admins: true },
+        },
+        createdAt: true,
+      },
+    });
+  }
 
   return allAcademies;
 };

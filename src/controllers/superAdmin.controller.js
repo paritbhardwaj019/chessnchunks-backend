@@ -39,7 +39,8 @@ const fetchAllAcademiesHandler = catchAsync(async (req, res) => {
   const allAcademies = await superAdminService.fetchAllAcademiesHandler(
     page,
     limit,
-    query
+    query,
+    req.user
   );
 
   res.status(httpStatus.OK).send(allAcademies);

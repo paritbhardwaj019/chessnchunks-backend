@@ -8,6 +8,8 @@ const codeGenerator = require('otp-generator');
 const logger = require('../utils/logger');
 const decodeToken = require('../utils/decodeToken');
 const hashedPassword = require('../utils/hashPassword');
+const Mailgen = require('mailgen');
+const sendMail = require('../utils/sendEmail');
 
 const loginWithPasswordHandler = async (data) => {
   const { email, password } = data;
@@ -32,8 +34,6 @@ const loginWithPasswordHandler = async (data) => {
       },
     },
   });
-
-  console.log(user);
 
   if (!user || !user.password)
     throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
@@ -176,9 +176,9 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
     '7d'
   );
 
-  await db.code.delete({
+  await db.code.deleteMany({
     where: {
-      id: storedCode.id,
+      email,
     },
   });
 
@@ -200,8 +200,11 @@ const resetPasswordHandler = async (email) => {
     select: {
       id: true,
       email: true,
+      profile: true,
     },
   });
+
+  console.log(user);
 
   if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
 
@@ -209,6 +212,51 @@ const resetPasswordHandler = async (email) => {
     { id: user.id, email: user.email },
     config.jwt.resetPasswordSecret,
     '1h'
+  );
+
+  const RESET_PASSWORD_URL = `${config.frontendUrl}/reset-password?token=${resetToken}`;
+
+  const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: {
+      name: 'Chess in Chunks',
+      link: config.frontendUrl,
+    },
+  });
+
+  const emailContent = {
+    body: {
+      name: `${user.profile.firstName} ${user.profile.lastName}`,
+      intro: 'You have requested a password reset',
+      action: {
+        instructions: 'To reset your password, please click the button below:',
+        button: {
+          color: '#DC4D2F',
+          text: 'Reset Password',
+          link: RESET_PASSWORD_URL,
+        },
+      },
+      outro:
+        'If you did not request a password reset, please ignore this email.',
+    },
+  };
+
+  const emailBody = mailGenerator.generate(emailContent);
+  const emailText = mailGenerator.generatePlaintext(emailContent);
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Password Reset Request',
+    html: emailBody,
+    text: emailText,
+  };
+
+  await sendMail(
+    email,
+    mailOptions.subject,
+    mailOptions.text,
+    mailOptions.html
   );
 
   logger.info(resetToken);

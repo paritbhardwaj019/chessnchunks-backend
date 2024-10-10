@@ -9,7 +9,7 @@ batchRouter
   .route('/')
   .post(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'COACH']),
+    checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
     batchController.createBatchHandler
   )
   .get(

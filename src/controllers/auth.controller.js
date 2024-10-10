@@ -13,6 +13,8 @@ const loginWithoutPasswordHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(successUser);
 });
 const verifyLoginWithoutPasswordHandler = catchAsync(async (req, res) => {
+  console.log(req.body);
+
   const loggedInUser = await authService.verifyLoginWithoutPasswordHandler(
     req.body
   );

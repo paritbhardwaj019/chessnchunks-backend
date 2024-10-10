@@ -121,8 +121,16 @@ model Academy {
 
 model Batch {
   id String @id @default(uuid())
+  
+  batchCode   String
+  description String?
 
-  batchId   String
+  studentCapacity Int
+  warningCutoff Int
+  currentClass String
+  startLevel String 
+  currentLevel String
+
   academyId String
   academy   Academy @relation(fields: [academyId], references: [id])
 
@@ -131,8 +139,8 @@ model Batch {
 
   goals Goal[]
 
-  studentCapacity Int
-  description     String?
+  startDate DateTime
+  endDate DateTime
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -165,6 +173,7 @@ model Code {
   email String
 
   code      String
+
   expiresAt DateTime
 
   type CODE_TYPE
