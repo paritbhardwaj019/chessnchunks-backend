@@ -27,7 +27,7 @@ superAdminRouter.get(
 superAdminRouter.get(
   '/all-academies',
   checkJWT,
-  checkRole(['SUPER_ADMIN']),
+  checkRole(['SUPER_ADMIN', 'ADMIN']),
   superAdminController.fetchAllAcademiesHandler
 );
 

@@ -24,11 +24,68 @@ model User {
 
   subscriptions Subscription[]  
 
+  goals Goal[] @relation("UserGoals")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
 }
+
+model Goal {
+  id          String     @id @default(uuid())
+  uniqueId    String     @unique
+  type        GOAL_TYPE 
+  category     GOAL_CATEGORY 
+  goalCount   Int       
+  startDate   DateTime  
+  endDate     DateTime  
+
+  studentId   String  
+  coachId     String?  
+  batchId     String    
+
+  user   User   @relation("UserGoals", fields: [studentId], references: [id])
+  batch  Batch  @relation(fields: [batchId], references: [id])
+  goalStats GoalStats?
+
+  targets Target[] @relation("GoalTargets")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("goals")
+}
+
+model GoalStats {
+  id          String   @id @default(uuid())
+  goalId      String @unique
+  studentId   String   
+  date        DateTime 
+  actualCount Int 
+  completion  Float    
+  createdAt   DateTime @default(now())
+
+  goal Goal @relation(fields: [goalId], references: [id])
+
+  @@map("goal_stats")
+}
+
+model Target {
+  id          String   @id @default(uuid())
+  goalId      String  
+  targetMin   Int    
+  targetMax   Int  
+  actualTarget Int
+
+  goal Goal @relation("GoalTargets", fields: [goalId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@map("targets")
+}
+
 
 model Profile {
   id        String @id @default(uuid())
@@ -71,6 +128,8 @@ model Batch {
 
   coaches  User[] @relation("BatchCoaches")
   students User[] @relation("BatchStudents")
+
+  goals Goal[]
 
   studentCapacity Int
   description     String?
@@ -188,6 +247,17 @@ model PurchasedPlan {
   updatedAt  DateTime @updatedAt
 
    @@map("purchasedplans")
+}
+
+enum GOAL_TYPE {
+  WEEKLY
+  MONTHLY
+  SEASONAL
+}
+
+enum GOAL_CATEGORY {
+  GAMES
+  PUZZLES
 }
 
 enum PLAN_TYPE {

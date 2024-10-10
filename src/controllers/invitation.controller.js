@@ -4,7 +4,7 @@ const _ = require('lodash');
 const invitationService = require('../services/invitation.service');
 
 const xlsxUploadHandler = catchAsync(async (req, res) => {
-  const uploadedData = await invitationService.csvUploadHandler(req.file);
+  const uploadedData = await invitationService.xlsxUploadHandler(req.file);
   res.status(httpStatus.OK).send(uploadedData);
 });
 

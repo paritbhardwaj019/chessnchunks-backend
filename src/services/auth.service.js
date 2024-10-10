@@ -33,6 +33,8 @@ const loginWithPasswordHandler = async (data) => {
     },
   });
 
+  console.log(user);
+
   if (!user || !user.password)
     throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
 

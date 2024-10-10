@@ -70,11 +70,31 @@ const deleteBatchHandler = async (id) => {
   return {};
 };
 
-const fetchAllBatchesByAcademyId = async (academyId) => {
+const fetchAllBatches = async (loggedInUser) => {
+  let batchFilter = {};
+
+  if (loggedInUser.role === 'ADMIN') {
+    batchFilter = {
+      academy: {
+        admins: {
+          some: {
+            id: loggedInUser.id,
+          },
+        },
+      },
+    };
+  } else if (loggedInUser.role === 'COACH') {
+    batchFilter = {
+      coaches: {
+        some: {
+          id: loggedInUser.id,
+        },
+      },
+    };
+  }
+
   const allBatches = await db.batch.findMany({
-    where: {
-      academyId: academyId,
-    },
+    where: batchFilter,
     select: {
       batchId: true,
       id: true,
@@ -116,7 +136,7 @@ const batchService = {
   createBatchHandler,
   updateBatchHandler,
   deleteBatchHandler,
-  fetchAllBatchesByAcademyId,
+  fetchAllBatches,
 };
 
 module.exports = batchService;
