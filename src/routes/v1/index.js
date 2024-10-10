@@ -8,6 +8,7 @@ const authRouter = require('./auth.route');
 const studentRouter = require('./student.route');
 const invitationRouter = require('./invitation.route');
 const userRouter = require('./user.route');
+const dashboardRouter = require('./dashboard.route');
 
 const router = express.Router();
 
@@ -20,5 +21,6 @@ router.use('/auth', authRouter);
 router.use('/student', studentRouter);
 router.use('/invitation', invitationRouter);
 router.use('/user', userRouter);
+router.use('/dashboard', dashboardRouter);
 
 module.exports = router;
