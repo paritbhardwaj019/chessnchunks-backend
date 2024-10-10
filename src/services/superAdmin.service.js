@@ -4,7 +4,8 @@ const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const createToken = require('../utils/createToken');
 const decodeToken = require('../utils/decodeToken');
-const logger = require('../utils/logger');
+const sendMail = require('../utils/sendEmail');
+const Mailgen = require('mailgen');
 
 const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyName } = data;
@@ -44,7 +45,54 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
     '3d'
   );
 
-  logger.info(token);
+  const ACTIVATION_URL = `${
+    config.frontendUrl
+  }/accept-invite?type=CREATE_ACADEMY&name=${encodeURIComponent(
+    academyName
+  )}&token=${token}`;
+
+  const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: {
+      name: 'Chess in Chunks',
+      link: config.frontendUrl,
+    },
+  });
+
+  const emailContent = {
+    body: {
+      name: `${firstName} ${lastName}`,
+      intro: 'You are invited to join our academy as an admin!',
+      action: {
+        instructions:
+          'To accept this invitation, please click the button below:',
+        button: {
+          color: '#22BC66',
+          text: 'Accept Invitation',
+          link: ACTIVATION_URL,
+        },
+      },
+      outro: 'If you have any questions, feel free to reply to this email.',
+    },
+  };
+
+  const emailBody = mailGenerator.generate(emailContent);
+  const emailText = mailGenerator.generatePlaintext(emailContent);
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Academy Admin Invitation',
+    html: emailBody,
+    text: emailText,
+  };
+
+  await sendMail(
+    email,
+    mailOptions.subject,
+    mailOptions.text,
+    mailOptions.html
+  );
 
   return academyAdminInvitation;
 };

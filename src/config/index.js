@@ -15,14 +15,7 @@ const config = {
     secret: process.env.JWT_SECRET,
     resetPasswordSecret: process.env.RESET_PASSWORD_SECRET,
   },
-  hostgator: {
-    host: process.env.HOSTGATOR_SMTP_HOST,
-    port: Number(process.env.HOSTGATOR_SMTP_PORT),
-    username: process.env.HOSTGATOR_SMTP_USERNAME,
-    password: process.env.HOSTGATOR_SMTP_PASSWORD,
-    fromName: process.env.HOSTGATOR_SMTP_FROM_NAME,
-    fromEmail: process.env.HOSTGATOR_SMTP_FROM_EMAIL,
-  },
+  frontendUrl: process.env.FRONTEND_URL,
 };
 
 module.exports = config;
