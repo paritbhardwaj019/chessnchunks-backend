@@ -9,6 +9,7 @@ const studentRouter = require('./student.route');
 const invitationRouter = require('./invitation.route');
 const userRouter = require('./user.route');
 const dashboardRouter = require('./dashboard.route');
+const goalRouter = require('./goal.route');
 
 const router = express.Router();
 
@@ -22,5 +23,6 @@ router.use('/student', studentRouter);
 router.use('/invitation', invitationRouter);
 router.use('/user', userRouter);
 router.use('/dashboard', dashboardRouter);
+router.use('/goal', goalRouter);
 
 module.exports = router;

@@ -22,70 +22,14 @@ model User {
 
   invitationsCreated Invitation[]
 
-  subscriptions Subscription[]  
-
-  goals Goal[] @relation("UserGoals")
+  subscriptions Subscription[]
+  studentGoals  StudentWeeklyGoal[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
 }
-
-model Goal {
-  id          String     @id @default(uuid())
-  uniqueId    String     @unique
-  type        GOAL_TYPE 
-  category     GOAL_CATEGORY 
-  goalCount   Int       
-  startDate   DateTime  
-  endDate     DateTime  
-
-  studentId   String  
-  coachId     String?  
-  batchId     String    
-
-  user   User   @relation("UserGoals", fields: [studentId], references: [id])
-  batch  Batch  @relation(fields: [batchId], references: [id])
-  goalStats GoalStats?
-
-  targets Target[] @relation("GoalTargets")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("goals")
-}
-
-model GoalStats {
-  id          String   @id @default(uuid())
-  goalId      String @unique
-  studentId   String   
-  date        DateTime 
-  actualCount Int 
-  completion  Float    
-  createdAt   DateTime @default(now())
-
-  goal Goal @relation(fields: [goalId], references: [id])
-
-  @@map("goal_stats")
-}
-
-model Target {
-  id          String   @id @default(uuid())
-  goalId      String  
-  targetMin   Int    
-  targetMax   Int  
-  actualTarget Int
-
-  goal Goal @relation("GoalTargets", fields: [goalId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
-  @@map("targets")
-}
-
 
 model Profile {
   id        String @id @default(uuid())
@@ -108,10 +52,10 @@ model Academy {
   batches Batch[]
 
   planId String?
-  plan Plan? @relation(fields: [planId], references: [id])
+  plan   Plan?   @relation(fields: [planId], references: [id])
 
-  subsriptions Subscription[]
-  purchasedPlans PurchasedPlan[]  
+  subsriptions   Subscription[]
+  purchasedPlans PurchasedPlan[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -121,15 +65,15 @@ model Academy {
 
 model Batch {
   id String @id @default(uuid())
-  
+
   batchCode   String
   description String?
 
   studentCapacity Int
-  warningCutoff Int
-  currentClass String
-  startLevel String 
-  currentLevel String
+  warningCutoff   Int
+  currentClass    String
+  startLevel      String
+  currentLevel    String
 
   academyId String
   academy   Academy @relation(fields: [academyId], references: [id])
@@ -137,10 +81,10 @@ model Batch {
   coaches  User[] @relation("BatchCoaches")
   students User[] @relation("BatchStudents")
 
-  goals Goal[]
+  goals SeasonalGoal[]
 
   startDate DateTime
-  endDate DateTime
+  endDate   DateTime
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -160,7 +104,7 @@ model Invitation {
   status INVITATION_STATUS @default(PENDING)
 
   createdById String
-  createdBy   User @relation(fields: [createdById], references: [id])
+  createdBy   User   @relation(fields: [createdById], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -172,7 +116,7 @@ model Code {
   id    String @id @default(uuid())
   email String
 
-  code      String
+  code String
 
   expiresAt DateTime
 
@@ -182,21 +126,21 @@ model Code {
 }
 
 model Subscription {
-  id   String @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId   String
-  user     User   @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  planId   String
-  plan     Plan   @relation(fields: [planId], references: [id])
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id])
 
-  academyId String?  
+  academyId String?
   academy   Academy? @relation(fields: [academyId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-   @@map("subscriptions")
+  @@map("subscriptions")
 }
 
 model Plan {
@@ -208,7 +152,7 @@ model Plan {
   priceMonthly Float
   priceYearly  Float?
 
-  academies Academy[]
+  academies     Academy[]
   subscriptions Subscription[]
   purchasedPlan PurchasedPlan[]
 
@@ -219,13 +163,12 @@ model Plan {
 }
 
 model Coupon {
-  id       String @id @default(uuid())
+  id String @id @default(uuid())
 
-  code     String @unique
+  code String @unique
 
   discount Float
   maxUses  Int
-
 
   expiresAt DateTime?
 
@@ -235,33 +178,102 @@ model Coupon {
   updatedAt DateTime @updatedAt
 
   @@map("coupons")
-
 }
 
 model PurchasedPlan {
-  id       String @id @default(uuid())
+  id String @id @default(uuid())
 
-  academyId  String
-  academy    Academy @relation(fields: [academyId], references: [id])
+  academyId String
+  academy   Academy @relation(fields: [academyId], references: [id])
 
-  planId     String
-  plan       Plan    @relation(fields: [planId], references: [id])
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id])
 
-  couponId   String?  
-  coupon     Coupon?  @relation(fields: [couponId], references: [id])
+  couponId String?
+  coupon   Coupon? @relation(fields: [couponId], references: [id])
 
   totalPrice Float
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-   @@map("purchasedplans")
+  @@map("purchasedplans")
 }
 
-enum GOAL_TYPE {
-  WEEKLY
-  MONTHLY
-  SEASONAL
+model StudentWeeklyGoal {
+  id            String     @id @default(uuid())
+  studentId     String
+  weeklyGoalId  String
+  puzzlesTarget Int
+  puzzlesSolved Int
+  puzzlesPassed Int
+  student       User       @relation(fields: [studentId], references: [id])
+  weeklyGoal    WeeklyGoal @relation(fields: [weeklyGoalId], references: [id])
+  createdAt     DateTime   @default(now())
+  isCustom      Boolean    @default(false)
+
+  @@map("studentweeklygoals")
+}
+
+model WeeklyGoal {
+  id            String              @id @default(uuid())
+  startDate     DateTime
+  endDate       DateTime
+  
+  targetId      String
+  target        Target              @relation(fields: [targetId], references: [id])
+
+  monthlyGoalId String
+  monthlyGoal   MonthlyGoal         @relation(fields: [monthlyGoalId], references: [id])
+  studentGoals  StudentWeeklyGoal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("weeklygoals")
+}
+
+model Target {
+  id            String              @id @default(uuid())
+  noOfGames     Int
+  minReviews    Int
+  midReviews    Int
+  maxReviews    Int
+
+  weeklyGoals   WeeklyGoal[]        
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MonthlyGoal {
+  id             String       @id @default(uuid())
+  startDate      DateTime
+  endDate        DateTime
+  seasonalGoalId String
+  seasonalGoal   SeasonalGoal @relation(fields: [seasonalGoalId], references: [id])
+  weeklyGoals    WeeklyGoal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("monthlygoals")
+}
+
+model SeasonalGoal {
+  id String @id @default(uuid())
+
+  startDate         DateTime
+  endDate           DateTime
+
+  batchId           String
+  batch             Batch         @relation(fields: [batchId], references: [id])
+  monthlyGoals      MonthlyGoal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("seasonalgoals")
 }
 
 enum GOAL_CATEGORY {
