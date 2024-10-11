@@ -9,13 +9,13 @@ batchRouter
   .route('/')
   .post(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'COACH']),
+    checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
     batchController.createBatchHandler
   )
   .get(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'COACH']),
-    batchController.fetchAllBatchesByAcademyId
+    checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+    batchController.fetchAllBatches
   );
 
 batchRouter

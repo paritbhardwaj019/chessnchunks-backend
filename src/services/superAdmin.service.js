@@ -4,9 +4,10 @@ const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const createToken = require('../utils/createToken');
 const decodeToken = require('../utils/decodeToken');
-const logger = require('../utils/logger');
+const sendMail = require('../utils/sendEmail');
+const Mailgen = require('mailgen');
 
-const inviteAcademyAdminHandler = async (data) => {
+const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyName } = data;
 
   const academyAdminInvitation = await db.invitation.create({
@@ -19,6 +20,12 @@ const inviteAcademyAdminHandler = async (data) => {
       },
       email,
       type: 'CREATE_ACADEMY',
+      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
+      createdBy: {
+        connect: {
+          id: loggedInUser.id,
+        },
+      },
     },
     select: {
       id: true,
@@ -26,6 +33,7 @@ const inviteAcademyAdminHandler = async (data) => {
       type: true,
       status: true,
       data: true,
+      createdBy: true,
     },
   });
 
@@ -37,7 +45,54 @@ const inviteAcademyAdminHandler = async (data) => {
     '3d'
   );
 
-  logger.info(token);
+  const ACTIVATION_URL = `${
+    config.frontendUrl
+  }/accept-invite?type=CREATE_ACADEMY&name=${encodeURIComponent(
+    academyName
+  )}&token=${token}`;
+
+  const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: {
+      name: 'Chess in Chunks',
+      link: config.frontendUrl,
+    },
+  });
+
+  const emailContent = {
+    body: {
+      name: `${firstName} ${lastName}`,
+      intro: 'You are invited to join our academy as an admin!',
+      action: {
+        instructions:
+          'To accept this invitation, please click the button below:',
+        button: {
+          color: '#22BC66',
+          text: 'Accept Invitation',
+          link: ACTIVATION_URL,
+        },
+      },
+      outro: 'If you have any questions, feel free to reply to this email.',
+    },
+  };
+
+  const emailBody = mailGenerator.generate(emailContent);
+  const emailText = mailGenerator.generatePlaintext(emailContent);
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Academy Admin Invitation',
+    html: emailBody,
+    text: emailText,
+  };
+
+  await sendMail(
+    email,
+    mailOptions.subject,
+    mailOptions.text,
+    mailOptions.html
+  );
 
   return academyAdminInvitation;
 };
@@ -158,36 +213,54 @@ const fetchAllAdminsByAcademyId = async (page, limit, academyId) => {
   return allAdmins;
 };
 
-const fetchAllInvitationsHandler = async (page, limit, type) => {
-  const allInvitations = await db.invitation.findMany({
-    where: {
-      type,
-    },
-    select: {
-      id: true,
-      type: true,
-      email: true,
-      data: true,
-      status: true,
-    },
+const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
+  const numberPage = Number(page);
+  const numberLimit = Number(limit);
+
+  const user = await db.user.findUnique({
+    where: { id: loggedInUser.id },
+    include: { adminOfAcademies: true },
   });
 
-  return allInvitations;
-};
+  let allAcademies = [];
 
-const fetchAllAcademiesHandler = async (page, limit) => {
-  const allAcademies = await db.academy.findMany({
-    select: {
-      id: true,
-      name: true,
-      batches: {
-        select: {
-          id: true,
-          batchId: true,
-        },
+  if (user.role === 'SUPER_ADMIN') {
+    allAcademies = await db.academy.findMany({
+      skip: (numberPage - 1) * numberLimit,
+      take: numberLimit,
+      where: {
+        name: { contains: query },
       },
-    },
-  });
+      select: {
+        id: true,
+        name: true,
+        _count: {
+          select: { batches: true, admins: true },
+        },
+        createdAt: true,
+      },
+    });
+  } else if (user.role === 'ADMIN') {
+    const academyIDs = user.adminOfAcademies.map((el) => el.id);
+
+    allAcademies = await db.academy.findMany({
+      skip: (numberPage - 1) * numberLimit,
+      take: numberLimit,
+      where: {
+        id: { in: academyIDs },
+        name: { contains: query },
+      },
+      select: {
+        id: true,
+        name: true,
+        _count: {
+          select: { batches: true, admins: true },
+        },
+        createdAt: true,
+      },
+    });
+  }
+
   return allAcademies;
 };
 
@@ -309,7 +382,6 @@ const superAdminService = {
   inviteAcademyAdminHandler,
   verifyAcademyAdminHandler,
   fetchAllAdminsByAcademyId,
-  fetchAllInvitationsHandler,
   fetchAllAcademiesHandler,
   fetchAllUsersHandler,
 };

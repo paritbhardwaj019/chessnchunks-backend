@@ -17,10 +17,8 @@ const deleteBatchHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(deletedBatch);
 });
 
-const fetchAllBatchesByAcademyId = catchAsync(async (req, res) => {
-  const allBatches = await batchService.fetchAllBatchesByAcademyId(
-    req.query.academyId
-  );
+const fetchAllBatches = catchAsync(async (req, res) => {
+  const allBatches = await batchService.fetchAllBatches(req.user);
 
   res.status(httpStatus.OK).send(allBatches);
 });
@@ -29,7 +27,7 @@ const batchController = {
   createBatchHandler,
   updateBatchHandler,
   deleteBatchHandler,
-  fetchAllBatchesByAcademyId,
+  fetchAllBatches,
 };
 
 module.exports = batchController;

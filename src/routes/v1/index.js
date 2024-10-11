@@ -9,6 +9,9 @@ const batchRouter = require('./batch.route');
 const authRouter = require('./auth.route');
 const studentRouter = require('./student.route');
 const invitationRouter = require('./invitation.route');
+const userRouter = require('./user.route');
+const dashboardRouter = require('./dashboard.route');
+const goalRouter = require('./goal.route');
 
 // New imports for communication features
 const messageRouter = require('./messageRouter');
@@ -27,6 +30,9 @@ router.use('/batch', batchRouter);
 router.use('/auth', authRouter);
 router.use('/student', studentRouter);
 router.use('/invitation', invitationRouter);
+router.use('/user', userRouter);
+router.use('/dashboard', dashboardRouter);
+router.use('/goal', goalRouter);
 
 // Register new routes for communication features
 router.use('/messages', messageRouter); // Routes for messaging system

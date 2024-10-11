@@ -3,7 +3,10 @@ const studentService = require('../services/student.service');
 const catchAsync = require('../utils/catchAsync');
 
 const inviteStudentHandler = catchAsync(async (req, res) => {
-  const studentInvitation = await studentService.inviteStudentHandler(req.body);
+  const studentInvitation = await studentService.inviteStudentHandler(
+    req.body,
+    req.user
+  );
   res.status(httpStatus.OK).send(studentInvitation);
 });
 

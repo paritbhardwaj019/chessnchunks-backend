@@ -1,10 +1,19 @@
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
-const codeGenerator = require('otp-generator');
+const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 
 const createBatchHandler = async (data) => {
-  const { studentCapacity, description, academyId } = data;
+  const {
+    studentCapacity,
+    description,
+    academyId,
+    warningCutoff,
+    currentClass,
+  } = data;
+
+  const newStartDate = new Date(data.startDate);
+  const newEndDate = new Date(data.endDate);
 
   const academy = await db.academy.findUnique({
     where: {
@@ -12,31 +21,36 @@ const createBatchHandler = async (data) => {
     },
   });
 
-  if (!academy)
+  if (!academy) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Academy not found!');
+  }
 
-  const batchId = codeGenerator.generate(10, {
-    upperCaseAlphabets: true,
-    lowerCaseAlphabets: false,
-    digits: true,
-    specialChars: false,
+  const allBatchesCount = await db.batch.count({
+    where: {
+      academy: {
+        id: academyId,
+      },
+    },
   });
+
+  const batchCode = formatNumberWithPrefix('B', allBatchesCount);
 
   const batch = await db.batch.create({
     data: {
-      studentCapacity,
+      studentCapacity: Number(studentCapacity),
       description,
       academy: {
         connect: {
           id: academyId,
         },
       },
-      batchId,
-    },
-    select: {
-      id: true,
-      batchId: true,
-      studentCapacity: true,
+      batchCode,
+      warningCutoff: Number(warningCutoff),
+      currentClass,
+      startLevel: '1',
+      currentLevel: '100',
+      startDate: newStartDate,
+      endDate: newEndDate,
     },
   });
 
@@ -70,15 +84,34 @@ const deleteBatchHandler = async (id) => {
   return {};
 };
 
-const fetchAllBatchesByAcademyId = async (academyId) => {
+const fetchAllBatches = async (loggedInUser) => {
+  let batchFilter = {};
+
+  if (loggedInUser.role === 'ADMIN') {
+    batchFilter = {
+      academy: {
+        admins: {
+          some: {
+            id: loggedInUser.id,
+          },
+        },
+      },
+    };
+  } else if (loggedInUser.role === 'COACH') {
+    batchFilter = {
+      coaches: {
+        some: {
+          id: loggedInUser.id,
+        },
+      },
+    };
+  }
+
   const allBatches = await db.batch.findMany({
-    where: {
-      academyId: academyId,
-    },
     select: {
-      batchId: true,
       id: true,
       studentCapacity: true,
+      batchCode: true,
       students: {
         select: {
           email: true,
@@ -116,7 +149,7 @@ const batchService = {
   createBatchHandler,
   updateBatchHandler,
   deleteBatchHandler,
-  fetchAllBatchesByAcademyId,
+  fetchAllBatches,
 };
 
 module.exports = batchService;

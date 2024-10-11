@@ -5,7 +5,7 @@ const _ = require('lodash');
 
 const inviteAcademyAdminHandler = catchAsync(async (req, res) => {
   const academyAdminInvitation =
-    await superAdminService.inviteAcademyAdminHandler(req.body);
+    await superAdminService.inviteAcademyAdminHandler(req.body, req.user);
 
   res.status(httpStatus.CREATED).send(academyAdminInvitation);
 });
@@ -18,11 +18,11 @@ const verifyAcademyAdminHandler = catchAsync(async (req, res) => {
 });
 
 const fetchAllAdminsByAcademyId = catchAsync(async (req, res) => {
-  const { page = 1, limit = 10, academyId } = _.pick(req.query, [
-    'page',
-    'limit',
-    'academyId',
-  ]);
+  const {
+    page = 1,
+    limit = 10,
+    academyId,
+  } = _.pick(req.query, ['page', 'limit', 'academyId']);
 
   const result = await superAdminService.fetchAllAdminsByAcademyId(
     page,
@@ -33,50 +33,24 @@ const fetchAllAdminsByAcademyId = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(result);
 });
 
-
-const fetchAllInvitationsHandler = catchAsync(async (req, res) => {
-  const { page, limit, type } = _.pick(req.query, ['page', 'limit', 'type']);
-
-  const allInvitations = await superAdminService.fetchAllInvitationsHandler(
-    page,
-    limit,
-    type
-  );
-
-  res.status(httpStatus.OK).send(allInvitations);
-});
-
 const fetchAllAcademiesHandler = catchAsync(async (req, res) => {
-  const { page, limit } = _.pick(req.query, ['page', 'limit']);
-
-  const allAcademies = await superAdminService.fetchAllAcademiesHandler(
-    page,
-    limit
-  );
-
-  res.status(httpStatus.OK).send(allAcademies);
-});
-
-const fetchAllUsersHandler = catchAsync(async (req, res) => {
   const { page, limit, query } = _.pick(req.query, ['page', 'limit', 'query']);
 
-  const allUsers = await superAdminService.fetchAllUsersHandler(
+  const allAcademies = await superAdminService.fetchAllAcademiesHandler(
     page,
     limit,
     query,
     req.user
   );
 
-  res.status(httpStatus.OK).send(allUsers);
+  res.status(httpStatus.OK).send(allAcademies);
 });
 
 const superAdminController = {
   inviteAcademyAdminHandler,
   verifyAcademyAdminHandler,
   fetchAllAdminsByAcademyId,
-  fetchAllInvitationsHandler,
   fetchAllAcademiesHandler,
-  fetchAllUsersHandler,
 };
 
 module.exports = superAdminController;

@@ -22,6 +22,9 @@ model User {
 
   subscriptions Subscription[]
 
+   studentGoals  StudentWeeklyGoal[]
+   invitationsCreated Invitation[]
+
   // Updated relations
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
@@ -79,15 +82,25 @@ model Academy {
 model Batch {
   id String @id @default(uuid())
 
-  batchId   String
+  batchCode   String
+  description String?
+
+  studentCapacity Int
+  warningCutoff   Int
+  currentClass    String
+  startLevel      String
+  currentLevel    String
+
   academyId String
   academy   Academy @relation(fields: [academyId], references: [id])
 
   coaches  User[] @relation("BatchCoaches")
   students User[] @relation("BatchStudents")
 
-  studentCapacity Int
-  description     String?
+  goals SeasonalGoal[]
+
+  startDate DateTime
+  endDate   DateTime
 
   // New relation
   channels Channel[]
@@ -110,6 +123,9 @@ model Invitation {
 
   status INVITATION_STATUS @default(PENDING)
 
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -120,7 +136,8 @@ model Code {
   id    String @id @default(uuid())
   email String
 
-  code      String
+  code String
+
   expiresAt DateTime
 
   type CODE_TYPE
@@ -278,6 +295,86 @@ model ChannelMessage {
 
   @@map("channel_messages")
 }
+model StudentWeeklyGoal {
+  id            String     @id @default(uuid())
+  studentId     String
+  weeklyGoalId  String
+  puzzlesTarget Int
+  puzzlesSolved Int
+  puzzlesPassed Int
+  student       User       @relation(fields: [studentId], references: [id])
+  weeklyGoal    WeeklyGoal @relation(fields: [weeklyGoalId], references: [id])
+  createdAt     DateTime   @default(now())
+  isCustom      Boolean    @default(false)
+
+  @@map("studentweeklygoals")
+}
+
+model WeeklyGoal {
+  id            String              @id @default(uuid())
+  startDate     DateTime
+  endDate       DateTime
+  
+  targetId      String
+  target        Target              @relation(fields: [targetId], references: [id])
+
+  monthlyGoalId String
+  monthlyGoal   MonthlyGoal         @relation(fields: [monthlyGoalId], references: [id])
+  studentGoals  StudentWeeklyGoal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("weeklygoals")
+}
+
+model Target {
+  id            String              @id @default(uuid())
+  noOfGames     Int
+  minReviews    Int
+  midReviews    Int
+  maxReviews    Int
+
+  weeklyGoals   WeeklyGoal[]        
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MonthlyGoal {
+  id             String       @id @default(uuid())
+  startDate      DateTime
+  endDate        DateTime
+  seasonalGoalId String
+  seasonalGoal   SeasonalGoal @relation(fields: [seasonalGoalId], references: [id])
+  weeklyGoals    WeeklyGoal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("monthlygoals")
+}
+
+model SeasonalGoal {
+  id String @id @default(uuid())
+
+  startDate         DateTime
+  endDate           DateTime
+
+  batchId           String
+  batch             Batch         @relation(fields: [batchId], references: [id])
+  monthlyGoals      MonthlyGoal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("seasonalgoals")
+}
+
+enum GOAL_CATEGORY {
+  GAMES
+  PUZZLES
+}
 
 enum PLAN_TYPE {
   ACADEMY
@@ -293,6 +390,7 @@ enum INVITATION_TYPE {
   CREATE_ACADEMY
   BATCH_STUDENT
   BATCH_COACH
+  USER_INVITATION
 }
 
 enum INVITATION_STATUS {

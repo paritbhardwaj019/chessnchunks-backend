@@ -1,10 +1,11 @@
 const config = require('../config');
+const ApiError = require('../utils/apiError');
 const logger = require('../utils/logger');
 
-function errorHandler(err, req, res, next) {
-  const { statusCode = 500, message } = err;
-
-  console.log(err);
+function errorHandler(err, _, res, _) {
+  const statusCode = err instanceof ApiError ? err.statusCode : 500;
+  const message =
+    err instanceof ApiError ? err.message : 'Internal Server Error';
 
   const response = {
     statusCode,
@@ -17,7 +18,6 @@ function errorHandler(err, req, res, next) {
   }
 
   res.status(statusCode).json(response);
-  next();
 }
 
 module.exports = errorHandler;

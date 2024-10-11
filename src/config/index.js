@@ -13,7 +13,9 @@ const config = {
   jwt: {
     invitationSecret: process.env.INVITATION_SECRET,
     secret: process.env.JWT_SECRET,
+    resetPasswordSecret: process.env.RESET_PASSWORD_SECRET,
   },
+  frontendUrl: process.env.FRONTEND_URL,
 };
 
 module.exports = config;
