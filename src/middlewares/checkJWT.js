@@ -1,7 +1,9 @@
+// middlewares/checkJWT.js
+
 const httpStatus = require('http-status');
 const jwt = require('jsonwebtoken');
-const db = require('../database/prisma'); // Adjust the path to your Prisma client
-const ApiError = require('../utils/apiError'); // Custom error handler (if you have one)
+const db = require('../database/prisma');
+const ApiError = require('../utils/apiError');
 
 async function checkJWT(req, res, next) {
   try {
@@ -16,18 +18,18 @@ async function checkJWT(req, res, next) {
 
     // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('Decoded Token:', decoded);  // Debugging output
+    console.log('Decoded Token:', decoded);
 
     // Fetch the user from the database using decoded.id
     const user = await db.user.findUnique({
-      where: { id: decoded.id },  // Use `decoded.id` instead of `decoded.sub`
+      where: { id: decoded.id }, // Ensure this matches your token payload structure
       include: {
         studentOfBatches: true,
         coachOfBatches: true,
       },
     });
 
-    console.log('Database User Query Result:', user); 
+    console.log('Database User Query Result:', user);
 
     if (!user) {
       return res.status(httpStatus.UNAUTHORIZED).json({
@@ -42,7 +44,7 @@ async function checkJWT(req, res, next) {
 
     next();
   } catch (err) {
-    console.error('JWT Verification Error:', err.message); // Log the error for debugging
+    console.error('JWT Verification Error:', err.message);
 
     // Handle specific JWT errors
     if (err.name === 'TokenExpiredError') {

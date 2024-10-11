@@ -1,7 +1,9 @@
+// controllers/channelController.js
+
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const channelService = require('../services/channel.service');
-const { io } = require('../app');
+const { io } = require('../index'); // Ensure io is imported correctly
 
 const createChannel = catchAsync(async (req, res) => {
   const creatorId = req.user.id;
@@ -38,8 +40,8 @@ const joinChannel = catchAsync(async (req, res) => {
 
   await channelService.joinChannel({ userId, channelId });
 
-  // Join the Socket.IO room
-  req.socket.join(`channel-${channelId}`);
+  // Notify the user to join the channel via Socket.IO
+  io.to(`user-${userId}`).emit('join_channel', { channelId });
 
   res.status(httpStatus.OK).send({ message: 'Joined channel successfully' });
 });

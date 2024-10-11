@@ -1,3 +1,5 @@
+// services/chat.service.js
+
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');

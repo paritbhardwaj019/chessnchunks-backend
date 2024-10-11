@@ -1,7 +1,9 @@
+// controllers/chatController.js
+
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const chatService = require('../services/chat.service');
-const { io } = require('../app');
+const { io } = require('../index'); // Ensure io is imported correctly
 
 const sendChatMessage = catchAsync(async (req, res) => {
   const senderId = req.user.id;

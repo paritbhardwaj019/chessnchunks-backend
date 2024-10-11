@@ -1,8 +1,10 @@
+// services/message.service.js
+
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
-const logger = require('../utils/logger'); // Assuming you have a logger utility
-
+const logger = require('../utils/logger');
+const socket = require('../socket');
 // Send a broadcast message from coach to students in a batch
 const sendBroadcastMessage = async ({ senderId, batchId, studentIds, content, isEmail }) => {
   logger.info(`Broadcast message initiated by user: ${senderId} for batch: ${batchId}`);
@@ -120,6 +122,9 @@ const sendMessage = async ({ senderId, receiverId, content }) => {
       content,
     },
   });
+
+ // const io = socket.getIO(); // Get the Socket.IO instance
+ // io.to(`user-${receiverId}`).emit('new_message', message);
 
   logger.info(`Message sent from User: ${senderId} to User: ${receiverId}`);
   return message;
