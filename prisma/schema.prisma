@@ -25,14 +25,12 @@ model User {
    studentGoals  StudentWeeklyGoal[]
    invitationsCreated Invitation[]
 
-  // Updated relations
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
 
   sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
   receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
 
-  // Corrected Self-referential many-to-many relation for friends
   friends         User[] @relation("UserFriends")
   friendRelations User[] @relation("UserFriends")
 
@@ -102,7 +100,6 @@ model Batch {
   startDate DateTime
   endDate   DateTime
 
-  // New relation
   channels Channel[]
 
   createdAt DateTime  @default(now())
@@ -299,9 +296,9 @@ model StudentWeeklyGoal {
   id            String     @id @default(uuid())
   studentId     String
   weeklyGoalId  String
-  puzzlesTarget Int
-  puzzlesSolved Int
-  puzzlesPassed Int
+  puzzlesTarget Int? @default(0)
+  puzzlesSolved Int? @default(0)
+  puzzlesPassed Int? @default(0)
   student       User       @relation(fields: [studentId], references: [id])
   weeklyGoal    WeeklyGoal @relation(fields: [weeklyGoalId], references: [id])
   createdAt     DateTime   @default(now())
@@ -339,6 +336,8 @@ model Target {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("targets")
 }
 
 model MonthlyGoal {

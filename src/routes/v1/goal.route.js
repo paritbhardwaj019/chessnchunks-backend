@@ -33,4 +33,25 @@ goalRouter.post(
   goalController.createWeeklyGoalHandler
 );
 
+goalRouter.get(
+  '/seasonal-goals',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.getAllSeasonalGoalsHandler
+);
+
+goalRouter.get(
+  '/monthly-goals',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.getAllMonthlyGoalsHandler
+);
+
+goalRouter.get(
+  '/weekly-goals',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.getAllWeeklyGoalsHandler
+);
+
 module.exports = goalRouter;
