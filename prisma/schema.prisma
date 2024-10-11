@@ -20,13 +20,29 @@ model User {
   studentOfBatches Batch[]   @relation("BatchStudents")
   adminOfAcademies Academy[] @relation("AcademyAdmins")
 
-  invitationsCreated Invitation[]
-
   subscriptions Subscription[]
-  studentGoals  StudentWeeklyGoal[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+   studentGoals  StudentWeeklyGoal[]
+   invitationsCreated Invitation[]
+
+  // Updated relations
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+
+  sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
+  receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
+
+  // Corrected Self-referential many-to-many relation for friends
+  friends         User[] @relation("UserFriends")
+  friendRelations User[] @relation("UserFriends")
+
+  notifications Notification[]
+
+  channels Channel[] @relation("ChannelMembers")
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  ChannelMessage ChannelMessage[]
 
   @@map("users")
 }
@@ -54,7 +70,7 @@ model Academy {
   planId String?
   plan   Plan?   @relation(fields: [planId], references: [id])
 
-  subsriptions   Subscription[]
+  subscriptions  Subscription[]
   purchasedPlans PurchasedPlan[]
 
   createdAt DateTime @default(now())
@@ -86,8 +102,12 @@ model Batch {
   startDate DateTime
   endDate   DateTime
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // New relation
+  channels Channel[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Message   Message[]
 
   @@map("batches")
 }
@@ -152,9 +172,9 @@ model Plan {
   priceMonthly Float
   priceYearly  Float?
 
-  academies     Academy[]
-  subscriptions Subscription[]
-  purchasedPlan PurchasedPlan[]
+  academies      Academy[]
+  subscriptions  Subscription[]
+  purchasedPlans PurchasedPlan[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -200,6 +220,81 @@ model PurchasedPlan {
   @@map("purchasedplans")
 }
 
+model Message {
+  id             String   @id @default(uuid())
+  senderId       String
+  receiverId     String?
+  content        String
+  isRead         Boolean  @default(false)
+  isReplyAllowed Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  sender   User  @relation("SentMessages", fields: [senderId], references: [id])
+  receiver User? @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  // For broadcast messages to a batch
+  batchId String?
+  batch   Batch?  @relation(fields: [batchId], references: [id])
+
+  @@map("messages")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model FriendRequest {
+  id         String                @id @default(uuid())
+  senderId   String
+  receiverId String
+  status     FRIEND_REQUEST_STATUS @default(PENDING)
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+
+  sender   User @relation("SentFriendRequests", fields: [senderId], references: [id])
+  receiver User @relation("ReceivedFriendRequests", fields: [receiverId], references: [id])
+
+  @@map("friend_requests")
+}
+
+model Channel {
+  id          String   @id @default(uuid())
+  name        String
+  isBroadcast Boolean  @default(false)
+  batchId     String? // Optional, if the channel is batch-specific
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  batch   Batch? @relation(fields: [batchId], references: [id])
+  members User[] @relation("ChannelMembers")
+
+  messages ChannelMessage[]
+
+  @@map("channels")
+}
+
+model ChannelMessage {
+  id        String   @id @default(uuid())
+  channelId String
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  channel Channel @relation(fields: [channelId], references: [id])
+  sender  User    @relation(fields: [senderId], references: [id])
+
+  @@map("channel_messages")
+}
 model StudentWeeklyGoal {
   id            String     @id @default(uuid())
   studentId     String
@@ -319,4 +414,10 @@ enum COACH_ROLE {
   JUNIOR_COACH
   PUZZLE_MASTER
   PUZZLE_MASTER_SCHOLAR
+}
+
+enum FRIEND_REQUEST_STATUS {
+  PENDING
+  ACCEPTED
+  REJECTED
 }

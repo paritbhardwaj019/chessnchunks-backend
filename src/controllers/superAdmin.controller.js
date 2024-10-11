@@ -18,19 +18,19 @@ const verifyAcademyAdminHandler = catchAsync(async (req, res) => {
 });
 
 const fetchAllAdminsByAcademyId = catchAsync(async (req, res) => {
-  const { page, limit, academyId } = _.pick(req.query, [
-    'page',
-    'limit',
-    'academyId',
-  ]);
+  const {
+    page = 1,
+    limit = 10,
+    academyId,
+  } = _.pick(req.query, ['page', 'limit', 'academyId']);
 
-  const allUsers = await superAdminService.fetchAllAdminsByAcademyId(
+  const result = await superAdminService.fetchAllAdminsByAcademyId(
     page,
     limit,
     academyId
   );
 
-  res.status(httpStatus.OK).send(allUsers);
+  res.status(httpStatus.OK).send(result);
 });
 
 const fetchAllAcademiesHandler = catchAsync(async (req, res) => {
