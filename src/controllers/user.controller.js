@@ -16,8 +16,14 @@ const fetchAllUsersHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(allUsers);
 });
 
+const signUpSubscriberHandler = catchAsync(async (req, res) => {
+  const newSubscriber = await userService.signUpSubscriberHandler(req.body);
+  res.status(httpStatus.CREATED).send(newSubscriber);
+});
+
 const userController = {
   fetchAllUsersHandler,
+  signUpSubscriberHandler,
 };
 
 module.exports = userController;
