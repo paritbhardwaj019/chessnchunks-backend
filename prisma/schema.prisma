@@ -51,7 +51,7 @@ model Profile {
   firstName     String
   middleName    String?
   lastName      String
-  dob           DateTime
+  dob           DateTime?
   phoneNumber   String?
   addressLine1  String?
   addressLine2  String?

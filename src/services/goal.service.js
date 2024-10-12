@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
+const FPDF = require('fpdf'); // Ensure you use a compatible PDF generation library
 
 const createSeasonalGoalHandler = async (data) => {
   const { startDate, endDate, batchId } = data;
@@ -37,8 +38,6 @@ const createSeasonalGoalHandler = async (data) => {
 
 const createMonthlyGoalHandler = async (data) => {
   const { seasonalGoalId, startDate, endDate, batchId } = data;
-
-  console.log('MONTHLY DATA', data);
 
   const newStartDate = new Date(startDate);
   const newEndDate = new Date(endDate);
@@ -139,11 +138,9 @@ const assignWeeklyGoalHandler = async (data) => {
     select: { students: { select: { id: true } } },
   });
 
-  if (!foundBatch || foundBatch.students.length < 1)
-    throw new ApiError(
-      httpStatus.NOT_FOUND,
-      'No students found in the specified batch'
-    );
+  if (!foundBatch || foundBatch.students.length < 1) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'No students found in the specified batch');
+  }
 
   const allStudentsData = foundBatch.students.map((el) => ({
     studentId: el.id,
@@ -240,10 +237,6 @@ const getAllSeasonalGoalsHandler = async (page, limit, query, loggedInUser) => {
   return seasonalGoals;
 };
 
-/**
- * Get all monthly goals with a count of weekly goals.
- * Supports filtering by seasonalGoalId.
- */
 const getAllMonthlyGoalsHandler = async (page, limit, query, loggedInUser) => {
   const numberPage = Number(page) || 1;
   const numberLimit = Number(limit) || 10;
@@ -308,11 +301,6 @@ const getAllMonthlyGoalsHandler = async (page, limit, query, loggedInUser) => {
 
   return monthlyGoals;
 };
-
-/**
- * Get all weekly goals.
- * Supports filtering by monthlyGoalId.
- */
 
 const getAllWeeklyGoalsHandler = async (page, limit, query, loggedInUser) => {
   const numberPage = Number(page) || 1;
@@ -380,230 +368,16 @@ const getAllWeeklyGoalsHandler = async (page, limit, query, loggedInUser) => {
   return weeklyGoals;
 };
 
-const getSeasonalGoalsForOptions = async (batchId) => {
-  const seasonalGoals = await db.seasonalGoal.findMany({
-    where: {
-      batchId,
-    },
-    select: {
-      id: true,
-      code: true,
-    },
-  });
-
-  return seasonalGoals;
-};
-
-const getMonthlyGoalsForOptions = async (seasonalGoalId) => {
-  const monthlyGoals = await db.monthlyGoal.findMany({
-    where: {
-      seasonalGoalId: seasonalGoalId,
-    },
-    select: {
-      id: true,
-      code: true,
-    },
-  });
-
-  return monthlyGoals;
-};
-const getWeeklyGoalsForOptions = async (batchId, monthlyGoalId) => {
-  const whereClause = {};
-
-  console.log(batchId, monthlyGoalId);
-
-  if (batchId && monthlyGoalId) {
-    whereClause.batchId = batchId;
-    whereClause.monthlyGoalId = monthlyGoalId;
-  } else if (batchId) {
-    whereClause.batchId = batchId;
-  } else if (monthlyGoalId) {
-    whereClause.monthlyGoalId = monthlyGoalId;
-  }
-
-  console.log(whereClause);
-
-  const weeklyGoals = await db.weeklyGoal.findMany({
-    where: whereClause,
-    select: {
-      id: true,
-      code: true,
-    },
-  });
-
-  console.log(weeklyGoals);
-
-  return weeklyGoals;
-};
-
-const fetchAllStudentAssignedWeeklyGoalsHandler = async (
-  page,
-  limit,
-  query,
-  loggedInUser
-) => {
-  const numberPage = parseInt(page) || 1;
-  const numberLimit = parseInt(limit) || 10;
-
-  const skip = (numberPage - 1) * numberLimit;
-
-  const userWithRelations = await db.user.findUnique({
-    where: { id: loggedInUser.id },
+const generateStudentPDFReport = async ({ studentId, seasonId, currentDate }) => {
+  const season = await db.seasonalGoal.findUnique({
+    where: { id: seasonId },
     include: {
-      adminOfAcademies: {
-        select: { id: true },
-      },
-      coachOfBatches: {
-        select: { id: true },
-      },
-    },
-  });
-
-  if (!userWithRelations) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
-
-  let whereClause = {};
-
-  switch (userWithRelations.role) {
-    case 'SUPER_ADMIN':
-      whereClause = {
-        AND: [
-          {
-            OR: [
-              {
-                code: {
-                  contains: query,
-                  mode: 'insensitive',
-                },
-              },
-              {
-                startDate: {
-                  gte: query ? new Date(query) : undefined,
-                },
-              },
-              {
-                endDate: {
-                  lte: query ? new Date(query) : undefined,
-                },
-              },
-            ],
-          },
-        ],
-      };
-      break;
-
-    case 'ADMIN':
-      const adminAcademyIds = userWithRelations.adminOfAcademies.map(
-        (academy) => academy.id
-      );
-
-      whereClause = {
-        AND: [
-          {
-            OR: [
-              {
-                code: {
-                  contains: query,
-                  mode: 'insensitive',
-                },
-              },
-              {
-                startDate: {
-                  gte: query ? new Date(query) : undefined,
-                },
-              },
-              {
-                endDate: {
-                  lte: query ? new Date(query) : undefined,
-                },
-              },
-            ],
-          },
-          {
-            seasonalGoal: {
-              batch: {
-                academyId: {
-                  in: adminAcademyIds,
-                },
-              },
-            },
-          },
-        ],
-      };
-      break;
-
-    case 'COACH':
-      const coachBatchIds = userWithRelations.coachOfBatches.map(
-        (batch) => batch.id
-      );
-
-      whereClause = {
-        AND: [
-          {
-            OR: [
-              {
-                code: {
-                  contains: query,
-                  mode: 'insensitive',
-                },
-              },
-              {
-                startDate: {
-                  gte: query ? new Date(query) : undefined,
-                },
-              },
-              {
-                endDate: {
-                  lte: query ? new Date(query) : undefined,
-                },
-              },
-            ],
-          },
-          {
-            seasonalGoal: {
-              batchId: {
-                in: coachBatchIds,
-              },
-            },
-          },
-        ],
-      };
-      break;
-
-    default:
-      throw new ApiError(httpStatus.UNAUTHORIZED, 'Access denied');
-  }
-
-  const total = await db.weeklyGoal.count({
-    where: whereClause,
-  });
-
-  const weeklyGoals = await db.weeklyGoal.findMany({
-    where: whereClause,
-    skip,
-    take: limit,
-    include: {
-      seasonalGoal: {
+      monthlyGoals: {
         include: {
-          batch: {
+          weeklyGoals: {
             include: {
-              academy: true,
-            },
-          },
-        },
-      },
-      studentGoals: {
-        include: {
-          student: {
-            select: {
-              id: true,
-              email: true,
-              profile: {
-                select: {
-                  firstName: true,
-                  lastName: true,
-                },
+              studentGoals: {
+                where: { studentId },
               },
             },
           },
@@ -612,58 +386,86 @@ const fetchAllStudentAssignedWeeklyGoalsHandler = async (
     },
   });
 
-  const formattedGoals = weeklyGoals.map((goal) => ({
-    id: goal.id,
-    code: goal.code,
-    startDate: goal.startDate,
-    endDate: goal.endDate,
-    seasonalGoal: {
-      id: goal.seasonalGoal.id,
-      code: goal.seasonalGoal.code,
-      batch: {
-        id: goal.seasonalGoal.batch.id,
-        batchCode: goal.seasonalGoal.batch.batchCode,
-        academy: {
-          id: goal.seasonalGoal.batch.academy.id,
-          name: goal.seasonalGoal.batch.academy.name,
-        },
-      },
-    },
-    studentGoals: goal.studentGoals.map((sg) => ({
-      id: sg.id,
-      puzzlesTarget: sg.puzzlesTarget,
-      puzzlesSolved: sg.puzzlesSolved,
-      puzzlesPassed: sg.puzzlesPassed,
-      student: {
-        id: sg.student.id,
-        email: sg.student.email,
-        firstName: sg.student.profile?.firstName,
-        lastName: sg.student.profile?.lastName,
-      },
-    })),
-  }));
+  if (!season) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Season not found');
+  }
 
-  return {
-    data: formattedGoals,
-    total,
-    page,
-    limit,
-    totalPages: Math.ceil(total / limit),
+  let totalGamesGoal = 0;
+  let totalGamesPlayed = 0;
+  let totalPuzzlesGoal = 0;
+  let totalPuzzlesPlayed = 0;
+  let totalPuzzlesPassed = 0;
+
+  for (const monthlyGoal of season.monthlyGoals) {
+    for (const weeklyGoal of monthlyGoal.weeklyGoals) {
+      const studentGoal = weeklyGoal.studentGoals[0];
+      
+      const gamesTarget = weeklyGoal.target?.noOfGames || 0;
+      const puzzlesTarget = weeklyGoal.target?.noOfPuzzles || 0;
+      
+      totalGamesGoal += gamesTarget;
+      totalGamesPlayed += studentGoal ? studentGoal.gamesPlayed : 0;
+      
+      totalPuzzlesGoal += puzzlesTarget;
+      totalPuzzlesPlayed += studentGoal ? studentGoal.puzzlesSolved : 0;
+      totalPuzzlesPassed += studentGoal ? studentGoal.puzzlesPassed : 0;
+    }
+  }
+
+  const completionPercentage = (totalGamesPlayed / totalGamesGoal) * 100 || 0;
+  const puzzlePassPercentage = (totalPuzzlesPassed / totalPuzzlesGoal) * 100 || 0;
+  const passStatus = puzzlePassPercentage >= season.minPassPercentage;
+
+  const reportData = {
+    studentId,
+    seasonCode: season.code,
+    totalGamesGoal,
+    totalGamesPlayed,
+    totalPuzzlesGoal,
+    totalPuzzlesPlayed,
+    totalPuzzlesPassed,
+    completionPercentage: completionPercentage.toFixed(2),
+    puzzlePassPercentage: puzzlePassPercentage.toFixed(2),
+    passStatus: passStatus ? "Passed" : "Failed"
   };
+
+  // Now, generate PDF report using FPDF (or a compatible library)
+  const FPDF = require('fpdf'); // Make sure you install fpdf or use an equivalent PDF generation library
+  const pdf = new FPDF();
+  pdf.addPage();
+  
+  // Add report data to PDF
+  pdf.setFont("Arial", "B", 16);
+  pdf.cell(200, 10, "Student Performance Report", 0, 1, "C");
+  
+  pdf.setFont("Arial", "", 12);
+  pdf.ln(10);  // Line break
+  pdf.cell(200, 10, `Student ID: ${reportData.studentId}`, 0, 1);
+  pdf.cell(200, 10, `Season Code: ${reportData.seasonCode}`, 0, 1);
+  pdf.cell(200, 10, `Total Games Goal: ${reportData.totalGamesGoal}`, 0, 1);
+  pdf.cell(200, 10, `Total Games Played: ${reportData.totalGamesPlayed}`, 0, 1);
+  pdf.cell(200, 10, `Total Puzzles Goal: ${reportData.totalPuzzlesGoal}`, 0, 1);
+  pdf.cell(200, 10, `Total Puzzles Played: ${reportData.totalPuzzlesPlayed}`, 0, 1);
+  pdf.cell(200, 10, `Total Puzzles Passed: ${reportData.totalPuzzlesPassed}`, 0, 1);
+  pdf.cell(200, 10, `Completion Percentage: ${reportData.completionPercentage}%`, 0, 1);
+  pdf.cell(200, 10, `Puzzle Pass Percentage: ${reportData.puzzlePassPercentage}%`, 0, 1);
+  pdf.cell(200, 10, `Pass Status: ${reportData.passStatus}`, 0, 1);
+  
+  const filePath = `./reports/student_performance_report_${reportData.studentId}.pdf`;
+  pdf.output(filePath);  // Save the PDF to the filesystem
+
+  return filePath;
 };
 
-const goalService = {
-  assignWeeklyGoalHandler,
+module.exports = {
   createSeasonalGoalHandler,
   createMonthlyGoalHandler,
   createWeeklyGoalHandler,
+  assignWeeklyGoalHandler,
   getAllSeasonalGoalsHandler,
   getAllMonthlyGoalsHandler,
   getAllWeeklyGoalsHandler,
-  getSeasonalGoalsForOptions,
-  getMonthlyGoalsForOptions,
-  getWeeklyGoalsForOptions,
-  fetchAllStudentAssignedWeeklyGoalsHandler,
+  generateStudentPDFReport,
 };
 
-module.exports = goalService;
+
