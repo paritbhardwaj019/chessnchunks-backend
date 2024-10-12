@@ -7,8 +7,9 @@ module.exports = {
     const socketIo = require('socket.io');
     io = socketIo(server, {
       cors: {
-        origin: '*', // Allow any origin
-        methods: ['GET', 'POST'], // Allow GET and POST methods
+        origin: 'http://localhost:3000', // Your frontend URL
+        methods: ['GET', 'POST'],
+        credentials: true,
       },
     });
     return io;
