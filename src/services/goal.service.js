@@ -413,6 +413,50 @@ const getWeeklyGoalsForOptions = async (monthlyGoalId) => {
   return weeklyGoals;
 };
 
+const editSeasonalGoal = async (id, code, description) => {
+  return await db.seasonalGoal.update({
+    where: { id },
+    data: { code, description },
+  });
+};
+
+// Edit Monthly Goal
+const editMonthlyGoal = async (id, code, description) => {
+  return await db.monthlyGoal.update({
+    where: { id },
+    data: { code, description },
+  });
+};
+
+// Edit Weekly Goal
+const editWeeklyGoal = async (id, code, description) => {
+  return await db.weeklyGoal.update({
+    where: { id },
+    data: { code, description },
+  });
+};
+
+// Delete Seasonal Goal
+const deleteSeasonalGoal = async (id) => {
+  return await db.seasonalGoal.delete({
+    where: { id },
+  });
+};
+
+// Delete Monthly Goal
+const deleteMonthlyGoal = async (id) => {
+  return await db.monthlyGoal.delete({
+    where: { id },
+  });
+};
+
+// Delete Weekly Goal
+const deleteWeeklyGoal = async (id) => {
+  return await db.weeklyGoal.delete({
+    where: { id },
+  });
+};
+
 const goalService = {
   assignWeeklyGoalHandler,
   createSeasonalGoalHandler,
@@ -424,6 +468,12 @@ const goalService = {
   getSeasonalGoalsForOptions,
   getMonthlyGoalsForOptions,
   getWeeklyGoalsForOptions,
+  editSeasonalGoal,
+  editMonthlyGoal,
+  editWeeklyGoal,
+  deleteSeasonalGoal,
+  deleteMonthlyGoal,
+  deleteWeeklyGoal,
 };
 
 module.exports = goalService;

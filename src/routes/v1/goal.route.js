@@ -75,4 +75,44 @@ goalRouter.get(
   goalController.getWeeklyGoalsForOptions
 );
 
+// PATCH routes (for editing goals)
+router.patch(
+  '/seasonal/:id',
+  checkJWT,
+  checkRole('ADMIN', 'SUPER_ADMIN'),
+  goalController.editSeasonalGoalHandler
+);
+router.patch(
+  '/monthly/:id',
+  checkJWT,
+  checkRole('ADMIN', 'SUPER_ADMIN'),
+  goalController.editMonthlyGoalHandler
+);
+router.patch(
+  '/weekly/:id',
+  checkJWT,
+  checkRole('ADMIN', 'SUPER_ADMIN'),
+  goalController.editWeeklyGoalHandler
+);
+
+// DELETE routes (for deleting goals)
+router.delete(
+  '/seasonal/:id',
+  checkJWT,
+  checkRole('ADMIN', 'SUPER_ADMIN'),
+  goalController.deleteSeasonalGoalHandler
+);
+router.delete(
+  '/monthly/:id',
+  checkJWT,
+  checkRole('ADMIN', 'SUPER_ADMIN'),
+  goalController.deleteMonthlyGoalHandler
+);
+router.delete(
+  '/weekly/:id',
+  checkJWT,
+  checkRole('ADMIN', 'SUPER_ADMIN'),
+  goalController.deleteWeeklyGoalHandler
+);
+
 module.exports = goalRouter;
