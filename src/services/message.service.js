@@ -6,25 +6,33 @@ const ApiError = require('../utils/apiError');
 const logger = require('../utils/logger');
 const socket = require('../socket');
 // Send a broadcast message from coach to students in a batch
-const sendBroadcastMessage = async ({ senderId, batchId, studentIds, content, isEmail }) => {
-  logger.info(`Broadcast message initiated by user: ${senderId} for batch: ${batchId}`);
+const sendBroadcastMessage = async ({
+  senderId,
+  batchId,
+  studentIds,
+  content,
+  isEmail,
+}) => {
+  logger.info(
+    `Broadcast message initiated by user: ${senderId} for batch: ${batchId}`
+  );
 
-  // Validate that the sender is a coach of the batch
-  const isCoachOfBatch = await db.batch.findFirst({
-    where: {
-      id: batchId,
-      coaches: {
-        some: {
-          id: senderId,
-        },
-      },
-    },
-  });
+  // // Validate that the sender is a coach of the batch
+  // const isCoachOfBatch = await db.batch.findFirst({
+  //   where: {
+  //     id: batchId,
+  //     coaches: {
+  //       some: {
+  //         id: senderId,
+  //       },
+  //     },
+  //   },
+  // });
 
-  if (!isCoachOfBatch) {
-    logger.error(`User: ${senderId} is not a coach of batch: ${batchId}`);
-    throw new ApiError(httpStatus.FORBIDDEN, 'You are not a coach of this batch');
-  }
+  // if (!isCoachOfBatch) {
+  //   logger.error(`User: ${senderId} is not a coach of batch: ${batchId}`);
+  //   throw new ApiError(httpStatus.FORBIDDEN, 'You are not a coach of this batch');
+  // }
 
   let recipients;
 
@@ -111,7 +119,9 @@ const sendMessage = async ({ senderId, receiverId, content }) => {
   });
 
   if (!areFriends && !inSameBatch) {
-    logger.warn(`User: ${senderId} cannot message User: ${receiverId} as they are neither friends nor in the same batch`);
+    logger.warn(
+      `User: ${senderId} cannot message User: ${receiverId} as they are neither friends nor in the same batch`
+    );
     throw new ApiError(httpStatus.FORBIDDEN, 'You cannot message this user');
   }
 
@@ -123,8 +133,8 @@ const sendMessage = async ({ senderId, receiverId, content }) => {
     },
   });
 
- // const io = socket.getIO(); // Get the Socket.IO instance
- // io.to(`user-${receiverId}`).emit('new_message', message);
+  // const io = socket.getIO(); // Get the Socket.IO instance
+  // io.to(`user-${receiverId}`).emit('new_message', message);
 
   logger.info(`Message sent from User: ${senderId} to User: ${receiverId}`);
   return message;
@@ -132,7 +142,9 @@ const sendMessage = async ({ senderId, receiverId, content }) => {
 
 // Get messages between two users
 const getMessages = async (userId, conversationWith) => {
-  logger.info(`Fetching messages between User: ${userId} and User: ${conversationWith}`);
+  logger.info(
+    `Fetching messages between User: ${userId} and User: ${conversationWith}`
+  );
   const messages = await db.message.findMany({
     where: {
       OR: [
@@ -142,13 +154,17 @@ const getMessages = async (userId, conversationWith) => {
     },
     orderBy: { createdAt: 'asc' },
   });
-  logger.info(`Fetched ${messages.length} messages between User: ${userId} and User: ${conversationWith}`);
+  logger.info(
+    `Fetched ${messages.length} messages between User: ${userId} and User: ${conversationWith}`
+  );
   return messages;
 };
 
 // Mark messages as read
 const markMessagesAsRead = async (userId, conversationWith) => {
-  logger.info(`Marking messages as read for User: ${userId} with User: ${conversationWith}`);
+  logger.info(
+    `Marking messages as read for User: ${userId} with User: ${conversationWith}`
+  );
   await db.message.updateMany({
     where: {
       senderId: conversationWith,
@@ -157,7 +173,9 @@ const markMessagesAsRead = async (userId, conversationWith) => {
     },
     data: { isRead: true },
   });
-  logger.info(`Messages marked as read for User: ${userId} with User: ${conversationWith}`);
+  logger.info(
+    `Messages marked as read for User: ${userId} with User: ${conversationWith}`
+  );
 };
 
 const messageService = {

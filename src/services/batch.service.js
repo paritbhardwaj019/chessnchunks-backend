@@ -108,6 +108,7 @@ const fetchAllBatches = async (loggedInUser) => {
   }
 
   const allBatches = await db.batch.findMany({
+    where: batchFilter,
     select: {
       id: true,
       studentCapacity: true,
@@ -181,6 +182,11 @@ const fetchAllBatchesForOptions = async (loggedInUser) => {
     select: {
       id: true,
       batchCode: true,
+      students: {
+        include: {
+          profile: true,
+        },
+      },
     },
   });
 

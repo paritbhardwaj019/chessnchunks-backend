@@ -18,9 +18,15 @@ const verifyCoachInvitationHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(verifyCoachInvitationData);
 });
 
+const fetchAllCoachesHandler = catchAsync(async (req, res) => {
+  const allCoaches = await coachService.fetchAllCoachesHandler(req.user);
+  res.status(httpStatus.OK).send(allCoaches);
+});
+
 const coachController = {
   inviteCoachHandler,
   verifyCoachInvitationHandler,
+  fetchAllCoachesHandler,
 };
 
 module.exports = coachController;

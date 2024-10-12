@@ -14,7 +14,7 @@ userRouter.get(
 );
 
 userRouter.post(
-  '/signup-subsriber',
+  '/signup-subscriber',
   signupLimiter,
   userController.signUpSubscriberHandler
 );

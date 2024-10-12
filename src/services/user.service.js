@@ -1,5 +1,7 @@
 const db = require('../database/prisma');
+const ApiError = require('../utils/apiError');
 const hashPassword = require('../utils/hashPassword');
+const httpStatus = require('http-status');
 
 const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const numberPage = Number(page);
@@ -152,36 +154,32 @@ const signUpSubscriberHandler = async (data) => {
 
   const newDOB = new Date(dob);
 
-  const result = await db.$transaction(async (prisma) => {
-    const profile = await prisma.profile.create({
-      data: {
-        firstName,
-        lastName,
-        dob: newDOB,
-        phoneNumber,
-        addressLine1,
-        addressLine2,
-        city,
-        state,
-        country,
-      },
-    });
-
-    const user = await db.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        role: 'SUBSCRIBER',
-        profile: {
-          connect: { id: profile.id },
-        },
-      },
-    });
-
-    return { user, subscription };
+  const profile = await db.profile.create({
+    data: {
+      firstName,
+      lastName,
+      dob: newDOB,
+      phoneNumber,
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      country,
+    },
   });
 
-  return result;
+  const user = await db.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+      role: 'SUBSCRIBER',
+      profile: {
+        connect: { id: profile.id },
+      },
+    },
+  });
+
+  return { user };
 };
 const userService = {
   fetchAllUsersHandler,
