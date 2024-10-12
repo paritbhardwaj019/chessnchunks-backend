@@ -34,4 +34,14 @@ messageRouter.post(
   messageController.markMessagesAsRead
 );
 
+// routes/message.routes.js
+
+// Get list of conversations
+messageRouter.get(
+  '/conversations',
+  checkJWT,
+  messageController.getConversations
+);
+
+
 module.exports = messageRouter;

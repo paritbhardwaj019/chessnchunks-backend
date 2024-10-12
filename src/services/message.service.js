@@ -160,11 +160,48 @@ const markMessagesAsRead = async (userId, conversationWith) => {
   logger.info(`Messages marked as read for User: ${userId} with User: ${conversationWith}`);
 };
 
+
+// services/message.service.js
+
+const getConversations = async (userId) => {
+  logger.info(`Fetching conversations for User: ${userId}`);
+
+  // Fetch unique conversation partners
+  const conversations = await db.$queryRaw`
+    SELECT
+      u.id,
+      u.email,
+      u."firstName",
+      u."lastName",
+      MAX(m."createdAt") as "lastMessageAt",
+      m.content as "lastMessage"
+    FROM (
+      SELECT "senderId" AS "userId" FROM "messages" WHERE "receiverId" = ${userId}
+      UNION
+      SELECT "receiverId" AS "userId" FROM "messages" WHERE "senderId" = ${userId}
+    ) AS conv
+    INNER JOIN "users" u ON u.id = conv."userId"
+    LEFT JOIN "messages" m ON (
+      (m."senderId" = ${userId} AND m."receiverId" = u.id) OR
+      (m."senderId" = u.id AND m."receiverId" = ${userId})
+    )
+    GROUP BY u.id, u.email, u."firstName", u."lastName", m.content
+    ORDER BY "lastMessageAt" DESC
+  `;
+
+  logger.info(`Found ${conversations.length} conversations for User: ${userId}`);
+
+  return conversations;
+};
+
 const messageService = {
   sendBroadcastMessage,
   sendMessage,
   getMessages,
   markMessagesAsRead,
+  getConversations, // Add this line
 };
 
 module.exports = messageService;
+
+

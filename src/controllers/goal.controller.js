@@ -27,6 +27,7 @@ const goalController = {
   assignWeeklyGoalHandler,
   createSeasonalGoalHandler,
   createMonthlyGoalHandler,
+  createWeeklyGoalHandler
 };
 
 module.exports = goalController;

@@ -82,11 +82,24 @@ const markMessagesAsRead = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send({ message: 'Messages marked as read' });
 });
 
+// controllers/messageController.js
+
+const getConversations = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+
+  logger.info(`User: ${userId} fetching conversations`);
+
+  const conversations = await messageService.getConversations(userId);
+
+  res.status(httpStatus.OK).send(conversations);
+});
+
 const messageController = {
   sendBroadcastMessage,
   sendMessage,
   getMessages,
   markMessagesAsRead,
+  getConversations, // Add this line
 };
 
 module.exports = messageController;
