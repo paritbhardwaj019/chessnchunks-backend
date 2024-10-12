@@ -6,6 +6,7 @@ const createToken = require('../utils/createToken');
 const decodeToken = require('../utils/decodeToken');
 const sendMail = require('../utils/sendEmail');
 const Mailgen = require('mailgen');
+const logger = require('../utils/logger');
 
 const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyName } = data;
@@ -44,6 +45,8 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
     config.jwt.invitationSecret,
     '3d'
   );
+
+  logger.info(token);
 
   const ACTIVATION_URL = `${
     config.frontendUrl

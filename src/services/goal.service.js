@@ -1,12 +1,23 @@
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
+const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 
 const createSeasonalGoalHandler = async (data) => {
   const { startDate, endDate, batchId } = data;
 
   const newStartDate = new Date(startDate);
   const newEndDate = new Date(endDate);
+
+  const seasonalGoalCount = await db.seasonalGoal.count({
+    where: {
+      batch: {
+        id: batchId,
+      },
+    },
+  });
+
+  const seasonalCode = formatNumberWithPrefix('SG', seasonalGoalCount);
 
   const createdSeasonalGoal = await db.seasonalGoal.create({
     data: {
@@ -17,6 +28,7 @@ const createSeasonalGoalHandler = async (data) => {
           id: batchId,
         },
       },
+      code: seasonalCode,
     },
   });
 
@@ -24,10 +36,20 @@ const createSeasonalGoalHandler = async (data) => {
 };
 
 const createMonthlyGoalHandler = async (data) => {
-  const { seasonalGoalId, startDate, endDate } = data;
+  const { seasonalGoalId, startDate, endDate, batchId } = data;
 
   const newStartDate = new Date(startDate);
   const newEndDate = new Date(endDate);
+
+  const monthlyGoalCount = await db.monthlyGoal.count({
+    where: {
+      seasonalGoal: {
+        id: seasonalGoalId,
+      },
+    },
+  });
+
+  const monthlyGoalCode = formatNumberWithPrefix('MG', monthlyGoalCount);
 
   const createdMonthlyGoal = await db.monthlyGoal.create({
     data: {
@@ -38,6 +60,7 @@ const createMonthlyGoalHandler = async (data) => {
       },
       startDate: newStartDate,
       endDate: newEndDate,
+      code: monthlyGoalCode,
     },
   });
 
@@ -58,6 +81,16 @@ const createWeeklyGoalHandler = async (data) => {
   const newStartDate = new Date(startDate);
   const newEndDate = new Date(endDate);
 
+  const weeklyGoalCount = await db.weeklyGoal.count({
+    where: {
+      monthlyGoal: {
+        id: monthlyGoalId,
+      },
+    },
+  });
+
+  const weeklyGoalCode = formatNumberWithPrefix('WG', weeklyGoalCount);
+
   const createdWeeklyGoal = await db.weeklyGoal.create({
     data: {
       startDate: newStartDate,
@@ -69,12 +102,13 @@ const createWeeklyGoalHandler = async (data) => {
       },
       target: {
         create: {
-          noOfGames,
-          minReviews,
-          maxReviews,
-          midReviews,
+          noOfGames: parseInt(noOfGames, 10),
+          minReviews: parseInt(minReviews, 10),
+          maxReviews: parseInt(midReviews, 10),
+          midReviews: parseInt(maxReviews, 10),
         },
       },
+      code: weeklyGoalCode,
     },
     select: {
       target: true,
@@ -134,17 +168,62 @@ const assignWeeklyGoalHandler = async (data) => {
   return allGoals;
 };
 
-/**
- * Get all seasonal goals with a count of monthly goals.
- */
-const getAllSeasonalGoalsHandler = async () => {
+const getAllSeasonalGoalsHandler = async (page, limit, query, loggedInUser) => {
+  const numberPage = Number(page) || 1;
+  const numberLimit = Number(limit) || 10;
+  const { batchId } = query;
+
+  let batchFilter = {};
+
+  if (loggedInUser.role === 'ADMIN') {
+    batchFilter = {
+      batch: {
+        academy: {
+          admins: {
+            some: {
+              id: loggedInUser.id,
+            },
+          },
+        },
+      },
+    };
+  } else if (loggedInUser.role === 'COACH') {
+    batchFilter = {
+      batch: {
+        coaches: {
+          some: {
+            id: loggedInUser.id,
+          },
+        },
+      },
+    };
+  } else if (loggedInUser.role === 'STUDENT') {
+    batchFilter = {
+      batch: {
+        students: {
+          some: {
+            id: loggedInUser.id,
+          },
+        },
+      },
+    };
+  }
+
+  if (batchId) {
+    batchFilter.batchId = batchId;
+  }
+
   const seasonalGoals = await db.seasonalGoal.findMany({
+    where: batchFilter,
+    skip: (numberPage - 1) * numberLimit,
+    take: numberLimit,
     include: {
       _count: {
         select: { monthlyGoals: true },
       },
     },
   });
+
   return seasonalGoals;
 };
 
@@ -152,16 +231,61 @@ const getAllSeasonalGoalsHandler = async () => {
  * Get all monthly goals with a count of weekly goals.
  * Supports filtering by seasonalGoalId.
  */
-const getAllMonthlyGoalsHandler = async (query) => {
+const getAllMonthlyGoalsHandler = async (page, limit, query, loggedInUser) => {
+  const numberPage = Number(page) || 1;
+  const numberLimit = Number(limit) || 10;
   const { seasonalGoalId } = query;
 
-  const whereClause = {};
+  let batchFilter = {};
+
+  if (loggedInUser.role === 'ADMIN') {
+    batchFilter = {
+      seasonalGoal: {
+        batch: {
+          academy: {
+            admins: {
+              some: {
+                id: loggedInUser.id,
+              },
+            },
+          },
+        },
+      },
+    };
+  } else if (loggedInUser.role === 'COACH') {
+    batchFilter = {
+      seasonalGoal: {
+        batch: {
+          coaches: {
+            some: {
+              id: loggedInUser.id,
+            },
+          },
+        },
+      },
+    };
+  } else if (loggedInUser.role === 'STUDENT') {
+    batchFilter = {
+      seasonalGoal: {
+        batch: {
+          students: {
+            some: {
+              id: loggedInUser.id,
+            },
+          },
+        },
+      },
+    };
+  }
+
   if (seasonalGoalId) {
-    whereClause.seasonalGoalId = seasonalGoalId;
+    batchFilter.seasonalGoalId = seasonalGoalId;
   }
 
   const monthlyGoals = await db.monthlyGoal.findMany({
-    where: whereClause,
+    where: batchFilter,
+    skip: (numberPage - 1) * numberLimit,
+    take: numberLimit,
     include: {
       _count: {
         select: { weeklyGoals: true },
@@ -177,16 +301,113 @@ const getAllMonthlyGoalsHandler = async (query) => {
  * Supports filtering by monthlyGoalId.
  */
 
-const getAllWeeklyGoalsHandler = async (query) => {
+const getAllWeeklyGoalsHandler = async (page, limit, query, loggedInUser) => {
+  const numberPage = Number(page) || 1;
+  const numberLimit = Number(limit) || 10;
   const { monthlyGoalId } = query;
 
+  let batchFilter = {};
+
+  if (loggedInUser.role === 'ADMIN') {
+    batchFilter = {
+      monthlyGoal: {
+        seasonalGoal: {
+          batch: {
+            academy: {
+              admins: {
+                some: {
+                  id: loggedInUser.id,
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+  } else if (loggedInUser.role === 'COACH') {
+    batchFilter = {
+      monthlyGoal: {
+        seasonalGoal: {
+          batch: {
+            coaches: {
+              some: {
+                id: loggedInUser.id,
+              },
+            },
+          },
+        },
+      },
+    };
+  } else if (loggedInUser.role === 'STUDENT') {
+    batchFilter = {
+      monthlyGoal: {
+        seasonalGoal: {
+          batch: {
+            students: {
+              some: {
+                id: loggedInUser.id,
+              },
+            },
+          },
+        },
+      },
+    };
+  }
+
+  if (monthlyGoalId) {
+    batchFilter.monthlyGoalId = monthlyGoalId;
+  }
+
+  const weeklyGoals = await db.weeklyGoal.findMany({
+    where: batchFilter,
+    skip: (numberPage - 1) * numberLimit,
+    take: numberLimit,
+  });
+
+  return weeklyGoals;
+};
+
+const getSeasonalGoalsForOptions = async (batchId) => {
+  const seasonalGoals = await db.seasonalGoal.findMany({
+    where: {
+      batchId,
+    },
+    select: {
+      id: true,
+      code: true,
+    },
+  });
+
+  return seasonalGoals;
+};
+
+const getMonthlyGoalsForOptions = async (seasonalGoalId) => {
+  const monthlyGoals = await db.monthlyGoal.findMany({
+    where: {
+      seasonalGoalId: seasonalGoalId,
+    },
+    select: {
+      id: true,
+      code: true,
+    },
+  });
+
+  return monthlyGoals;
+};
+
+const getWeeklyGoalsForOptions = async (monthlyGoalId) => {
   const whereClause = {};
+
   if (monthlyGoalId) {
     whereClause.monthlyGoalId = monthlyGoalId;
   }
 
   const weeklyGoals = await db.weeklyGoal.findMany({
     where: whereClause,
+    select: {
+      id: true,
+      code: true,
+    },
   });
 
   return weeklyGoals;
@@ -200,6 +421,9 @@ const goalService = {
   getAllSeasonalGoalsHandler,
   getAllMonthlyGoalsHandler,
   getAllWeeklyGoalsHandler,
+  getSeasonalGoalsForOptions,
+  getMonthlyGoalsForOptions,
+  getWeeklyGoalsForOptions,
 };
 
 module.exports = goalService;

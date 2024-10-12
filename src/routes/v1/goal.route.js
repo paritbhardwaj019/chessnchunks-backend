@@ -54,4 +54,25 @@ goalRouter.get(
   goalController.getAllWeeklyGoalsHandler
 );
 
+goalRouter.get(
+  '/seasonal-goals/options',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.getSeasonalGoalsForOptions
+);
+
+goalRouter.get(
+  '/monthly-goals/options',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.getMonthlyGoalsForOptions
+);
+
+goalRouter.get(
+  '/weekly-goals/options',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.getWeeklyGoalsForOptions
+);
+
 module.exports = goalRouter;
