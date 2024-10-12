@@ -75,4 +75,11 @@ goalRouter.get(
   goalController.getWeeklyGoalsForOptions
 );
 
+goalRouter.get(
+  '/student-weekly-goals',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.fetchAllStudentAssignedWeeklyGoalsHandler
+);
+
 module.exports = goalRouter;

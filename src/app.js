@@ -10,7 +10,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: config.allowedOrigins,
+    origin: '*',
     credentials: true,
   })
 );

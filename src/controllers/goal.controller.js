@@ -3,6 +3,11 @@ const goalService = require('../services/goal.service');
 const catchAsync = require('../utils/catchAsync');
 const _ = require('lodash');
 
+const cleanParam = (param) => {
+  if (!param || param === 'undefined') return undefined;
+  return param;
+};
+
 const assignWeeklyGoalHandler = catchAsync(async (req, res) => {
   const newGoal = await goalService.assignWeeklyGoalHandler(req.body);
   res.status(httpStatus.OK).send(newGoal);
@@ -41,7 +46,8 @@ const getAllMonthlyGoalsHandler = catchAsync(async (req, res) => {
   const monthlyGoals = await goalService.getAllMonthlyGoalsHandler(
     page,
     limit,
-    req.query
+    req.query,
+    req.user
   );
   res.status(httpStatus.OK).send(monthlyGoals);
 });
@@ -52,7 +58,8 @@ const getAllWeeklyGoalsHandler = catchAsync(async (req, res) => {
   const weeklyGoals = await goalService.getAllWeeklyGoalsHandler(
     page,
     limit,
-    req.query
+    req.query,
+    req.user
   );
   res.status(httpStatus.OK).send(weeklyGoals);
 });
@@ -70,11 +77,39 @@ const getMonthlyGoalsForOptions = catchAsync(async (req, res) => {
 });
 
 const getWeeklyGoalsForOptions = catchAsync(async (req, res) => {
+  let { batchId, monthlyGoalId } = _.pick(req.query, [
+    'batchId',
+    'monthlyGoalId',
+  ]);
+
+  batchId = cleanParam(batchId);
+  monthlyGoalId = cleanParam(monthlyGoalId);
+
   const options = await goalService.getWeeklyGoalsForOptions(
-    req.query.monthlyGoalId
+    batchId,
+    monthlyGoalId
   );
   res.status(httpStatus.OK).send(options);
 });
+
+const fetchAllStudentAssignedWeeklyGoalsHandler = catchAsync(
+  async (req, res) => {
+    const { page, limit, query } = _.pick(req.query, [
+      'page',
+      'limit',
+      'query',
+    ]);
+
+    const weeklyGoals =
+      await goalService.fetchAllStudentAssignedWeeklyGoalsHandler(
+        page,
+        limit,
+        query,
+        req.user
+      );
+    res.status(httpStatus.OK).send(weeklyGoals);
+  }
+);
 
 const goalController = {
   assignWeeklyGoalHandler,
@@ -87,6 +122,7 @@ const goalController = {
   getSeasonalGoalsForOptions,
   getMonthlyGoalsForOptions,
   getWeeklyGoalsForOptions,
+  fetchAllStudentAssignedWeeklyGoalsHandler,
 };
 
 module.exports = goalController;

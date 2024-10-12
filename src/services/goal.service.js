@@ -38,6 +38,8 @@ const createSeasonalGoalHandler = async (data) => {
 const createMonthlyGoalHandler = async (data) => {
   const { seasonalGoalId, startDate, endDate, batchId } = data;
 
+  console.log('MONTHLY DATA', data);
+
   const newStartDate = new Date(startDate);
   const newEndDate = new Date(endDate);
 
@@ -61,6 +63,11 @@ const createMonthlyGoalHandler = async (data) => {
       startDate: newStartDate,
       endDate: newEndDate,
       code: monthlyGoalCode,
+      batch: {
+        connect: {
+          id: batchId,
+        },
+      },
     },
   });
 
@@ -76,6 +83,7 @@ const createWeeklyGoalHandler = async (data) => {
     minReviews,
     midReviews,
     maxReviews,
+    batchId,
   } = data;
 
   const newStartDate = new Date(startDate);
@@ -109,6 +117,11 @@ const createWeeklyGoalHandler = async (data) => {
         },
       },
       code: weeklyGoalCode,
+      batch: {
+        connect: {
+          id: batchId,
+        },
+      },
     },
     select: {
       target: true,
@@ -394,13 +407,21 @@ const getMonthlyGoalsForOptions = async (seasonalGoalId) => {
 
   return monthlyGoals;
 };
-
-const getWeeklyGoalsForOptions = async (monthlyGoalId) => {
+const getWeeklyGoalsForOptions = async (batchId, monthlyGoalId) => {
   const whereClause = {};
 
-  if (monthlyGoalId) {
+  console.log(batchId, monthlyGoalId);
+
+  if (batchId && monthlyGoalId) {
+    whereClause.batchId = batchId;
+    whereClause.monthlyGoalId = monthlyGoalId;
+  } else if (batchId) {
+    whereClause.batchId = batchId;
+  } else if (monthlyGoalId) {
     whereClause.monthlyGoalId = monthlyGoalId;
   }
+
+  console.log(whereClause);
 
   const weeklyGoals = await db.weeklyGoal.findMany({
     where: whereClause,
@@ -410,7 +431,225 @@ const getWeeklyGoalsForOptions = async (monthlyGoalId) => {
     },
   });
 
+  console.log(weeklyGoals);
+
   return weeklyGoals;
+};
+
+const fetchAllStudentAssignedWeeklyGoalsHandler = async (
+  page,
+  limit,
+  query,
+  loggedInUser
+) => {
+  const numberPage = parseInt(page) || 1;
+  const numberLimit = parseInt(limit) || 10;
+
+  const skip = (numberPage - 1) * numberLimit;
+
+  const userWithRelations = await db.user.findUnique({
+    where: { id: loggedInUser.id },
+    include: {
+      adminOfAcademies: {
+        select: { id: true },
+      },
+      coachOfBatches: {
+        select: { id: true },
+      },
+    },
+  });
+
+  if (!userWithRelations) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  let whereClause = {};
+
+  switch (userWithRelations.role) {
+    case 'SUPER_ADMIN':
+      whereClause = {
+        AND: [
+          {
+            OR: [
+              {
+                code: {
+                  contains: query,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                startDate: {
+                  gte: query ? new Date(query) : undefined,
+                },
+              },
+              {
+                endDate: {
+                  lte: query ? new Date(query) : undefined,
+                },
+              },
+            ],
+          },
+        ],
+      };
+      break;
+
+    case 'ADMIN':
+      const adminAcademyIds = userWithRelations.adminOfAcademies.map(
+        (academy) => academy.id
+      );
+
+      whereClause = {
+        AND: [
+          {
+            OR: [
+              {
+                code: {
+                  contains: query,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                startDate: {
+                  gte: query ? new Date(query) : undefined,
+                },
+              },
+              {
+                endDate: {
+                  lte: query ? new Date(query) : undefined,
+                },
+              },
+            ],
+          },
+          {
+            seasonalGoal: {
+              batch: {
+                academyId: {
+                  in: adminAcademyIds,
+                },
+              },
+            },
+          },
+        ],
+      };
+      break;
+
+    case 'COACH':
+      const coachBatchIds = userWithRelations.coachOfBatches.map(
+        (batch) => batch.id
+      );
+
+      whereClause = {
+        AND: [
+          {
+            OR: [
+              {
+                code: {
+                  contains: query,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                startDate: {
+                  gte: query ? new Date(query) : undefined,
+                },
+              },
+              {
+                endDate: {
+                  lte: query ? new Date(query) : undefined,
+                },
+              },
+            ],
+          },
+          {
+            seasonalGoal: {
+              batchId: {
+                in: coachBatchIds,
+              },
+            },
+          },
+        ],
+      };
+      break;
+
+    default:
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Access denied');
+  }
+
+  const total = await db.weeklyGoal.count({
+    where: whereClause,
+  });
+
+  const weeklyGoals = await db.weeklyGoal.findMany({
+    where: whereClause,
+    skip,
+    take: limit,
+    include: {
+      seasonalGoal: {
+        include: {
+          batch: {
+            include: {
+              academy: true,
+            },
+          },
+        },
+      },
+      studentGoals: {
+        include: {
+          student: {
+            select: {
+              id: true,
+              email: true,
+              profile: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const formattedGoals = weeklyGoals.map((goal) => ({
+    id: goal.id,
+    code: goal.code,
+    startDate: goal.startDate,
+    endDate: goal.endDate,
+    seasonalGoal: {
+      id: goal.seasonalGoal.id,
+      code: goal.seasonalGoal.code,
+      batch: {
+        id: goal.seasonalGoal.batch.id,
+        batchCode: goal.seasonalGoal.batch.batchCode,
+        academy: {
+          id: goal.seasonalGoal.batch.academy.id,
+          name: goal.seasonalGoal.batch.academy.name,
+        },
+      },
+    },
+    studentGoals: goal.studentGoals.map((sg) => ({
+      id: sg.id,
+      puzzlesTarget: sg.puzzlesTarget,
+      puzzlesSolved: sg.puzzlesSolved,
+      puzzlesPassed: sg.puzzlesPassed,
+      student: {
+        id: sg.student.id,
+        email: sg.student.email,
+        firstName: sg.student.profile?.firstName,
+        lastName: sg.student.profile?.lastName,
+      },
+    })),
+  }));
+
+  return {
+    data: formattedGoals,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  };
 };
 
 const goalService = {
@@ -424,6 +663,7 @@ const goalService = {
   getSeasonalGoalsForOptions,
   getMonthlyGoalsForOptions,
   getWeeklyGoalsForOptions,
+  fetchAllStudentAssignedWeeklyGoalsHandler,
 };
 
 module.exports = goalService;
