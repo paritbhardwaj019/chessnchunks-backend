@@ -14,8 +14,6 @@ const sendMail = require('../utils/sendEmail');
 const loginWithPasswordHandler = async (data) => {
   const { email, password } = data;
 
-  console.log('Login Request Body:', { email, password }); // Log request body
-
   const user = await db.user.findUnique({
     where: {
       email,
@@ -35,15 +33,11 @@ const loginWithPasswordHandler = async (data) => {
     },
   });
 
-  console.log('Found User:', user); // Log found user
-
   if (!user || !user.password) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
   }
 
   const isPasswordValid = await comparePassword(password, user.password);
-
-  console.log('Is Password Valid:', isPasswordValid); // Log password validation result
 
   if (!isPasswordValid) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');

@@ -6,6 +6,7 @@ const createToken = require('../utils/createToken');
 const decodeToken = require('../utils/decodeToken');
 const sendMail = require('../utils/sendEmail');
 const Mailgen = require('mailgen');
+const logger = require('../utils/logger');
 
 const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyName } = data;
@@ -44,6 +45,8 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
     config.jwt.invitationSecret,
     '3d'
   );
+
+  logger.info(token);
 
   const ACTIVATION_URL = `${
     config.frontendUrl
@@ -264,12 +267,15 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
   return allAcademies;
 };
 
-const fetchAllUsersHandler = async (page = 1, limit = 10, query = '', loggedInUser) => {
+const fetchAllUsersHandler = async (
+  page = 1,
+  limit = 10,
+  query = '',
+  loggedInUser
+) => {
   const numberPage = Math.max(1, Number(page));
   const numberLimit = Math.max(1, Number(limit));
-  const searchQuery = query || '';  // Default to an empty string if query is undefined or null
-
-  console.log('Request Parameters:', { page, limit, query, loggedInUser });
+  const searchQuery = query || '';
 
   const user = await db.user.findUnique({
     where: {
@@ -294,7 +300,7 @@ const fetchAllUsersHandler = async (page = 1, limit = 10, query = '', loggedInUs
     query ? { email: { contains: searchQuery } } : null,
     query ? { profile: { firstName: { contains: searchQuery } } } : null,
     query ? { profile: { lastName: { contains: searchQuery } } } : null,
-  ].filter(Boolean);  // Remove null values from the filters
+  ].filter(Boolean); // Remove null values from the filters
 
   console.log('Search Filters:', searchFilters);
 
@@ -303,7 +309,7 @@ const fetchAllUsersHandler = async (page = 1, limit = 10, query = '', loggedInUs
       skip: (numberPage - 1) * numberLimit,
       take: numberLimit,
       where: {
-        OR: searchFilters,  // Only include valid search filters
+        OR: searchFilters, // Only include valid search filters
       },
       select: {
         email: true,
@@ -354,7 +360,7 @@ const fetchAllUsersHandler = async (page = 1, limit = 10, query = '', loggedInUs
             },
           },
         ],
-        AND: searchFilters,  // Apply search filters in the AND clause
+        AND: searchFilters, // Apply search filters in the AND clause
       },
       select: {
         id: true,

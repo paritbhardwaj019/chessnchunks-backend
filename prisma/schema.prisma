@@ -22,17 +22,15 @@ model User {
 
   subscriptions Subscription[]
 
-   studentGoals  StudentWeeklyGoal[]
-   invitationsCreated Invitation[]
+  studentGoals       StudentWeeklyGoal[]
+  invitationsCreated Invitation[]
 
-  // Updated relations
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
 
   sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
   receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
 
-  // Corrected Self-referential many-to-many relation for friends
   friends         User[] @relation("UserFriends")
   friendRelations User[] @relation("UserFriends")
 
@@ -40,21 +38,31 @@ model User {
 
   channels Channel[] @relation("ChannelMembers")
 
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  ChannelMessage ChannelMessage[]
+  ChannelMessages ChannelMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("users")
 }
 
 model Profile {
-  id        String @id @default(uuid())
-  firstName String
-  lastName  String
+  id            String   @id @default(uuid())
+  firstName     String
+  middleName    String?
+  lastName      String
+  dob           DateTime
+  phoneNumber   String?
+  addressLine1  String?
+  addressLine2  String?
+  city          String?
+  state         String?
+  country       String?
+  parentName    String?
+  parentEmailId String?
 
   userId String? @unique
-
-  user User? @relation(fields: [userId], references: [id])
+  user   User?   @relation(fields: [userId], references: [id])
 
   @@map("profiles")
 }
@@ -97,17 +105,19 @@ model Batch {
   coaches  User[] @relation("BatchCoaches")
   students User[] @relation("BatchStudents")
 
-  goals SeasonalGoal[]
+  seasonalGoals SeasonalGoal[]
+  monthlyGoals  MonthlyGoal[]
+  weeklyGoals   WeeklyGoal[]
 
   startDate DateTime
   endDate   DateTime
 
-  // New relation
   channels Channel[]
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Message   Message[]
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("batches")
 }
@@ -233,7 +243,6 @@ model Message {
   sender   User  @relation("SentMessages", fields: [senderId], references: [id])
   receiver User? @relation("ReceivedMessages", fields: [receiverId], references: [id])
 
-  // For broadcast messages to a batch
   batchId String?
   batch   Batch?  @relation(fields: [batchId], references: [id])
 
@@ -271,7 +280,7 @@ model Channel {
   id          String   @id @default(uuid())
   name        String
   isBroadcast Boolean  @default(false)
-  batchId     String? // Optional, if the channel is batch-specific
+  batchId     String? 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -295,32 +304,39 @@ model ChannelMessage {
 
   @@map("channel_messages")
 }
+
 model StudentWeeklyGoal {
   id            String     @id @default(uuid())
   studentId     String
   weeklyGoalId  String
-  puzzlesTarget Int
-  puzzlesSolved Int
-  puzzlesPassed Int
-  student       User       @relation(fields: [studentId], references: [id])
-  weeklyGoal    WeeklyGoal @relation(fields: [weeklyGoalId], references: [id])
-  createdAt     DateTime   @default(now())
+  puzzlesTarget Int?       @default(0)
+  puzzlesSolved Int?       @default(0)
+  puzzlesPassed Int?       @default(0)
   isCustom      Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+
+  student    User       @relation(fields: [studentId], references: [id])
+  weeklyGoal WeeklyGoal @relation(fields: [weeklyGoalId], references: [id])
 
   @@map("studentweeklygoals")
 }
 
 model WeeklyGoal {
-  id            String              @id @default(uuid())
-  startDate     DateTime
-  endDate       DateTime
-  
-  targetId      String
-  target        Target              @relation(fields: [targetId], references: [id])
+  id        String   @id @default(uuid())
+  code      String
+  startDate DateTime
+  endDate   DateTime
+
+  targetId String
+  target   Target @relation(fields: [targetId], references: [id])
 
   monthlyGoalId String
-  monthlyGoal   MonthlyGoal         @relation(fields: [monthlyGoalId], references: [id])
-  studentGoals  StudentWeeklyGoal[]
+  monthlyGoal   MonthlyGoal @relation(fields: [monthlyGoalId], references: [id])
+
+  batchId String
+  batch   Batch @relation(fields: [batchId], references: [id])
+
+  studentGoals StudentWeeklyGoal[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -329,25 +345,33 @@ model WeeklyGoal {
 }
 
 model Target {
-  id            String              @id @default(uuid())
-  noOfGames     Int
-  minReviews    Int
-  midReviews    Int
-  maxReviews    Int
+  id         String       @id @default(uuid())
+  noOfGames  Int
+  minReviews Int
+  midReviews Int
+  maxReviews Int
 
-  weeklyGoals   WeeklyGoal[]        
+  weeklyGoals WeeklyGoal[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("targets")
 }
 
 model MonthlyGoal {
-  id             String       @id @default(uuid())
-  startDate      DateTime
-  endDate        DateTime
+  id        String   @id @default(uuid())
+  code      String
+  startDate DateTime
+  endDate   DateTime
+
   seasonalGoalId String
   seasonalGoal   SeasonalGoal @relation(fields: [seasonalGoalId], references: [id])
-  weeklyGoals    WeeklyGoal[]
+
+  batchId String
+  batch   Batch @relation(fields: [batchId], references: [id])
+
+  weeklyGoals WeeklyGoal[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -356,14 +380,15 @@ model MonthlyGoal {
 }
 
 model SeasonalGoal {
-  id String @id @default(uuid())
+  id        String   @id @default(uuid())
+  code      String
+  startDate DateTime
+  endDate   DateTime
 
-  startDate         DateTime
-  endDate           DateTime
+  batchId String
+  batch   Batch @relation(fields: [batchId], references: [id])
 
-  batchId           String
-  batch             Batch         @relation(fields: [batchId], references: [id])
-  monthlyGoals      MonthlyGoal[]
+  monthlyGoals MonthlyGoal[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

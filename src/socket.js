@@ -1,5 +1,3 @@
-// socket.js
-
 let io;
 
 module.exports = {
@@ -7,8 +5,10 @@ module.exports = {
     const socketIo = require('socket.io');
     io = socketIo(server, {
       cors: {
-        origin: '*', // Allow any origin
-        methods: ['GET', 'POST'], // Allow GET and POST methods
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST'],
+        allowedHeaders: ['x-auth-token'],
+        credentials: true,
       },
     });
     return io;

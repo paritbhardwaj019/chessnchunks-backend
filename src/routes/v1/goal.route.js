@@ -33,4 +33,53 @@ goalRouter.post(
   goalController.createWeeklyGoalHandler
 );
 
+goalRouter.get(
+  '/seasonal-goals',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.getAllSeasonalGoalsHandler
+);
+
+goalRouter.get(
+  '/monthly-goals',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.getAllMonthlyGoalsHandler
+);
+
+goalRouter.get(
+  '/weekly-goals',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.getAllWeeklyGoalsHandler
+);
+
+goalRouter.get(
+  '/seasonal-goals/options',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.getSeasonalGoalsForOptions
+);
+
+goalRouter.get(
+  '/monthly-goals/options',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.getMonthlyGoalsForOptions
+);
+
+goalRouter.get(
+  '/weekly-goals/options',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.getWeeklyGoalsForOptions
+);
+
+goalRouter.get(
+  '/student-weekly-goals',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.fetchAllStudentAssignedWeeklyGoalsHandler
+);
+
 module.exports = goalRouter;

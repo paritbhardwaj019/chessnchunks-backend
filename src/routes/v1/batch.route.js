@@ -31,4 +31,10 @@ batchRouter
     batchController.deleteBatchHandler
   );
 
+batchRouter.get(
+  '/options',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  batchController.fetchAllBatchesForOptions
+);
 module.exports = batchRouter;

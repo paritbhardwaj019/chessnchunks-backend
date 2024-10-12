@@ -23,11 +23,17 @@ const fetchAllBatches = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(allBatches);
 });
 
+const fetchAllBatchesForOptions = catchAsync(async (req, res) => {
+  const options = await batchService.fetchAllBatchesForOptions(req.user);
+  res.status(httpStatus.OK).send(options);
+});
+
 const batchController = {
   createBatchHandler,
   updateBatchHandler,
   deleteBatchHandler,
   fetchAllBatches,
+  fetchAllBatchesForOptions,
 };
 
 module.exports = batchController;

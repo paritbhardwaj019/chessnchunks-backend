@@ -139,6 +139,48 @@ const fetchAllBatches = async (loggedInUser) => {
           subRole: true,
         },
       },
+      academy: {
+        select: {
+          name: true,
+        },
+      },
+      startDate: true,
+      endDate: true,
+      createdAt: true,
+    },
+  });
+
+  return allBatches;
+};
+
+const fetchAllBatchesForOptions = async (loggedInUser) => {
+  let batchFilter = {};
+
+  if (loggedInUser.role === 'ADMIN') {
+    batchFilter = {
+      academy: {
+        admins: {
+          some: {
+            id: loggedInUser.id,
+          },
+        },
+      },
+    };
+  } else if (loggedInUser.role === 'COACH') {
+    batchFilter = {
+      coaches: {
+        some: {
+          id: loggedInUser.id,
+        },
+      },
+    };
+  }
+
+  const allBatches = await db.batch.findMany({
+    where: batchFilter,
+    select: {
+      id: true,
+      batchCode: true,
     },
   });
 
@@ -150,6 +192,7 @@ const batchService = {
   updateBatchHandler,
   deleteBatchHandler,
   fetchAllBatches,
+  fetchAllBatchesForOptions,
 };
 
 module.exports = batchService;
