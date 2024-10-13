@@ -1,3 +1,5 @@
+// services/coach.service.js
+
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
@@ -5,13 +7,17 @@ const createToken = require('../utils/createToken');
 const logger = require('../utils/logger');
 const config = require('../config');
 const decodeToken = require('../utils/decodeToken');
+const sendMail = require('../utils/sendEmail');
+const Mailgen = require('mailgen');
 const batchService = require('./batch.service');
 
 const inviteCoachHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, batchId, subRole } = data;
 
-  // TODO: BODY VALIDATION
+  // Log the batchId for debugging
+  logger.info(`Inviting coach to batchId: ${batchId}`);
 
+  // Create invitation in the database
   const coachInvitation = await db.invitation.create({
     data: {
       data: {
@@ -23,6 +29,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
       },
       email,
       type: 'BATCH_COACH',
+      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000), // Expires in 3 days
       createdBy: {
         connect: {
           id: loggedInUser.id,
@@ -39,17 +46,78 @@ const inviteCoachHandler = async (data, loggedInUser) => {
     },
   });
 
+  // Generate token
   const token = await createToken(
     {
       id: coachInvitation.id,
     },
     config.jwt.invitationSecret,
-    '3d'
+    '3d' // Token valid for 3 days
   );
 
-  logger.info(token);
+  logger.info(`Generated token for coach invitation: ${token}`);
 
-  return coachInvitation;
+  // Fetch batch details for email content
+  const batch = await db.batch.findUnique({
+    where: { id: batchId },
+    select: { batchCode: true, description: true },
+  });
+
+  // Add null check for batch
+  if (!batch) {
+    logger.error(`Batch not found with id: ${batchId}`);
+    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
+  }
+
+  // Generate activation URL
+  const ACTIVATION_URL = `${
+    config.frontendUrl
+  }/accept-invite?type=BATCH_COACH&batchId=${encodeURIComponent(
+    batchId
+  )}&subRole=${encodeURIComponent(subRole)}&token=${token}`;
+
+  // Generate email content
+  const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: {
+      name: 'Your App Name',
+      link: config.frontendUrl,
+    },
+  });
+
+  const emailContent = {
+    body: {
+      name: `${firstName} ${lastName}`,
+      intro: `You are invited to join the batch "${batch.batchCode}" as a coach (${subRole})!`,
+      action: {
+        instructions:
+          'To accept this invitation, please click the button below:',
+        button: {
+          color: '#22BC66',
+          text: 'Accept Invitation',
+          link: ACTIVATION_URL,
+        },
+      },
+      outro: 'If you have any questions, feel free to reply to this email.',
+    },
+  };
+
+  const emailBody = mailGenerator.generate(emailContent);
+  const emailText = mailGenerator.generatePlaintext(emailContent);
+
+  // Send the email using the provided sendMail function
+  try {
+    await sendMail(email, 'Batch Coach Invitation', emailText, emailBody);
+    logger.info(`Invitation email sent to coach: ${email}`);
+  } catch (error) {
+    logger.error(`Failed to send email to coach: ${email}`, error);
+    throw new ApiError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      'Failed to send invitation email'
+    );
+  }
+
+  return { coachInvitation };
 };
 
 const verifyCoachInvitationHandler = async (token) => {
@@ -73,7 +141,8 @@ const verifyCoachInvitationHandler = async (token) => {
     },
   });
 
-  if (!coachInvitation) return;
+  if (!coachInvitation)
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invitation not found!');
 
   if (coachInvitation.type !== 'BATCH_COACH') {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid token!');
@@ -146,9 +215,12 @@ const verifyCoachInvitationHandler = async (token) => {
     },
   });
 
-  await db.invitation.delete({
+  await db.invitation.update({
     where: {
       id: coachInvitation.id,
+    },
+    data: {
+      status: 'ACCEPTED',
     },
   });
 

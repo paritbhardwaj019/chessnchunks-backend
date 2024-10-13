@@ -82,4 +82,12 @@ goalRouter.get(
   goalController.fetchAllStudentAssignedWeeklyGoalsHandler
 );
 
+// New route to generate PDF report for student goals
+goalRouter.post(
+  '/generate-student-pdf',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  goalController.generateStudentPDFReportHandler
+);
+
 module.exports = goalRouter;

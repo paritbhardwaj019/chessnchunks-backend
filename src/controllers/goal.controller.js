@@ -65,14 +65,12 @@ const getAllWeeklyGoalsHandler = catchAsync(async (req, res) => {
 });
 
 const getSeasonalGoalsForOptions = catchAsync(async (req, res) => {
-  const options = await goalService.getSeasonalGoalsForOptions(req.query);
+  const options = await goalService.getSeasonalGoalsForOptions(req.query.batchId);
   res.status(httpStatus.OK).send(options);
 });
 
 const getMonthlyGoalsForOptions = catchAsync(async (req, res) => {
-  const options = await goalService.getMonthlyGoalsForOptions(
-    req.query.seasonalGoalId
-  );
+  const options = await goalService.getMonthlyGoalsForOptions(req.query.seasonalGoalId);
   res.status(httpStatus.OK).send(options);
 });
 
@@ -85,10 +83,7 @@ const getWeeklyGoalsForOptions = catchAsync(async (req, res) => {
   batchId = cleanParam(batchId);
   monthlyGoalId = cleanParam(monthlyGoalId);
 
-  const options = await goalService.getWeeklyGoalsForOptions(
-    batchId,
-    monthlyGoalId
-  );
+  const options = await goalService.getWeeklyGoalsForOptions(batchId, monthlyGoalId);
   res.status(httpStatus.OK).send(options);
 });
 
@@ -100,16 +95,20 @@ const fetchAllStudentAssignedWeeklyGoalsHandler = catchAsync(
       'query',
     ]);
 
-    const weeklyGoals =
-      await goalService.fetchAllStudentAssignedWeeklyGoalsHandler(
-        page,
-        limit,
-        query,
-        req.user
-      );
+    const weeklyGoals = await goalService.fetchAllStudentAssignedWeeklyGoalsHandler(
+      page,
+      limit,
+      query,
+      req.user
+    );
     res.status(httpStatus.OK).send(weeklyGoals);
   }
 );
+
+const generateStudentPDFReportHandler = catchAsync(async (req, res) => {
+  const filePath = await goalService.generateStudentPDFReport(req.body);
+  res.status(httpStatus.OK).send({ filePath });
+});
 
 const goalController = {
   assignWeeklyGoalHandler,
@@ -123,6 +122,7 @@ const goalController = {
   getMonthlyGoalsForOptions,
   getWeeklyGoalsForOptions,
   fetchAllStudentAssignedWeeklyGoalsHandler,
+  generateStudentPDFReportHandler,
 };
 
 module.exports = goalController;
