@@ -110,7 +110,6 @@ model Batch {
   weeklyGoals   WeeklyGoal[]
 
   startDate DateTime
-  endDate   DateTime
 
   channels Channel[]
 

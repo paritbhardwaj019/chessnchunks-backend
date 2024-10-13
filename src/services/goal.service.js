@@ -2,7 +2,7 @@ const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
-const FPDF = require('fpdf'); // Ensure you use a compatible PDF generation library
+const FPDF = require('node-fpdf');
 
 const createSeasonalGoalHandler = async (data) => {
   const { startDate, endDate, batchId } = data;
@@ -73,6 +73,32 @@ const createMonthlyGoalHandler = async (data) => {
   return createdMonthlyGoal;
 };
 
+const getSeasonalGoalsForOptions = async (batchId) => {
+  const seasonalGoals = await db.seasonalGoal.findMany({
+    where: {
+      batchId,
+    },
+    select: {
+      id: true,
+      code: true,
+    },
+  });
+  return seasonalGoals;
+};
+
+const getMonthlyGoalsForOptions = async (seasonalGoalId) => {
+  const monthlyGoals = await db.monthlyGoal.findMany({
+    where: {
+      seasonalGoalId: seasonalGoalId,
+    },
+    select: {
+      id: true,
+      code: true,
+    },
+  });
+  return monthlyGoals;
+};
+
 const createWeeklyGoalHandler = async (data) => {
   const {
     monthlyGoalId,
@@ -139,7 +165,10 @@ const assignWeeklyGoalHandler = async (data) => {
   });
 
   if (!foundBatch || foundBatch.students.length < 1) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'No students found in the specified batch');
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      'No students found in the specified batch'
+    );
   }
 
   const allStudentsData = foundBatch.students.map((el) => ({
@@ -368,7 +397,11 @@ const getAllWeeklyGoalsHandler = async (page, limit, query, loggedInUser) => {
   return weeklyGoals;
 };
 
-const generateStudentPDFReport = async ({ studentId, seasonId, currentDate }) => {
+const generateStudentPDFReport = async ({
+  studentId,
+  seasonId,
+  currentDate,
+}) => {
   const season = await db.seasonalGoal.findUnique({
     where: { id: seasonId },
     include: {
@@ -399,13 +432,13 @@ const generateStudentPDFReport = async ({ studentId, seasonId, currentDate }) =>
   for (const monthlyGoal of season.monthlyGoals) {
     for (const weeklyGoal of monthlyGoal.weeklyGoals) {
       const studentGoal = weeklyGoal.studentGoals[0];
-      
+
       const gamesTarget = weeklyGoal.target?.noOfGames || 0;
       const puzzlesTarget = weeklyGoal.target?.noOfPuzzles || 0;
-      
+
       totalGamesGoal += gamesTarget;
       totalGamesPlayed += studentGoal ? studentGoal.gamesPlayed : 0;
-      
+
       totalPuzzlesGoal += puzzlesTarget;
       totalPuzzlesPlayed += studentGoal ? studentGoal.puzzlesSolved : 0;
       totalPuzzlesPassed += studentGoal ? studentGoal.puzzlesPassed : 0;
@@ -413,7 +446,8 @@ const generateStudentPDFReport = async ({ studentId, seasonId, currentDate }) =>
   }
 
   const completionPercentage = (totalGamesPlayed / totalGamesGoal) * 100 || 0;
-  const puzzlePassPercentage = (totalPuzzlesPassed / totalPuzzlesGoal) * 100 || 0;
+  const puzzlePassPercentage =
+    (totalPuzzlesPassed / totalPuzzlesGoal) * 100 || 0;
   const passStatus = puzzlePassPercentage >= season.minPassPercentage;
 
   const reportData = {
@@ -426,35 +460,134 @@ const generateStudentPDFReport = async ({ studentId, seasonId, currentDate }) =>
     totalPuzzlesPassed,
     completionPercentage: completionPercentage.toFixed(2),
     puzzlePassPercentage: puzzlePassPercentage.toFixed(2),
-    passStatus: passStatus ? "Passed" : "Failed"
+    passStatus: passStatus ? 'Passed' : 'Failed',
   };
 
-  // Now, generate PDF report using FPDF (or a compatible library)
-  const FPDF = require('fpdf'); // Make sure you install fpdf or use an equivalent PDF generation library
-  const pdf = new FPDF();
-  pdf.addPage();
-  
+  // Now, generate PDF report using FPDF (or a compatible library)// Make sure you install fpdf or use an equivalent PDF generation library
+  const pdf = new FPDF('P', 'mm', 'A4');
+  pdf.AddPage();
+
   // Add report data to PDF
-  pdf.setFont("Arial", "B", 16);
-  pdf.cell(200, 10, "Student Performance Report", 0, 1, "C");
-  
-  pdf.setFont("Arial", "", 12);
-  pdf.ln(10);  // Line break
-  pdf.cell(200, 10, `Student ID: ${reportData.studentId}`, 0, 1);
-  pdf.cell(200, 10, `Season Code: ${reportData.seasonCode}`, 0, 1);
-  pdf.cell(200, 10, `Total Games Goal: ${reportData.totalGamesGoal}`, 0, 1);
-  pdf.cell(200, 10, `Total Games Played: ${reportData.totalGamesPlayed}`, 0, 1);
-  pdf.cell(200, 10, `Total Puzzles Goal: ${reportData.totalPuzzlesGoal}`, 0, 1);
-  pdf.cell(200, 10, `Total Puzzles Played: ${reportData.totalPuzzlesPlayed}`, 0, 1);
-  pdf.cell(200, 10, `Total Puzzles Passed: ${reportData.totalPuzzlesPassed}`, 0, 1);
-  pdf.cell(200, 10, `Completion Percentage: ${reportData.completionPercentage}%`, 0, 1);
-  pdf.cell(200, 10, `Puzzle Pass Percentage: ${reportData.puzzlePassPercentage}%`, 0, 1);
-  pdf.cell(200, 10, `Pass Status: ${reportData.passStatus}`, 0, 1);
-  
+  pdf.SetFont('Arial', 'B', 16);
+  pdf.Cell(200, 10, 'Student Performance Report', 0, 1, 'C');
+
+  pdf.SetFont('Arial', '', 12);
+  pdf.Ln(10); // Line break
+  pdf.Cell(200, 10, `Student ID: ${reportData.studentId}`, 0, 1);
+  pdf.Cell(200, 10, `Season Code: ${reportData.seasonCode}`, 0, 1);
+  pdf.Cell(200, 10, `Total Games Goal: ${reportData.totalGamesGoal}`, 0, 1);
+  pdf.Cell(200, 10, `Total Games Played: ${reportData.totalGamesPlayed}`, 0, 1);
+  pdf.Cell(200, 10, `Total Puzzles Goal: ${reportData.totalPuzzlesGoal}`, 0, 1);
+  pdf.Cell(
+    200,
+    10,
+    `Total Puzzles Played: ${reportData.totalPuzzlesPlayed}`,
+    0,
+    1
+  );
+  pdf.Cell(
+    200,
+    10,
+    `Total Puzzles Passed: ${reportData.totalPuzzlesPassed}`,
+    0,
+    1
+  );
+  pdf.Cell(
+    200,
+    10,
+    `Completion Percentage: ${reportData.completionPercentage}%`,
+    0,
+    1
+  );
+  pdf.Cell(
+    200,
+    10,
+    `Puzzle Pass Percentage: ${reportData.puzzlePassPercentage}%`,
+    0,
+    1
+  );
+  pdf.Cell(200, 10, `Pass Status: ${reportData.passStatus}`, 0, 1);
+
   const filePath = `./reports/student_performance_report_${reportData.studentId}.pdf`;
-  pdf.output(filePath);  // Save the PDF to the filesystem
+  pdf.Output(filePath);
 
   return filePath;
+};
+
+const fetchAllWeeklyGoalsHandler = async (loggedInUser) => {
+  const studentId = loggedInUser.id;
+
+  const weeklyGoals = await db.studentWeeklyGoal.findMany({
+    where: { studentId },
+    include: {
+      weeklyGoal: {
+        include: {
+          batch: {
+            include: {
+              coaches: {
+                select: {
+                  id: true,
+                  profile: {
+                    select: {
+                      firstName: true,
+                      lastName: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const result = weeklyGoals.map((goal) => ({
+    id: goal.id,
+    weeklyGoalCode: goal.weeklyGoal.code,
+    startDate: goal.weeklyGoal.startDate,
+    endDate: goal.weeklyGoal.endDate,
+    puzzlesTarget: goal.puzzlesTarget,
+    puzzlesSolved: goal.puzzlesSolved,
+    puzzlesPassed: goal.puzzlesPassed,
+    isCustom: goal.isCustom,
+    assignedBy: goal.weeklyGoal.batch.coaches.map((coach) => ({
+      id: coach.id,
+      firstName: coach.profile?.firstName,
+      lastName: coach.profile?.lastName,
+    })),
+  }));
+
+  return result;
+};
+
+const getWeeklyGoalsForOptions = async (batchId, monthlyGoalId) => {
+  const whereClause = {};
+
+  console.log(batchId, monthlyGoalId);
+
+  if (batchId && monthlyGoalId) {
+    whereClause.batchId = batchId;
+    whereClause.monthlyGoalId = monthlyGoalId;
+  } else if (batchId) {
+    whereClause.batchId = batchId;
+  } else if (monthlyGoalId) {
+    whereClause.monthlyGoalId = monthlyGoalId;
+  }
+
+  console.log(whereClause);
+
+  const weeklyGoals = await db.weeklyGoal.findMany({
+    where: whereClause,
+    select: {
+      id: true,
+      code: true,
+    },
+  });
+
+  console.log(weeklyGoals);
+
+  return weeklyGoals;
 };
 
 module.exports = {
@@ -466,6 +599,8 @@ module.exports = {
   getAllMonthlyGoalsHandler,
   getAllWeeklyGoalsHandler,
   generateStudentPDFReport,
+  fetchAllWeeklyGoalsHandler,
+  getSeasonalGoalsForOptions,
+  getMonthlyGoalsForOptions,
+  getWeeklyGoalsForOptions,
 };
-
-

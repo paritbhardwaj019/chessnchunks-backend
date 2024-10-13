@@ -118,12 +118,12 @@ const sendMessage = async ({ senderId, receiverId, content }) => {
     },
   });
 
-  if (!areFriends && !inSameBatch) {
-    logger.warn(
-      `User: ${senderId} cannot message User: ${receiverId} as they are neither friends nor in the same batch`
-    );
-    throw new ApiError(httpStatus.FORBIDDEN, 'You cannot message this user');
-  }
+  // if (!areFriends && !inSameBatch) {
+  //   logger.warn(
+  //     `User: ${senderId} cannot message User: ${receiverId} as they are neither friends nor in the same batch`
+  //   );
+  //   throw new ApiError(httpStatus.FORBIDDEN, 'You cannot message this user');
+  // }
 
   const message = await db.message.create({
     data: {
@@ -178,7 +178,6 @@ const markMessagesAsRead = async (userId, conversationWith) => {
   );
 };
 
-
 // services/message.service.js
 
 const getConversations = async (userId) => {
@@ -207,7 +206,9 @@ const getConversations = async (userId) => {
     ORDER BY "lastMessageAt" DESC
   `;
 
-  logger.info(`Found ${conversations.length} conversations for User: ${userId}`);
+  logger.info(
+    `Found ${conversations.length} conversations for User: ${userId}`
+  );
 
   return conversations;
 };
@@ -221,5 +222,3 @@ const messageService = {
 };
 
 module.exports = messageService;
-
-

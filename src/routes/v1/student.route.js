@@ -14,4 +14,11 @@ studentRouter.post(
 
 studentRouter.post('/verify-student', studentController.verifyStudentHandler);
 
+studentRouter.get(
+  '/all-students',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  studentController.fetchAllStudentsHandler
+);
+
 module.exports = studentRouter;

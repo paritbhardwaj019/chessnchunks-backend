@@ -10,10 +10,13 @@ const createBatchHandler = async (data) => {
     academyId,
     warningCutoff,
     currentClass,
+    startLevel,
+    currentLevel,
+    coaches,
+    students,
   } = data;
 
   const newStartDate = new Date(data.startDate);
-  const newEndDate = new Date(data.endDate);
 
   const academy = await db.academy.findUnique({
     where: {
@@ -47,10 +50,15 @@ const createBatchHandler = async (data) => {
       batchCode,
       warningCutoff: Number(warningCutoff),
       currentClass,
-      startLevel: '1',
-      currentLevel: '100',
+      startLevel: startLevel,
+      currentLevel: currentLevel,
       startDate: newStartDate,
-      endDate: newEndDate,
+      coaches: {
+        connect: coaches.map((coachId) => ({ id: coachId })),
+      },
+      students: {
+        connect: students.map((studentId) => ({ id: studentId })),
+      },
     },
   });
 
@@ -77,11 +85,98 @@ const createBatchHandler = async (data) => {
 };
 
 const updateBatchHandler = async (id, data) => {
-  return {};
+  const batch = await db.batch.findUnique({
+    where: {
+      id: id,
+    },
+  });
+
+  if (!batch) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
+  }
+
+  const {
+    studentCapacity,
+    description,
+    warningCutoff,
+    currentClass,
+    startDate,
+    startLevel,
+    currentLevel,
+    coaches,
+    students,
+  } = data;
+
+  console.log('DATA', data);
+
+  const updateData = {};
+
+  if (studentCapacity !== undefined)
+    updateData.studentCapacity = Number(studentCapacity);
+  if (description !== undefined) updateData.description = description;
+  if (warningCutoff !== undefined)
+    updateData.warningCutoff = Number(warningCutoff);
+  if (currentClass !== undefined) updateData.currentClass = currentClass;
+  if (startDate !== undefined) updateData.startDate = new Date(startDate);
+  if (startLevel !== undefined) updateData.startLevel = startLevel;
+  if (currentLevel !== undefined) updateData.currentLevel = currentLevel;
+
+  if (coaches !== undefined) {
+    updateData.coaches = {
+      set: coaches.map((coachId) => ({ id: coachId })),
+    };
+  }
+
+  if (students !== undefined) {
+    updateData.students = {
+      set: students.map((studentId) => ({ id: studentId })),
+    };
+  }
+
+  console.log('UPDATED DATA', updateData);
+
+  const updatedBatch = await db.batch.update({
+    where: {
+      id: id,
+    },
+    data: updateData,
+    include: {
+      academy: true,
+    },
+  });
+
+  return updatedBatch;
 };
 
 const deleteBatchHandler = async (id) => {
-  return {};
+  const batch = await db.batch.findUnique({
+    where: {
+      id: id,
+    },
+    include: {
+      students: true,
+      coaches: true,
+    },
+  });
+
+  if (!batch) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
+  }
+
+  if (batch.students.length > 0 || batch.coaches.length > 0) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Cannot delete batch with associated students or coaches'
+    );
+  }
+
+  await db.batch.delete({
+    where: {
+      id: id,
+    },
+  });
+
+  return { message: 'Batch deleted successfully' };
 };
 
 const fetchAllBatches = async (loggedInUser) => {
@@ -113,6 +208,11 @@ const fetchAllBatches = async (loggedInUser) => {
       id: true,
       studentCapacity: true,
       batchCode: true,
+      startLevel: true,
+      currentLevel: true,
+      description: true,
+      warningCutoff: true,
+      currentClass: true,
       students: {
         select: {
           email: true,
@@ -146,7 +246,6 @@ const fetchAllBatches = async (loggedInUser) => {
         },
       },
       startDate: true,
-      endDate: true,
       createdAt: true,
     },
   });

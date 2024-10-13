@@ -80,7 +80,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
   const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
-      name: 'Your App Name',
+      name: 'Chess in Chunks',
       link: config.frontendUrl,
     },
   });
