@@ -17,9 +17,15 @@ const verifyStudentHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(verifyStudentData);
 });
 
+const fetchAllStudentsHandler = catchAsync(async (req, res) => {
+  const allStudents = await studentService.fetchAllStudentsHandler(req.user);
+  res.status(httpStatus.OK).send(allStudents);
+});
+
 const studentController = {
   inviteStudentHandler,
   verifyStudentHandler,
+  fetchAllStudentsHandler,
 };
 
 module.exports = studentController;

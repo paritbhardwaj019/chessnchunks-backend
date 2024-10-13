@@ -9,6 +9,7 @@ const config = require('../config');
 const decodeToken = require('../utils/decodeToken');
 const sendMail = require('../utils/sendEmail');
 const Mailgen = require('mailgen');
+const batchService = require('./batch.service');
 
 const inviteCoachHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, batchId, subRole } = data;
@@ -120,6 +121,8 @@ const inviteCoachHandler = async (data, loggedInUser) => {
 };
 
 const verifyCoachInvitationHandler = async (token) => {
+  console.log('COACH HITTED!!');
+
   if (!token) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Token not present!');
   }
@@ -227,9 +230,103 @@ const verifyCoachInvitationHandler = async (token) => {
   };
 };
 
+const fetchAllCoachesHandler = async (loggedInUser) => {
+  const selectFields = {
+    id: true,
+    email: true,
+    subRole: true,
+    profile: {
+      select: {
+        firstName: true,
+        middleName: true,
+        lastName: true,
+        dob: true,
+        phoneNumber: true,
+        addressLine1: true,
+        addressLine2: true,
+        city: true,
+        state: true,
+        country: true,
+        parentName: true,
+        parentEmailId: true,
+      },
+    },
+    coachOfBatches: {
+      select: {
+        id: true,
+        batchCode: true,
+        description: true,
+        studentCapacity: true,
+        currentClass: true,
+        currentLevel: true,
+        academy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        startDate: true,
+        endDate: true,
+        createdAt: true,
+      },
+    },
+  };
+
+  let coaches;
+
+  if (loggedInUser.role === 'SUPER_ADMIN') {
+    coaches = await db.user.findMany({
+      where: {
+        role: 'COACH',
+      },
+      select: selectFields,
+    });
+  } else if (loggedInUser.role === 'ADMIN') {
+    const adminWithAcademies = await db.user.findUnique({
+      where: { id: loggedInUser.id },
+      select: {
+        adminOfAcademies: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (
+      !adminWithAcademies ||
+      adminWithAcademies.adminOfAcademies.length === 0
+    ) {
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        'Admin is not associated with any academy'
+      );
+    }
+
+    const academyIds = adminWithAcademies.adminOfAcademies.map(
+      (academy) => academy.id
+    );
+
+    coaches = await db.user.findMany({
+      where: {
+        role: 'COACH',
+        coachOfBatches: {
+          some: {
+            academyId: { in: academyIds },
+          },
+        },
+      },
+      select: selectFields,
+    });
+  }
+
+  return coaches;
+};
+
 const coachService = {
   inviteCoachHandler,
   verifyCoachInvitationHandler,
+  fetchAllCoachesHandler,
 };
 
 module.exports = coachService;

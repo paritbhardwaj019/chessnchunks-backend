@@ -1,4 +1,7 @@
 const db = require('../database/prisma');
+const ApiError = require('../utils/apiError');
+const hashPassword = require('../utils/hashPassword');
+const httpStatus = require('http-status');
 
 const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const numberPage = Number(page);
@@ -124,9 +127,63 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
     allUsers,
   };
 };
+const signUpSubscriberHandler = async (data) => {
+  const {
+    email,
+    password,
+    firstName,
+    lastName,
+    dob,
+    phoneNumber,
+    addressLine1,
+    addressLine2,
+    city,
+    state,
+    country,
+  } = data;
 
+  const existingUser = await db.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    throw new ApiError(httpStatus.CONFLICT, 'Email is already in use');
+  }
+
+  const hashedPassword = await hashPassword(password, 10);
+
+  const newDOB = new Date(dob);
+
+  const profile = await db.profile.create({
+    data: {
+      firstName,
+      lastName,
+      dob: newDOB,
+      phoneNumber,
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      country,
+    },
+  });
+
+  const user = await db.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+      role: 'SUBSCRIBER',
+      profile: {
+        connect: { id: profile.id },
+      },
+    },
+  });
+
+  return { user };
+};
 const userService = {
   fetchAllUsersHandler,
+  signUpSubscriberHandler,
 };
 
 module.exports = userService;

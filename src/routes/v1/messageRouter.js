@@ -9,30 +9,18 @@ const messageRouter = express.Router();
 messageRouter.post(
   '/broadcast',
   checkJWT,
-  checkRole(['COACH']),
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
   messageController.sendBroadcastMessage
 );
 
 // Send a message to another user
-messageRouter.post(
-  '/',
-  checkJWT,
-  messageController.sendMessage
-);
+messageRouter.post('/', checkJWT, messageController.sendMessage);
 
 // Get messages in a conversation
-messageRouter.get(
-  '/',
-  checkJWT,
-  messageController.getMessages
-);
+messageRouter.get('/', checkJWT, messageController.getMessages);
 
 // Mark messages as read
-messageRouter.post(
-  '/read',
-  checkJWT,
-  messageController.markMessagesAsRead
-);
+messageRouter.post('/read', checkJWT, messageController.markMessagesAsRead);
 
 // routes/message.routes.js
 
