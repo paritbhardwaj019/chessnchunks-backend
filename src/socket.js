@@ -1,3 +1,5 @@
+const config = require('./config');
+
 let io;
 
 module.exports = {
@@ -5,7 +7,7 @@ module.exports = {
     const socketIo = require('socket.io');
     io = socketIo(server, {
       cors: {
-        origin: 'http://localhost:3000',
+        origin: config.allowedOrigins,
         methods: ['GET', 'POST'],
         allowedHeaders: ['x-auth-token'],
         credentials: true,
