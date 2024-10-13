@@ -109,6 +109,50 @@ const loginWithoutPasswordHandler = async (data) => {
     },
   });
 
+  const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: {
+      name: 'Chess in Chunks',
+      link: config.frontendUrl,
+    },
+  });
+
+  const emailContent = {
+    body: {
+      name: user.profile
+        ? `${user.profile.firstName} ${user.profile.lastName}`
+        : user.email,
+      intro: 'You requested a login without password.',
+      action: {
+        instructions: `Please use the following OTP code to login. This code will expire in 10 minutes.`,
+        button: {
+          color: '#22BC66',
+          text: `Your OTP Code: ${code}`,
+          link: config.frontendUrl,
+        },
+      },
+      outro: 'If you did not request this, please ignore this email.',
+    },
+  };
+
+  const emailBody = mailGenerator.generate(emailContent);
+  const emailText = mailGenerator.generatePlaintext(emailContent);
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: user.email,
+    subject: 'Your OTP Code',
+    html: emailBody,
+    text: emailText,
+  };
+
+  await sendMail(
+    user.email,
+    mailOptions.subject,
+    mailOptions.text,
+    mailOptions.html
+  );
+
   logger.info(code);
 
   return {

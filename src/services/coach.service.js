@@ -266,7 +266,6 @@ const fetchAllCoachesHandler = async (loggedInUser) => {
           },
         },
         startDate: true,
-        endDate: true,
         createdAt: true,
       },
     },

@@ -21,9 +21,25 @@ const signUpSubscriberHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(newSubscriber);
 });
 
+const xlsxUploadHandler = catchAsync(async (req, res) => {
+  const uploadedData = await userService.createUsersFromXlsx(
+    req.file,
+    req.user
+  );
+  res.status(httpStatus.OK).send(uploadedData);
+});
+
+const updateUserStatusHandler = catchAsync(async (req, res) => {
+  const { userId, status } = req.body;
+  const updatedUser = await userService.updateUserStatus(userId, status);
+  res.status(httpStatus.OK).send(updatedUser);
+});
+
 const userController = {
   fetchAllUsersHandler,
   signUpSubscriberHandler,
+  xlsxUploadHandler,
+  updateUserStatusHandler,
 };
 
 module.exports = userController;

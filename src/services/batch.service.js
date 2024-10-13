@@ -107,8 +107,6 @@ const updateBatchHandler = async (id, data) => {
     students,
   } = data;
 
-  console.log('DATA', data);
-
   const updateData = {};
 
   if (studentCapacity !== undefined)
@@ -132,8 +130,6 @@ const updateBatchHandler = async (id, data) => {
       set: students.map((studentId) => ({ id: studentId })),
     };
   }
-
-  console.log('UPDATED DATA', updateData);
 
   const updatedBatch = await db.batch.update({
     where: {

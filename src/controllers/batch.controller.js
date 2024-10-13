@@ -9,6 +9,7 @@ const createBatchHandler = catchAsync(async (req, res) => {
 
 const updateBatchHandler = catchAsync(async (req, res) => {
   console.log('PARAMS', req.params);
+  console.log('BODY', req.body);
   const updatedBatch = await batchService.updateBatchHandler(
     req.params.id,
     req.body
