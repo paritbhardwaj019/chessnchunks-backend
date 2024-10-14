@@ -10,7 +10,7 @@ const userRouter = express.Router();
 userRouter.get(
   '/all-users',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN']),
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
   userController.fetchAllUsersHandler
 );
 

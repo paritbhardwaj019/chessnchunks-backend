@@ -8,7 +8,7 @@ const invitationRouter = express.Router();
 invitationRouter.get(
   '/all-invitations',
   checkJWT,
-  checkRole(['SUPER_ADMIN']),
+  checkRole(['SUPER_ADMIN', 'COACH', 'ADMIN']),
   invitationController.fetchAllInvitationsHandler
 );
 
