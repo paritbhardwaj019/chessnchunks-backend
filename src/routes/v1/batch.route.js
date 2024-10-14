@@ -37,4 +37,5 @@ batchRouter.get(
   checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
   batchController.fetchAllBatchesForOptions
 );
+
 module.exports = batchRouter;

@@ -25,7 +25,7 @@ const respondToFriendRequest = catchAsync(async (req, res) => {
 
   await friendRequestService.respondToFriendRequest(userId, requestId, action);
 
-  res.status(httpStatus.OK).send({ message: 'Friend request updated' });
+  res.status(httpStatus.OK).send({ message: 'Friend request updated successfully' });
 });
 
 const getFriendRequests = catchAsync(async (req, res) => {

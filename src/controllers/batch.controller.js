@@ -8,8 +8,6 @@ const createBatchHandler = catchAsync(async (req, res) => {
 });
 
 const updateBatchHandler = catchAsync(async (req, res) => {
-  console.log('PARAMS', req.params);
-  console.log('BODY', req.body);
   const updatedBatch = await batchService.updateBatchHandler(
     req.params.id,
     req.body
@@ -24,7 +22,6 @@ const deleteBatchHandler = catchAsync(async (req, res) => {
 
 const fetchAllBatches = catchAsync(async (req, res) => {
   const allBatches = await batchService.fetchAllBatches(req.user);
-
   res.status(httpStatus.OK).send(allBatches);
 });
 

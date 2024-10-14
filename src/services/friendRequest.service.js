@@ -44,23 +44,13 @@ const respondToFriendRequest = async (userId, requestId, action) => {
   });
 
   if (action === 'ACCEPTED') {
-    // Add each user to the other's friends list
-    await db.user.update({
-      where: { id: userId },
-      data: {
-        friends: {
-          connect: { id: request.senderId },
-        },
-      },
-    });
-
-    await db.user.update({
-      where: { id: request.senderId },
-      data: {
-        friends: {
-          connect: { id: userId },
-        },
-      },
+    // Create mutual normal friendships
+    await db.friend.createMany({
+      data: [
+        { userId: userId, friendId: request.senderId, type: 'NORMAL' },
+        { userId: request.senderId, friendId: userId, type: 'NORMAL' },
+      ],
+      skipDuplicates: true, // Avoid errors if friendship already exists
     });
   }
 };

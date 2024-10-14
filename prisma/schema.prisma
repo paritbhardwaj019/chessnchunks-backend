@@ -28,11 +28,13 @@ model User {
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
 
+  // Friend relations
   sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
   receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
 
-  friends         User[] @relation("UserFriends")
-  friendRelations User[] @relation("UserFriends")
+  // New Friend relation with distinction for batch and normal friends
+  friends      Friend[] @relation("userFriends")
+  friendOf     Friend[] @relation("friendFriends")
 
   notifications Notification[]
 
@@ -395,6 +397,26 @@ model SeasonalGoal {
   updatedAt DateTime @updatedAt
 
   @@map("seasonalgoals")
+}
+
+// New Friend model to handle different friendship types
+model Friend {
+  id        String      @id @default(uuid())
+  userId    String
+  friendId  String
+  type      FRIEND_TYPE @default(NORMAL) // Friend type to differentiate between batch and normal friends
+  createdAt DateTime    @default(now())
+
+  user   User @relation("userFriends", fields: [userId], references: [id])
+  friend User @relation("friendFriends", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId, type])
+  @@map("friends")
+}
+
+enum FRIEND_TYPE {
+  NORMAL
+  BATCH
 }
 
 enum GOAL_CATEGORY {
