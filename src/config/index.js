@@ -9,7 +9,10 @@ const config = {
   allowedOrigins:
     process.env.NODE_ENV === 'development'
       ? ['http://localhost:3000']
-      : process.env.ALLOWED_ORIGINS,
+      : [
+          'https://chessinchunks-admin.vercel.app',
+          'https://chessnchunks-frontend-888h.vercel.app',
+        ],
   jwt: {
     invitationSecret: process.env.INVITATION_SECRET,
     secret: process.env.JWT_SECRET,
