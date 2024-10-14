@@ -10,9 +10,8 @@ const verifyJWTForSocket = async (token) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log('Decoded Token:', decoded);
 
-    // Fetch the user from the database
     const user = await db.user.findUnique({
-      where: { id: decoded.id }, // Ensure this matches your token payload structure
+      where: { id: decoded.id },
       include: {
         studentOfBatches: true,
         coachOfBatches: true,
@@ -38,4 +37,3 @@ const verifyJWTForSocket = async (token) => {
 };
 
 module.exports = { verifyJWTForSocket };
-    

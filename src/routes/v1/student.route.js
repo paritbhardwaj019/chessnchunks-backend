@@ -21,4 +21,11 @@ studentRouter.get(
   studentController.fetchAllStudentsHandler
 );
 
+studentRouter.get(
+  '/all-students-from-batch',
+  checkJWT,
+  checkRole(['COACH']),
+  studentController.fetchAllStudentsByBatchId
+);
+
 module.exports = studentRouter;

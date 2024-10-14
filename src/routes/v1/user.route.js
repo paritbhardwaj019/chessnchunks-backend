@@ -35,4 +35,11 @@ userRouter.patch(
   userController.updateUserStatusHandler
 );
 
+userRouter.patch(
+  '/update/:id',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  userController.updateUserHandler
+);
+
 module.exports = userRouter;

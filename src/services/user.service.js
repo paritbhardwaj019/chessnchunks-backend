@@ -42,6 +42,7 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
     },
     createdAt: true,
     updatedAt: true,
+    status: true,
   };
 
   let allUsers = [];
@@ -351,9 +352,140 @@ const updateUserStatus = async (userId, status) => {
     );
   }
 
-  const updatedUser = await prisma.user.update({
+  const updatedUser = await db.user.update({
     where: { id: userId },
     data: { status },
+  });
+
+  return updatedUser;
+};
+
+const updateUserHandler = async (id, userData, loggedInUser) => {
+  const { email, firstName, lastName, role, subRole, batchId, status } =
+    userData;
+
+  // Validation: Ensure the user ID is provided
+  if (!id) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required.');
+  }
+
+  // Fetch the user to be updated
+  const user = await db.user.findUnique({
+    where: { id },
+    include: { profile: true, coachOfBatches: true, studentOfBatches: true },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
+  }
+
+  // Authorization: Only SUPER_ADMIN or ADMIN can update users
+  if (loggedInUser.role !== 'SUPER_ADMIN') {
+    if (loggedInUser.role === 'ADMIN') {
+      // Check if the user belongs to any academy managed by the ADMIN
+      const adminAcademyIds = loggedInUser.adminOfAcademies.map(
+        (academy) => academy.id
+      );
+      const userAcademyIds = [
+        ...user.adminOfAcademies.map((academy) => academy.id),
+        ...user.coachOfBatches.map((batch) => batch.academyId),
+        ...user.studentOfBatches.map((batch) => batch.academyId),
+      ];
+
+      const isAuthorized = userAcademyIds.some((academyId) =>
+        adminAcademyIds.includes(academyId)
+      );
+
+      if (!isAuthorized) {
+        throw new ApiError(
+          httpStatus.FORBIDDEN,
+          'You do not have permission to update this user.'
+        );
+      }
+    } else {
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        'You do not have permission to update this user.'
+      );
+    }
+  }
+
+  // Prepare update data
+  const updateData = {};
+
+  // Update email if provided and changed
+  if (email && email !== user.email) {
+    const existingUser = await db.user.findUnique({ where: { email } });
+    if (existingUser && existingUser.id !== id) {
+      throw new ApiError(httpStatus.CONFLICT, 'Email is already in use.');
+    }
+    updateData.email = email;
+  }
+
+  // Update role if provided
+  if (role) {
+    updateData.role = role;
+  }
+
+  // Update subRole if provided
+  if (subRole) {
+    updateData.subRole = subRole;
+  }
+
+  // Update status if provided
+  if (status) {
+    if (!['ACTIVE', 'INACTIVE'].includes(status)) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Invalid status. Status must be either ACTIVE or INACTIVE.'
+      );
+    }
+    updateData.status = status;
+  }
+
+  // Update profile details if provided
+  if (firstName || lastName) {
+    if (user.profile) {
+      updateData.profile = {
+        update: {},
+      };
+      if (firstName) updateData.profile.update.firstName = firstName;
+      if (lastName) updateData.profile.update.lastName = lastName;
+    } else {
+      // If no profile exists, create one
+      updateData.profile = {
+        create: {
+          firstName: firstName || 'FirstName', // Default value if not provided
+          lastName: lastName || 'LastName',
+        },
+      };
+    }
+  }
+
+  // Update batch associations if role is COACH or STUDENT
+  if (role === 'COACH' || role === 'STUDENT') {
+    if (batchId) {
+      if (role === 'COACH') {
+        updateData.coachOfBatches = {
+          set: [{ id: batchId }], // Replace existing batches
+        };
+      } else if (role === 'STUDENT') {
+        updateData.studentOfBatches = {
+          set: [{ id: batchId }],
+        };
+      }
+    }
+  }
+
+  // Perform the update
+  const updatedUser = await db.user.update({
+    where: { id },
+    data: updateData,
+    include: {
+      profile: true,
+      coachOfBatches: true,
+      studentOfBatches: true,
+    },
   });
 
   return updatedUser;
@@ -364,6 +496,7 @@ const userService = {
   signUpSubscriberHandler,
   createUsersFromXlsx,
   updateUserStatus,
+  updateUserHandler,
 };
 
 module.exports = userService;

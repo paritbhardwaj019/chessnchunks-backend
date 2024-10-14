@@ -314,10 +314,76 @@ const fetchAllStudentsHandler = async (loggedInUser) => {
   return students;
 };
 
+const fetchAllStudentsByBatchId = async (batchId) => {
+  const batchExists = await db.batch.findUnique({
+    where: { id: batchId },
+    select: { id: true },
+  });
+
+  if (!batchExists) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
+  }
+
+  const selectFields = {
+    id: true,
+    email: true,
+    role: true,
+    profile: {
+      select: {
+        firstName: true,
+        middleName: true,
+        lastName: true,
+        dob: true,
+        phoneNumber: true,
+        addressLine1: true,
+        addressLine2: true,
+        city: true,
+        state: true,
+        country: true,
+        parentName: true,
+        parentEmailId: true,
+      },
+    },
+    studentOfBatches: {
+      select: {
+        id: true,
+        batchCode: true,
+        description: true,
+        studentCapacity: true,
+        currentClass: true,
+        currentLevel: true,
+        academy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        startDate: true,
+        createdAt: true,
+      },
+    },
+  };
+
+  const students = await db.user.findMany({
+    where: {
+      role: 'STUDENT',
+      studentOfBatches: {
+        some: {
+          id: batchId,
+        },
+      },
+    },
+    select: selectFields,
+  });
+
+  return students;
+};
+
 const studentService = {
   inviteStudentHandler,
   verifyStudentHandler,
   fetchAllStudentsHandler,
+  fetchAllStudentsByBatchId,
 };
 
 module.exports = studentService;

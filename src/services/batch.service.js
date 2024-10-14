@@ -252,6 +252,8 @@ const fetchAllBatches = async (loggedInUser) => {
 const fetchAllBatchesForOptions = async (loggedInUser) => {
   let batchFilter = {};
 
+  console.log(loggedInUser);
+
   if (loggedInUser.role === 'ADMIN') {
     batchFilter = {
       academy: {
@@ -277,11 +279,10 @@ const fetchAllBatchesForOptions = async (loggedInUser) => {
     select: {
       id: true,
       batchCode: true,
-      students: {
-        include: {
-          profile: true,
-        },
+      _count: {
+        select: { students: true },
       },
+      startDate: true,
     },
   });
 

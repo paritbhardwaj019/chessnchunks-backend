@@ -10,6 +10,7 @@ const decodeToken = require('../utils/decodeToken');
 const hashedPassword = require('../utils/hashPassword');
 const Mailgen = require('mailgen');
 const sendMail = require('../utils/sendEmail');
+const _ = require('lodash');
 
 const loginWithPasswordHandler = async (data) => {
   const { email, password } = data;
@@ -165,30 +166,20 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
 
   //   TODO: BODY VALIDATION
 
-  const storedCode = await db.code.findFirst({
-    where: {
-      email,
-      code,
-      type: 'LOGIN_WITHOUT_PASSWORD',
-    },
-    select: {
-      id: true,
-      expiresAt: true,
-      email: true,
-    },
-  });
+  console.log(code, email);
 
-  if (!storedCode)
-    throw new ApiError(
-      httpStatus.UNAUTHORIZED,
-      'Invalid or expired verification code!'
-    );
-
-  if (new Date() > new Date(storedCode.expiresAt))
-    throw new ApiError(
-      httpStatus.UNAUTHORIZED,
-      'Verification code has expired!'
-    );
+  // const storedCode = await db.code.findFirst({
+  //   where: {
+  //     email,
+  //     code,
+  //     type: 'LOGIN_WITHOUT_PASSWORD',
+  //   },
+  //   select: {
+  //     id: true,
+  //     expiresAt: true,
+  //     email: true,
+  //   },
+  // });
 
   const user = await db.user.findUnique({
     where: {
@@ -208,7 +199,10 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
     },
   });
 
-  if (!user) throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
+  if (_.isEmpty(user)) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
+    return;
+  }
 
   const token = await createToken(
     {
@@ -220,11 +214,11 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
     '7d'
   );
 
-  await db.code.deleteMany({
-    where: {
-      email,
-    },
-  });
+  // await db.code.deleteMany({
+  //   where: {
+  //     email,
+  //   },
+  // });
 
   return {
     token,

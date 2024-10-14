@@ -86,6 +86,10 @@ const sendBroadcastMessage = async ({
 // Send a message to another user
 const sendMessage = async ({ senderId, receiverId, content }) => {
   logger.info(`User: ${senderId} sending message to User: ${receiverId}`);
+  console.log('SENDER ID', senderId);
+  console.log('RECEIVER ID', receiverId);
+  console.log('CONTENT', content);
+
   const receiver = await db.user.findUnique({ where: { id: receiverId } });
   if (!receiver) {
     logger.error(`Receiver not found: ${receiverId}`);
@@ -142,9 +146,6 @@ const sendMessage = async ({ senderId, receiverId, content }) => {
 
 // Get messages between two users
 const getMessages = async (userId, conversationWith) => {
-  logger.info(
-    `Fetching messages between User: ${userId} and User: ${conversationWith}`
-  );
   const messages = await db.message.findMany({
     where: {
       OR: [
@@ -152,11 +153,15 @@ const getMessages = async (userId, conversationWith) => {
         { senderId: conversationWith, receiverId: userId },
       ],
     },
+    select: {
+      senderId: true,
+      receiverId: true,
+      content: true,
+      createdAt: true,
+    },
     orderBy: { createdAt: 'asc' },
   });
-  logger.info(
-    `Fetched ${messages.length} messages between User: ${userId} and User: ${conversationWith}`
-  );
+
   return messages;
 };
 
@@ -181,36 +186,89 @@ const markMessagesAsRead = async (userId, conversationWith) => {
 // services/message.service.js
 
 const getConversations = async (userId) => {
-  logger.info(`Fetching conversations for User: ${userId}`);
+  try {
+    const sentMessages = await db.message.findMany({
+      where: {
+        senderId: userId,
+      },
+      select: {
+        receiverId: true,
+      },
+    });
 
-  // Fetch unique conversation partners
-  const conversations = await db.$queryRaw`
-    SELECT
-      u.id,
-      u.email,
-      u."firstName",
-      u."lastName",
-      MAX(m."createdAt") as "lastMessageAt",
-      m.content as "lastMessage"
-    FROM (
-      SELECT "senderId" AS "userId" FROM "messages" WHERE "receiverId" = ${userId}
-      UNION
-      SELECT "receiverId" AS "userId" FROM "messages" WHERE "senderId" = ${userId}
-    ) AS conv
-    INNER JOIN "users" u ON u.id = conv."userId"
-    LEFT JOIN "messages" m ON (
-      (m."senderId" = ${userId} AND m."receiverId" = u.id) OR
-      (m."senderId" = u.id AND m."receiverId" = ${userId})
-    )
-    GROUP BY u.id, u.email, u."firstName", u."lastName", m.content
-    ORDER BY "lastMessageAt" DESC
-  `;
+    const receivedMessages = await db.message.findMany({
+      where: {
+        receiverId: userId,
+      },
+      select: {
+        senderId: true,
+      },
+    });
 
-  logger.info(
-    `Found ${conversations.length} conversations for User: ${userId}`
-  );
+    const partnerIdsSet = new Set();
 
-  return conversations;
+    sentMessages.forEach((msg) => {
+      if (msg.receiverId) partnerIdsSet.add(msg.receiverId);
+    });
+
+    receivedMessages.forEach((msg) => {
+      if (msg.senderId) partnerIdsSet.add(msg.senderId);
+    });
+
+    const partnerIds = Array.from(partnerIdsSet);
+
+    if (partnerIds.length === 0) {
+      logger.info(`No conversations found for User: ${userId}`);
+      return [];
+    }
+
+    const conversations = await Promise.all(
+      partnerIds.map(async (partnerId) => {
+        const user = await db.user.findUnique({
+          where: { id: partnerId },
+          include: { profile: true },
+        });
+
+        if (!user || !user.profile) {
+          return null;
+        }
+
+        const latestMessage = await db.message.findFirst({
+          where: {
+            OR: [
+              { senderId: userId, receiverId: partnerId },
+              { senderId: partnerId, receiverId: userId },
+            ],
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        });
+
+        if (!latestMessage) {
+          return null;
+        }
+
+        return {
+          userId: user.id,
+          email: user.email,
+          firstName: user.profile.firstName,
+          lastName: user.profile.lastName,
+          lastMessage: latestMessage.content,
+          lastMessageTime: latestMessage.createdAt,
+        };
+      })
+    );
+
+    const validConversations = conversations.filter(
+      (conversation) => conversation !== null
+    );
+
+    return validConversations;
+  } catch (error) {
+    logger.error(`Error fetching conversations for User: ${userId}`, error);
+    throw error;
+  }
 };
 
 const messageService = {
@@ -218,7 +276,7 @@ const messageService = {
   sendMessage,
   getMessages,
   markMessagesAsRead,
-  getConversations, // Add this line
+  getConversations,
 };
 
 module.exports = messageService;

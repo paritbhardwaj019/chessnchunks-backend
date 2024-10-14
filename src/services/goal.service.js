@@ -575,8 +575,6 @@ const getWeeklyGoalsForOptions = async (batchId, monthlyGoalId) => {
     whereClause.monthlyGoalId = monthlyGoalId;
   }
 
-  console.log(whereClause);
-
   const weeklyGoals = await db.weeklyGoal.findMany({
     where: whereClause,
     select: {
@@ -584,8 +582,6 @@ const getWeeklyGoalsForOptions = async (batchId, monthlyGoalId) => {
       code: true,
     },
   });
-
-  console.log(weeklyGoals);
 
   return weeklyGoals;
 };

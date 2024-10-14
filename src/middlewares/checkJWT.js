@@ -9,6 +9,8 @@ async function checkJWT(req, res, next) {
   try {
     const token = req.header('x-auth-token');
 
+    console.log('TOKEN', token);
+
     if (!token) {
       return res.status(httpStatus.UNAUTHORIZED).json({
         message: 'Unauthorized access!',

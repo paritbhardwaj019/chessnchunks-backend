@@ -12,65 +12,54 @@ const httpServer = http.createServer(app);
 
 const io = socket.init(httpServer);
 
-// io.use(async (socket, next) => {
-//   const token = socket.handshake.auth.token;
-//   if (!token) {
-//     logger.error('Authentication error: Token not provided');
-//     return next(new Error('Authentication error: Token not provided'));
-//   }
+io.use(async (socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) {
+    logger.info('Authentication failed: Token not provided');
+    return next(new Error('Authentication error: Token not provided'));
+  }
 
-//   try {
-//     logger.info(`User authenticated: ${user.id}`);
-//     next();
-//   } catch (err) {
-//     logger.error(`Socket.IO Authentication Error: ${err.message}`);
-//     next(new Error(`Authentication error: ${err.message}`));
-//   }
-// });
+  try {
+    const user = await verifyJWTForSocket(token);
+    socket.user = user;
+    logger.info(`User authenticated: ${user.id}`);
+    next();
+  } catch (err) {
+    logger.info(`Authentication failed: ${err.message}`);
+    next(new Error('Authentication error'));
+  }
+});
 
-// Socket.IO connection handler
-// io.on('connection', (socket) => {
-//   logger.info(`User connected: ${socket.user?.id || 'unknown user'}`);
+io.on('connection', (socket) => {
+  const userId = socket.user?.id;
+  if (userId) {
+    socket.join(`user-${userId}`);
+    logger.info(`User connected and joined room: user-${userId}`);
+  }
 
-//   // Join user-specific room for private messages
-//   socket.join(`user-${socket.user.id}`);
-//   logger.info(
-//     `User ${socket.user.id} joined private room: user-${socket.user.id}`
-//   );
+  socket.on('send_message', async ({ receiverId, content }) => {
+    if (!userId)
+      return logger.info('Message sending failed: Unauthenticated user');
 
-//   // Handle 'send_message' event from the client
-//   socket.on('send_message', async ({ receiverId, content }) => {
-//     logger.info(
-//       `Socket.IO: User ${socket.user.id} sending message to User: ${receiverId}`
-//     );
+    try {
+      const message = await messageService.sendMessage({
+        senderId: userId,
+        receiverId,
+        content,
+      });
 
-//     try {
-//       // Use the messageService to send the message
-//       const message = await messageService.sendMessage({
-//         senderId: socket.user.id,
-//         receiverId,
-//         content,
-//       });
+      io.to(`user-${receiverId}`).emit('new_message', message);
+      logger.info(`Message sent from User ${userId} to User ${receiverId}`);
+    } catch (err) {
+      logger.info(`Message sending failed: ${err.message}`);
+    }
+  });
 
-//       // Emit the message to the receiver's user room
-//       io.to(`user-${receiverId}`).emit('new_message', message);
-//       logger.info(
-//         `Socket.IO: Message sent from User: ${socket.user.id} to User: ${receiverId}`
-//       );
-//     } catch (err) {
-//       logger.error(
-//         `Socket.IO: Error sending message from User: ${socket.user.id} to User: ${receiverId}: ${err.message}`
-//       );
-//     }
-//   });
+  socket.on('disconnect', () => {
+    if (userId) logger.info(`User disconnected: ${userId}`);
+  });
+});
 
-//   // Handle disconnection
-//   socket.on('disconnect', () => {
-//     logger.info(`User disconnected: ${socket.user?.id || 'unknown user'}`);
-//   });
-// });
-
-// Start the server and log the running status
 httpServer.listen(config.port, () => {
   logger.info(`Server is running on port ${config.port}`);
 });

@@ -22,10 +22,18 @@ const fetchAllStudentsHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(allStudents);
 });
 
+const fetchAllStudentsByBatchId = catchAsync(async (req, res) => {
+  const allStudents = await studentService.fetchAllStudentsByBatchId(
+    req.query.batchId
+  );
+  res.status(httpStatus.OK).send(allStudents);
+});
+
 const studentController = {
   inviteStudentHandler,
   verifyStudentHandler,
   fetchAllStudentsHandler,
+  fetchAllStudentsByBatchId,
 };
 
 module.exports = studentController;
