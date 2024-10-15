@@ -321,11 +321,7 @@ const verifyResetPasswordHandler = async (data) => {
     select: { id: true, email: true, password: true },
   });
 
-  console.log('USER', user);
-
   if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
-
-  console.log(newPassword);
 
   const newUpdatePassword = await hashedPassword(newPassword, 10);
 

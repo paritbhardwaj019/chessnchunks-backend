@@ -368,6 +368,128 @@ const fetchBatchById = async (loggedInUser, id) => {
   return batch;
 };
 
+const addStudentToBatch = async (batchId, studentId) => {
+  // Check if batch exists
+  const batch = await db.batch.findUnique({
+    where: { id: batchId },
+    include: { students: true },
+  });
+
+  if (!batch) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
+  }
+
+  // Check if student exists
+  const student = await db.student.findUnique({
+    where: { id: studentId },
+  });
+
+  if (!student) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Student not found!');
+  }
+
+  // Check if student is already in the batch
+  const isAlreadyInBatch = batch.students.some((s) => s.id === studentId);
+  if (isAlreadyInBatch) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Student is already in this batch.'
+    );
+  }
+
+  // Add student to batch
+  const updatedBatch = await db.batch.update({
+    where: { id: batchId },
+    data: {
+      students: {
+        connect: { id: studentId },
+      },
+    },
+    include: {
+      students: true,
+      academy: true,
+      coaches: true,
+    },
+  });
+
+  return updatedBatch;
+};
+
+const addCoachToBatch = async (batchId, coachId) => {
+  // Check if batch exists
+  const batch = await db.batch.findUnique({
+    where: { id: batchId },
+    include: { coaches: true },
+  });
+
+  if (!batch) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
+  }
+
+  // Check if coach exists
+  const coach = await db.coach.findUnique({
+    where: { id: coachId },
+  });
+
+  if (!coach) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Coach not found!');
+  }
+
+  // Check if coach is already in the batch
+  const isAlreadyInBatch = batch.coaches.some((c) => c.id === coachId);
+  if (isAlreadyInBatch) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Coach is already in this batch.'
+    );
+  }
+
+  // Add coach to batch
+  const updatedBatch = await db.batch.update({
+    where: { id: batchId },
+    data: {
+      coaches: {
+        connect: { id: coachId },
+      },
+    },
+    include: {
+      students: true,
+      academy: true,
+      coaches: true,
+    },
+  });
+
+  return updatedBatch;
+};
+
+const getAllCoachesByBatchId = async (batchId) => {
+  const batch = await db.batch.findUnique({
+    where: { id: batchId },
+    include: {
+      coaches: {
+        select: {
+          id: true,
+          email: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+          role: true,
+          subRole: true,
+        },
+      },
+    },
+  });
+
+  if (!batch) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
+  }
+
+  return batch.coaches;
+};
+
 const batchService = {
   createBatchHandler,
   updateBatchHandler,
@@ -375,6 +497,9 @@ const batchService = {
   fetchAllBatches,
   fetchAllBatchesForOptions,
   fetchBatchById,
+  addStudentToBatch, // New
+  addCoachToBatch, // New
+  getAllCoachesByBatchId, // New
 };
 
 module.exports = batchService;

@@ -45,6 +45,37 @@ const fetchBatchById = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(batch);
 });
 
+const addStudentToBatchHandler = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { studentId } = req.body;
+
+  if (!studentId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'studentId is required.');
+  }
+
+  const updatedBatch = await batchService.addStudentToBatch(id, studentId);
+  res.status(httpStatus.OK).send(updatedBatch);
+});
+
+const addCoachToBatchHandler = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { coachId } = req.body;
+
+  if (!coachId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'coachId is required.');
+  }
+
+  const updatedBatch = await batchService.addCoachToBatch(id, coachId);
+  res.status(httpStatus.OK).send(updatedBatch);
+});
+
+const getAllCoachesByBatchIdHandler = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const coaches = await batchService.getAllCoachesByBatchId(id);
+  res.status(httpStatus.OK).send(coaches);
+});
+
 const batchController = {
   createBatchHandler,
   updateBatchHandler,
@@ -52,6 +83,9 @@ const batchController = {
   fetchAllBatches,
   fetchAllBatchesForOptions,
   fetchBatchById,
+  addStudentToBatchHandler,
+  addCoachToBatchHandler,
+  getAllCoachesByBatchIdHandler,
 };
 
 module.exports = batchController;

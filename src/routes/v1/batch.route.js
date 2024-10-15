@@ -12,6 +12,27 @@ batchRouter.get(
   batchController.fetchAllBatchesForOptions
 );
 
+batchRouter.post(
+  '/:id/students',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  batchController.addStudentToBatchHandler
+);
+
+batchRouter.post(
+  '/:id/coaches',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN']),
+  batchController.addCoachToBatchHandler
+);
+
+batchRouter.get(
+  '/:id/coaches',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  batchController.getAllCoachesByBatchIdHandler
+);
+
 batchRouter
   .route('/')
   .post(
