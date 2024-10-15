@@ -7,3 +7,5 @@ function formatNumberWithPrefix(prefix, number) {
 }
 
 module.exports = formatNumberWithPrefix;
+
+

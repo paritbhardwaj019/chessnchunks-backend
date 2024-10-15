@@ -40,6 +40,10 @@ model User {
 
   ChannelMessages ChannelMessage[]
 
+  // New Relations
+  assignedTasks Task[] @relation("AssignedToUser")
+  createdTasks  Task[] @relation("TaskCreatedBy")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -83,6 +87,9 @@ model Academy {
   subscriptions  Subscription[]
   purchasedPlans PurchasedPlan[]
 
+  // New Relation
+  assignedTasks Task[] @relation("AssignedToAcademy")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -111,6 +118,9 @@ model Batch {
   monthlyGoals  MonthlyGoal[]
   weeklyGoals   WeeklyGoal[]
 
+  // New Relation
+  assignedTasks Task[] @relation("AssignedToBatch")
+
   startDate DateTime
 
   channels Channel[]
@@ -121,6 +131,45 @@ model Batch {
   updatedAt DateTime @updatedAt
 
   @@map("batches")
+}
+
+model Task {
+  id          String      @id @default(uuid())
+  description String
+  taskCodeId  String
+  taskCode    TaskCode    @relation(fields: [taskCodeId], references: [id])
+
+  startDate DateTime
+  endDate   DateTime
+
+  status TASK_STATUS
+
+  assignedToUserId    String?
+  assignedToUser      User?     @relation("AssignedToUser", fields: [assignedToUserId], references: [id])
+
+  assignedToBatchId   String?
+  assignedToBatch     Batch?    @relation("AssignedToBatch", fields: [assignedToBatchId], references: [id])
+
+  assignedToAcademyId String?
+  assignedToAcademy   Academy?  @relation("AssignedToAcademy", fields: [assignedToAcademyId], references: [id])
+
+  createdById String
+  createdBy   User @relation("TaskCreatedBy", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tasks")
+}
+
+model TaskCode {
+  id          String @id @default(uuid())
+  code        String @unique
+  description String?
+
+  tasks Task[]
+
+  @@map("task_codes")
 }
 
 model Invitation {
@@ -281,7 +330,7 @@ model Channel {
   id          String   @id @default(uuid())
   name        String
   isBroadcast Boolean  @default(false)
-  batchId     String? 
+  batchId     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -397,6 +446,8 @@ model SeasonalGoal {
   @@map("seasonalgoals")
 }
 
+// Enums
+
 enum GOAL_CATEGORY {
   GAMES
   PUZZLES
@@ -451,4 +502,10 @@ enum FRIEND_REQUEST_STATUS {
 enum USER_STATUS {
   ACTIVE
   INACTIVE
+}
+
+enum TASK_STATUS {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
 }
