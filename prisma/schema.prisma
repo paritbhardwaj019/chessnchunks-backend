@@ -7,6 +7,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+model Task {
+  id          String      @id @default(uuid())
+  description String
+  taskCodeId  String
+  taskCode    TaskCode    @relation(fields: [taskCodeId], references: [id])
+
+  startDate DateTime
+  endDate   DateTime
+
+  status TASK_STATUS
+
+  createdById String
+  createdBy   User @relation("TaskCreatedBy", fields: [createdById], references: [id])
+
+  assignedToUserId    String?
+  assignedToUser      User?     @relation("AssignedToUser", fields: [assignedToUserId], references: [id])
+
+  assignedToBatchId   String?
+  assignedToBatch     Batch?    @relation("AssignedToBatch", fields: [assignedToBatchId], references: [id])
+
+  assignedToAcademyId String?
+  assignedToAcademy   Academy?  @relation("AssignedToAcademy", fields: [assignedToAcademyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tasks")
+}
+
+model TaskCode {
+  id          String @id @default(uuid())
+  code        String @unique
+  description String?
+
+  tasks Task[]
+
+  @@map("task_codes")
+}
+
+enum TASK_STATUS {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
 model User {
   id       String      @id @default(uuid())
   email    String      @unique
@@ -39,6 +85,10 @@ model User {
   channels Channel[] @relation("ChannelMembers")
 
   ChannelMessages ChannelMessage[]
+
+  // New Relations
+  assignedTasks Task[] @relation("AssignedToUser")
+  createdTasks  Task[] @relation("TaskCreatedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -83,12 +133,14 @@ model Academy {
   subscriptions  Subscription[]
   purchasedPlans PurchasedPlan[]
 
+  // New Relation
+  assignedTasks Task[] @relation("AssignedToAcademy")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("academies")
 }
-
 model Batch {
   id String @id @default(uuid())
 
@@ -110,6 +162,9 @@ model Batch {
   seasonalGoals SeasonalGoal[]
   monthlyGoals  MonthlyGoal[]
   weeklyGoals   WeeklyGoal[]
+
+  // New Relation
+  assignedTasks Task[] @relation("AssignedToBatch")
 
   startDate DateTime
 
