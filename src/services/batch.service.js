@@ -250,7 +250,7 @@ const fetchAllBatches = async (loggedInUser, { page, limit, query }) => {
 const fetchAllBatchesForOptions = async (loggedInUser) => {
   let batchFilter = {};
 
-  console.log(loggedInUser);
+  console.log('LOGGED IN USER', loggedInUser);
 
   if (loggedInUser.role === 'ADMIN') {
     batchFilter = {

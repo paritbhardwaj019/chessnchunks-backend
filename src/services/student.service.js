@@ -312,7 +312,7 @@ const fetchAllStudentsHandler = async (loggedInUser) => {
   return students;
 };
 
-const fetchAllStudentsByBatchId = async (batchId) => {
+const fetchAllStudentsByBatchId = async (batchId, { query }) => {
   const batchExists = await db.batch.findUnique({
     where: { id: batchId },
     select: { id: true },
@@ -362,19 +362,94 @@ const fetchAllStudentsByBatchId = async (batchId) => {
     },
   };
 
-  const students = await db.user.findMany({
-    where: {
-      role: 'STUDENT',
-      studentOfBatches: {
-        some: {
-          id: batchId,
-        },
+  const whereClause = {
+    role: 'STUDENT',
+    studentOfBatches: {
+      some: {
+        id: batchId,
       },
     },
+  };
+
+  if (query) {
+    whereClause.OR = [
+      { email: { contains: query } },
+      {
+        profile: { firstName: { contains: query } },
+      },
+      { profile: { lastName: { contains: query } } },
+      {
+        profile: { middleName: { contains: query } },
+      },
+    ];
+  }
+
+  const students = await db.user.findMany({
+    where: whereClause,
     select: selectFields,
   });
 
   return students;
+};
+
+const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
+  console.log(studentId, fromBatchId, toBatchId);
+
+  const fromBatch = await db.batch.findUnique({
+    where: { id: fromBatchId },
+    select: { id: true },
+  });
+
+  if (!fromBatch) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Source batch not found');
+  }
+
+  const toBatch = await db.batch.findUnique({
+    where: { id: toBatchId },
+    select: { id: true },
+  });
+
+  if (!toBatch) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Destination batch not found');
+  }
+
+  const student = await db.user.findUnique({
+    where: { id: studentId },
+    include: {
+      studentOfBatches: {
+        where: { id: fromBatchId },
+      },
+    },
+  });
+
+  if (!student || student.studentOfBatches.length === 0) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      'Student not found in the source batch'
+    );
+  }
+
+  const updatedStudent = await db.user.update({
+    where: { id: studentId },
+    data: {
+      studentOfBatches: {
+        disconnect: { id: fromBatchId },
+        connect: { id: toBatchId },
+      },
+    },
+    select: {
+      id: true,
+      email: true,
+      studentOfBatches: {
+        select: {
+          id: true,
+          batchCode: true,
+        },
+      },
+    },
+  });
+
+  return updatedStudent;
 };
 
 const studentService = {
@@ -382,6 +457,7 @@ const studentService = {
   verifyStudentHandler,
   fetchAllStudentsHandler,
   fetchAllStudentsByBatchId,
+  moveStudentToBatchHandler,
 };
 
 module.exports = studentService;

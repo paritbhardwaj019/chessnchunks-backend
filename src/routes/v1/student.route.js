@@ -24,8 +24,15 @@ studentRouter.get(
 studentRouter.get(
   '/all-students-from-batch',
   checkJWT,
-  checkRole(['COACH']),
+  checkRole(['COACH', 'SUPER_ADMIN', 'ADMIN']),
   studentController.fetchAllStudentsByBatchId
+);
+
+studentRouter.patch(
+  '/move-student',
+  checkJWT,
+  checkRole(['COACH', 'SUPER_ADMIN', 'ADMIN']),
+  studentController.moveStudentToBatchHandler
 );
 
 module.exports = studentRouter;

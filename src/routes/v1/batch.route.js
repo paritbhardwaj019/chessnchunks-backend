@@ -5,6 +5,13 @@ const checkRole = require('../../middlewares/checkRole');
 
 const batchRouter = express.Router();
 
+batchRouter.get(
+  '/options',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  batchController.fetchAllBatchesForOptions
+);
+
 batchRouter
   .route('/')
   .post(
@@ -36,10 +43,4 @@ batchRouter
     batchController.fetchBatchById
   );
 
-batchRouter.get(
-  '/options',
-  checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
-  batchController.fetchAllBatchesForOptions
-);
 module.exports = batchRouter;
