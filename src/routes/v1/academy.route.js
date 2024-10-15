@@ -11,6 +11,11 @@ academyRouter
     checkJWT,
     checkRole(['SUPER_ADMIN', 'ADMIN']),
     academyController.updateAcademyByIdHandler
+  )
+  .get(
+    checkJWT,
+    checkRole(['SUPER_ADMIN', 'ADMIN']),
+    academyController.fetchAcademyByIdHandler
   );
 
 module.exports = academyRouter;

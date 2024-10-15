@@ -240,6 +240,13 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
         _count: {
           select: { batches: true, admins: true },
         },
+        batches: {
+          select: {
+            _count: {
+              select: { students: true },
+            },
+          },
+        },
         createdAt: true,
       },
     });
@@ -259,12 +266,33 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
         _count: {
           select: { batches: true, admins: true },
         },
+        batches: {
+          select: {
+            _count: {
+              select: { students: true },
+            },
+          },
+        },
         createdAt: true,
       },
     });
   }
 
-  return allAcademies;
+  const academiesWithStudentCount = allAcademies.map((academy) => {
+    const studentCount = academy.batches.reduce(
+      (acc, batch) => acc + batch._count.students,
+      0
+    );
+    return {
+      ...academy,
+      _count: {
+        ...academy._count,
+        students: studentCount,
+      },
+    };
+  });
+
+  return academiesWithStudentCount;
 };
 
 const fetchAllUsersHandler = async (
