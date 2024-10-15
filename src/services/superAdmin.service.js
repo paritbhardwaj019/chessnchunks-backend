@@ -323,12 +323,11 @@ const fetchAllUsersHandler = async (
 
   let allUsers = [];
 
-  // Only include valid search filters (i.e., skip undefined or empty values)
   const searchFilters = [
     query ? { email: { contains: searchQuery } } : null,
     query ? { profile: { firstName: { contains: searchQuery } } } : null,
     query ? { profile: { lastName: { contains: searchQuery } } } : null,
-  ].filter(Boolean); // Remove null values from the filters
+  ].filter(Boolean);
 
   console.log('Search Filters:', searchFilters);
 
@@ -388,7 +387,7 @@ const fetchAllUsersHandler = async (
             },
           },
         ],
-        AND: searchFilters, // Apply search filters in the AND clause
+        AND: searchFilters,
       },
       select: {
         id: true,

@@ -314,12 +314,18 @@ const verifyResetPasswordHandler = async (data) => {
 
   const { id, email } = decoded;
 
+  console.log('DECODED', decoded);
+
   const user = await db.user.findUnique({
     where: { id, email },
     select: { id: true, email: true, password: true },
   });
 
+  console.log('USER', user);
+
   if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
+
+  console.log(newPassword);
 
   const newUpdatePassword = await hashedPassword(newPassword, 10);
 
