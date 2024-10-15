@@ -17,7 +17,7 @@ coachRouter.post('/verify-coach', coachController.verifyCoachInvitationHandler);
 coachRouter.get(
   '/all-coaches',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN']),
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
   coachController.fetchAllCoachesHandler
 );
 

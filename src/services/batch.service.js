@@ -28,13 +28,7 @@ const createBatchHandler = async (data) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Academy not found!');
   }
 
-  const allBatchesCount = await db.batch.count({
-    where: {
-      academy: {
-        id: academyId,
-      },
-    },
-  });
+  const allBatchesCount = await db.batch.count();
 
   const batchCode = formatNumberWithPrefix('B', allBatchesCount);
 
@@ -174,27 +168,28 @@ const deleteBatchHandler = async (id) => {
 
   return { message: 'Batch deleted successfully' };
 };
-
-const fetchAllBatches = async (loggedInUser) => {
+const fetchAllBatches = async (loggedInUser, { page, limit, query }) => {
   let batchFilter = {};
 
   if (loggedInUser.role === 'ADMIN') {
-    batchFilter = {
-      academy: {
-        admins: {
-          some: {
-            id: loggedInUser.id,
-          },
-        },
-      },
-    };
-  } else if (loggedInUser.role === 'COACH') {
-    batchFilter = {
-      coaches: {
+    batchFilter.academy = {
+      admins: {
         some: {
           id: loggedInUser.id,
         },
       },
+    };
+  } else if (loggedInUser.role === 'COACH') {
+    batchFilter.coaches = {
+      some: {
+        id: loggedInUser.id,
+      },
+    };
+  }
+
+  if (query) {
+    batchFilter.batchCode = {
+      contains: query,
     };
   }
 
@@ -244,6 +239,9 @@ const fetchAllBatches = async (loggedInUser) => {
       startDate: true,
       createdAt: true,
     },
+    orderBy: {
+      createdAt: 'desc',
+    },
   });
 
   return allBatches;
@@ -289,12 +287,94 @@ const fetchAllBatchesForOptions = async (loggedInUser) => {
   return allBatches;
 };
 
+const fetchBatchById = async (loggedInUser, id) => {
+  let batchFilter = {
+    id: id,
+  };
+
+  if (loggedInUser.role === 'ADMIN') {
+    batchFilter.academy = {
+      admins: {
+        some: {
+          id: loggedInUser.id,
+        },
+      },
+    };
+  } else if (loggedInUser.role === 'COACH') {
+    batchFilter.coaches = {
+      some: {
+        id: loggedInUser.id,
+      },
+    };
+  }
+
+  const batch = await db.batch.findFirst({
+    where: batchFilter,
+    select: {
+      id: true,
+      studentCapacity: true,
+      batchCode: true,
+      startLevel: true,
+      currentLevel: true,
+      description: true,
+      warningCutoff: true,
+      currentClass: true,
+      students: {
+        select: {
+          email: true,
+          id: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+          role: true,
+        },
+      },
+      coaches: {
+        select: {
+          id: true,
+          email: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+          role: true,
+          subRole: true,
+        },
+      },
+      academy: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      startDate: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  if (!batch) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      'Batch not found or access denied!'
+    );
+  }
+
+  return batch;
+};
+
 const batchService = {
   createBatchHandler,
   updateBatchHandler,
   deleteBatchHandler,
   fetchAllBatches,
   fetchAllBatchesForOptions,
+  fetchBatchById,
 };
 
 module.exports = batchService;

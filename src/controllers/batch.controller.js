@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const batchService = require('../services/batch.service');
+const _ = require('lodash');
 
 const createBatchHandler = catchAsync(async (req, res) => {
   const createdBatch = await batchService.createBatchHandler(req.body);
@@ -23,7 +24,13 @@ const deleteBatchHandler = catchAsync(async (req, res) => {
 });
 
 const fetchAllBatches = catchAsync(async (req, res) => {
-  const allBatches = await batchService.fetchAllBatches(req.user);
+  const { page, limit, query } = _.pick(req.query, ['page', 'limit', 'query']);
+
+  const allBatches = await batchService.fetchAllBatches(req.user, {
+    page,
+    limit,
+    query,
+  });
 
   res.status(httpStatus.OK).send(allBatches);
 });
@@ -33,12 +40,18 @@ const fetchAllBatchesForOptions = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(options);
 });
 
+const fetchBatchById = catchAsync(async (req, res) => {
+  const batch = await batchService.fetchBatchById(req.params.id);
+  res.status(httpStatus.OK).send(batch);
+});
+
 const batchController = {
   createBatchHandler,
   updateBatchHandler,
   deleteBatchHandler,
   fetchAllBatches,
   fetchAllBatchesForOptions,
+  fetchBatchById,
 };
 
 module.exports = batchController;

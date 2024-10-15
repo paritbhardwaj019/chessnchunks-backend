@@ -29,6 +29,11 @@ batchRouter
     checkJWT,
     checkRole(['SUPER_ADMIN', 'COACH']),
     batchController.deleteBatchHandler
+  )
+  .get(
+    checkJWT,
+    checkRole(['SUPER_ADMIN', 'COACH', 'ADMIN']),
+    batchController.fetchBatchById
   );
 
 batchRouter.get(
