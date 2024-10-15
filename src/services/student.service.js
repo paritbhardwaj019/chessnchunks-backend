@@ -69,12 +69,11 @@ const inviteStudentHandler = async (data, loggedInUser) => {
 
   // Generate activation URL
   const ACTIVATION_URL = `${
-    config.frontendUrl
+    config.chessinChunksUrl
   }/accept-invite?type=BATCH_STUDENT&batchId=${encodeURIComponent(
     batchId
   )}&token=${token}`;
 
-  // Generate email content
   const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
@@ -103,7 +102,6 @@ const inviteStudentHandler = async (data, loggedInUser) => {
   const emailBody = mailGenerator.generate(emailContent);
   const emailText = mailGenerator.generatePlaintext(emailContent);
 
-  // Send the email using the provided sendMail function
   try {
     await sendMail(email, 'Batch Student Invitation', emailText, emailBody);
     logger.info(`Invitation email sent to student: ${email}`);

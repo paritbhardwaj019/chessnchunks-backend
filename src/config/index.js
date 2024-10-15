@@ -19,6 +19,7 @@ const config = {
     resetPasswordSecret: process.env.RESET_PASSWORD_SECRET,
   },
   frontendUrl: process.env.FRONTEND_URL,
+  chessinChunksUrl: process.env.CHESSINCHUNKS_URL,
 };
 
 module.exports = config;
