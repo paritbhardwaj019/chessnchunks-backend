@@ -3,6 +3,8 @@ const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 
 const updateAcademyByIdHandler = async (data, id, loggedInUser) => {
+  console.log(data, id, loggedInUser);
+
   if (loggedInUser.role === 'SUPER_ADMIN') {
     const updatedAcademy = await db.academy.update({
       where: {

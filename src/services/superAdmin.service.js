@@ -248,6 +248,7 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
           },
         },
         createdAt: true,
+        status: true,
       },
     });
   } else if (user.role === 'ADMIN') {
@@ -274,6 +275,7 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
           },
         },
         createdAt: true,
+        status: true,
       },
     });
   }
