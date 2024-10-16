@@ -38,7 +38,6 @@ const fetchAllInvitationsHandler = async (
       {
         email: {
           contains: query,
-          mode: 'insensitive',
         },
       },
       {
@@ -75,8 +74,6 @@ const fetchAllInvitationsHandler = async (
         take,
       }),
     ]);
-
-    // Calculate total pages
 
     return invitations;
   } catch (error) {
