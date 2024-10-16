@@ -193,6 +193,16 @@ const verifyCoachInvitationHandler = async (token) => {
   const userCount = await db.user.count();
   const newCode = formatNumberWithPrefix('U', userCount);
 
+  const isEmailAlreadyExists = await db.user.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (isEmailAlreadyExists) {
+    throw new ApiError(httpStatus.CONFLICT, 'Email is already taken.');
+  }
+
   const coach = await db.user.create({
     data: {
       email,
