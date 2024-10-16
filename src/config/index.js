@@ -8,7 +8,7 @@ const config = {
   port: process.env.PORT,
   allowedOrigins:
     process.env.NODE_ENV === 'development'
-      ? ['http://localhost:3000']
+      ? ['http://localhost:3000', 'http://localhost:3001']
       : [
           'https://chessinchunks-admin.vercel.app',
           'https://chessnchunks-frontend-888h.vercel.app',
