@@ -9,6 +9,7 @@ const decodeToken = require('../utils/decodeToken');
 const config = require('../config');
 const sendMail = require('../utils/sendEmail');
 const Mailgen = require('mailgen');
+const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 
 const inviteStudentHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, batchId } = data;
@@ -175,6 +176,9 @@ const verifyStudentHandler = async (token) => {
     },
   });
 
+  const userCount = await db.user.count();
+  const newCode = formatNumberWithPrefix('U', userCount);
+
   const newStudent = await db.user.create({
     data: {
       email,
@@ -183,6 +187,7 @@ const verifyStudentHandler = async (token) => {
           id: studentProfile.id,
         },
       },
+      code: newCode,
       studentOfBatches: {
         connect: [
           {

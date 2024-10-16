@@ -7,6 +7,7 @@ const decodeToken = require('../utils/decodeToken');
 const sendMail = require('../utils/sendEmail');
 const Mailgen = require('mailgen');
 const logger = require('../utils/logger');
+const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 
 const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyName } = data;
@@ -143,6 +144,9 @@ const verifyAcademyAdminHandler = async (token) => {
     },
   });
 
+  const userCount = await db.user.count();
+  const newCode = formatNumberWithPrefix('U', userCount);
+
   const academyAdmin = await db.user.create({
     data: {
       email,
@@ -151,6 +155,7 @@ const verifyAcademyAdminHandler = async (token) => {
           id: academyAdminProfile.id,
         },
       },
+      code: newCode,
       role: 'ADMIN',
     },
     select: {
@@ -244,11 +249,18 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
           select: {
             _count: {
               select: { students: true },
+              select: { coaches: true },
             },
           },
         },
         createdAt: true,
         status: true,
+        admins: {
+          take: 1,
+          select: {
+            email: true,
+          },
+        },
       },
     });
   } else if (user.role === 'ADMIN') {
@@ -270,7 +282,7 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
         batches: {
           select: {
             _count: {
-              select: { students: true },
+              select: { students: true, coaches: true },
             },
           },
         },
@@ -285,11 +297,18 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
       (acc, batch) => acc + batch._count.students,
       0
     );
+
+    const coachesCount = academy.batches.reduce(
+      (acc, batch) => acc + batch._count.coaches,
+      0
+    );
+
     return {
       ...academy,
       _count: {
         ...academy._count,
-        students: studentCount,
+        students: studentCount || 0,
+        coaches: coachesCount || 0,
       },
     };
   });

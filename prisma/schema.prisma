@@ -60,6 +60,8 @@ model User {
   role     ROLE
   subRole  COACH_ROLE?
 
+  code String
+
   profile Profile?
 
   coachOfBatches   Batch[]   @relation("BatchCoaches")
@@ -86,7 +88,6 @@ model User {
 
   ChannelMessages ChannelMessage[]
 
-  // New Relations
   assignedTasks Task[] @relation("AssignedToUser")
   createdTasks  Task[] @relation("TaskCreatedBy")
 

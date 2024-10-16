@@ -3,6 +3,7 @@ const db = require('../database/prisma');
 const logger = require('./logger');
 const _ = require('lodash');
 const hashPassword = require('./hashPassword');
+const formatNumberWithPrefix = require('./formatNumberWithPrefix');
 
 const flag = process.argv[2];
 
@@ -61,6 +62,9 @@ function createSuperAdmin() {
       },
     });
 
+    const userCount = await db.user.count();
+    const newCode = formatNumberWithPrefix('U', userCount);
+
     const superAdmin = await db.user.create({
       data: {
         email,
@@ -70,6 +74,7 @@ function createSuperAdmin() {
             id: superAdminProfile.id,
           },
         },
+        code: newCode,
         role: 'SUPER_ADMIN',
       },
       select: {

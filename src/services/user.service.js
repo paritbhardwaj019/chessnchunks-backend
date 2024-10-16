@@ -4,6 +4,7 @@ const hashPassword = require('../utils/hashPassword');
 const httpStatus = require('http-status');
 const xlsx = require('xlsx');
 const fs = require('fs');
+const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 
 const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   // Parse and set default pagination parameters
@@ -43,6 +44,7 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
     createdAt: true,
     updatedAt: true,
     status: true,
+    code: true,
   };
 
   let allUsers = [];
@@ -162,10 +164,14 @@ const signUpSubscriberHandler = async (data) => {
     },
   });
 
+  const userCount = await db.user.count();
+  const newCode = formatNumberWithPrefix('U', userCount);
+
   const user = await db.user.create({
     data: {
       email,
       password: hashedPassword,
+      code: newCode,
       role: 'SUBSCRIBER',
       profile: {
         connect: { id: profile.id },
@@ -284,6 +290,9 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
           );
         }
 
+        const userCount = await db.user.count();
+        const newCode = formatNumberWithPrefix('U', userCount);
+
         const userData = {
           email,
           role,
@@ -294,6 +303,7 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
               lastName,
             },
           },
+          code: newCode,
         };
 
         if (role === 'COACH') {
@@ -361,10 +371,10 @@ const updateUserStatus = async (userId, status) => {
 };
 
 const updateUserHandler = async (id, userData, loggedInUser) => {
-  const { email, firstName, lastName, role, subRole, batchId, status } =
-    userData;
+  const { email, firstName, lastName, role, subRole, status } = userData;
 
-  // Validation: Ensure the user ID is provided
+  console.log('USER DATA', userData);
+
   if (!id) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required.');
   }
@@ -410,10 +420,8 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
     }
   }
 
-  // Prepare update data
   const updateData = {};
 
-  // Update email if provided and changed
   if (email && email !== user.email) {
     const existingUser = await db.user.findUnique({ where: { email } });
     if (existingUser && existingUser.id !== id) {
@@ -422,17 +430,14 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
     updateData.email = email;
   }
 
-  // Update role if provided
   if (role) {
     updateData.role = role;
   }
 
-  // Update subRole if provided
   if (subRole) {
     updateData.subRole = subRole;
   }
 
-  // Update status if provided
   if (status) {
     if (!['ACTIVE', 'INACTIVE'].includes(status)) {
       throw new ApiError(
@@ -443,7 +448,6 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
     updateData.status = status;
   }
 
-  // Update profile details if provided
   if (firstName || lastName) {
     if (user.profile) {
       updateData.profile = {
@@ -452,28 +456,12 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
       if (firstName) updateData.profile.update.firstName = firstName;
       if (lastName) updateData.profile.update.lastName = lastName;
     } else {
-      // If no profile exists, create one
       updateData.profile = {
         create: {
-          firstName: firstName || 'FirstName', // Default value if not provided
-          lastName: lastName || 'LastName',
+          firstName: firstName,
+          lastName: lastName,
         },
       };
-    }
-  }
-
-  // Update batch associations if role is COACH or STUDENT
-  if (role === 'COACH' || role === 'STUDENT') {
-    if (batchId) {
-      if (role === 'COACH') {
-        updateData.coachOfBatches = {
-          set: [{ id: batchId }], // Replace existing batches
-        };
-      } else if (role === 'STUDENT') {
-        updateData.studentOfBatches = {
-          set: [{ id: batchId }],
-        };
-      }
     }
   }
 

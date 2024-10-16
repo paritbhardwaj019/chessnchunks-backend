@@ -10,6 +10,7 @@ const decodeToken = require('../utils/decodeToken');
 const sendMail = require('../utils/sendEmail');
 const Mailgen = require('mailgen');
 const batchService = require('./batch.service');
+const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 
 const inviteCoachHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, batchId, subRole } = data;
@@ -189,6 +190,9 @@ const verifyCoachInvitationHandler = async (token) => {
     },
   });
 
+  const userCount = await db.user.count();
+  const newCode = formatNumberWithPrefix('U', userCount);
+
   const coach = await db.user.create({
     data: {
       email,
@@ -197,6 +201,7 @@ const verifyCoachInvitationHandler = async (token) => {
           id: coachProfile.id,
         },
       },
+      code: newCode,
       coachOfBatches: {
         connect: [{ id: batch.id }],
       },

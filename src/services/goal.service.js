@@ -74,6 +74,7 @@ const createMonthlyGoalHandler = async (data) => {
 };
 
 const getSeasonalGoalsForOptions = async (batchId) => {
+  console.log('BATCH ID', batchId);
   const seasonalGoals = await db.seasonalGoal.findMany({
     where: {
       batchId,

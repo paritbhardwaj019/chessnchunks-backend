@@ -17,10 +17,11 @@ const createBatchHandler = async (data, loggedInUser) => {
     startDate,
   } = data;
 
-  if (loggedInUser.role === 'COACH') {
-    const coachWithBatches = await db.user.findUnique({
+  if (loggedInUser.role === 'COACH' || loggedInUser.role === 'ADMIN') {
+    const userWithAcademies = await db.user.findUnique({
       where: { id: loggedInUser.id },
       include: {
+        adminOfAcademies: true,
         coachOfBatches: {
           include: {
             academy: true,
@@ -31,28 +32,28 @@ const createBatchHandler = async (data, loggedInUser) => {
 
     const academyIds = [
       ...new Set(
-        coachWithBatches.coachOfBatches.map((batch) => batch.academyId)
+        loggedInUser.role === 'COACH'
+          ? userWithAcademies.coachOfBatches.map((batch) => batch.academyId)
+          : userWithAcademies.adminOfAcademies.map((academy) => academy.id)
       ),
     ];
 
     if (academyIds.length === 0) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
-        'Coach is not associated with any academy.'
+        `${loggedInUser.role} is not associated with any academy.`
       );
     }
 
     if (academyIds.length > 1) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
-        'Coach is associated with multiple academies. Please specify the academy.'
+        `${loggedInUser.role} is associated with multiple academies. Please specify the academy.`
       );
     }
 
     academyId = academyIds[0];
   }
-
-  console.log('ACADEMY ID', academyId);
 
   const newStartDate = new Date(startDate);
 
@@ -67,7 +68,6 @@ const createBatchHandler = async (data, loggedInUser) => {
   }
 
   const allBatchesCount = await db.batch.count();
-
   const batchCode = formatNumberWithPrefix('B', allBatchesCount);
 
   const batch = await db.batch.create({
