@@ -12,4 +12,18 @@ invitationRouter.get(
   invitationController.fetchAllInvitationsHandler
 );
 
+invitationRouter.delete(
+  '/:id',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'COACH', 'ADMIN']),
+  invitationController.deleteInvitationHandler
+);
+
+invitationRouter.patch(
+  '/:id',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'COACH', 'ADMIN']),
+  invitationController.editInvitationHandler
+);
+
 module.exports = invitationRouter;

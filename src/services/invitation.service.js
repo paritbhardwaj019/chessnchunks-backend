@@ -85,6 +85,78 @@ const fetchAllInvitationsHandler = async (
   }
 };
 
-const invitationService = { fetchAllInvitationsHandler };
+const deleteInvitation = async (loggedInUser, invitationId) => {
+  const invitation = await db.invitation.findUnique({
+    where: { id: invitationId },
+  });
+
+  if (!invitation) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Invitation not found.');
+  }
+
+  if (invitation.createdById !== loggedInUser.id) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'You do not have permission to delete this invitation.'
+    );
+  }
+
+  try {
+    await db.invitation.delete({
+      where: { id: invitationId },
+    });
+  } catch (error) {
+    console.error('Error deleting invitation:', error);
+    throw new ApiError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      'Failed to delete invitation.'
+    );
+  }
+};
+
+const editInvitation = async (loggedInUser, invitationId, newEmail) => {
+  const invitation = await db.invitation.findUnique({
+    where: { id: invitationId },
+  });
+
+  if (!invitation) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Invitation not found.');
+  }
+
+  if (invitation.createdById !== loggedInUser.id) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'You do not have permission to edit this invitation.'
+    );
+  }
+
+  try {
+    const updatedInvitation = await db.invitation.update({
+      where: { id: invitationId },
+      data: { email: newEmail },
+      select: {
+        id: true,
+        type: true,
+        email: true,
+        data: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+    return updatedInvitation;
+  } catch (error) {
+    console.error('Error editing invitation:', error);
+    throw new ApiError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      'Failed to edit invitation.'
+    );
+  }
+};
+
+const invitationService = {
+  fetchAllInvitationsHandler,
+  editInvitation,
+  deleteInvitation,
+};
 
 module.exports = invitationService;
