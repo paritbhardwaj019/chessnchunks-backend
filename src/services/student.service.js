@@ -79,7 +79,7 @@ const inviteStudentHandler = async (data, loggedInUser) => {
   // Construct the activation URL with academy name and batch details
   const ACTIVATION_URL = `${
     config.chessinChunksUrl
-  }/accept-invite?type=BATCH_STUDENT&name=${encodeURIComponent(
+  }/invitation?type=BATCH_STUDENT&name=${encodeURIComponent(
     `${firstName} ${lastName} from ${academyName}`
   )}&token=${token}`;
 

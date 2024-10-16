@@ -3,8 +3,8 @@ const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 
-const createBatchHandler = async (data) => {
-  const {
+const createBatchHandler = async (data, loggedInUser) => {
+  let {
     studentCapacity,
     description,
     academyId,
@@ -14,9 +14,47 @@ const createBatchHandler = async (data) => {
     currentLevel,
     coaches,
     students,
+    startDate,
   } = data;
 
-  const newStartDate = new Date(data.startDate);
+  if (loggedInUser.role === 'COACH') {
+    const coachWithBatches = await db.user.findUnique({
+      where: { id: loggedInUser.id },
+      include: {
+        coachOfBatches: {
+          include: {
+            academy: true,
+          },
+        },
+      },
+    });
+
+    const academyIds = [
+      ...new Set(
+        coachWithBatches.coachOfBatches.map((batch) => batch.academyId)
+      ),
+    ];
+
+    if (academyIds.length === 0) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Coach is not associated with any academy.'
+      );
+    }
+
+    if (academyIds.length > 1) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Coach is associated with multiple academies. Please specify the academy.'
+      );
+    }
+
+    academyId = academyIds[0];
+  }
+
+  console.log('ACADEMY ID', academyId);
+
+  const newStartDate = new Date(startDate);
 
   const academy = await db.academy.findUnique({
     where: {
@@ -48,7 +86,13 @@ const createBatchHandler = async (data) => {
       currentLevel: currentLevel,
       startDate: newStartDate,
       coaches: {
-        connect: coaches.map((coachId) => ({ id: coachId })),
+        connect:
+          loggedInUser.role === 'COACH'
+            ? [
+                ...coaches.map((coachId) => ({ id: coachId })),
+                { id: loggedInUser.id },
+              ]
+            : coaches.map((coachId) => ({ id: coachId })),
       },
       students: {
         connect: students.map((studentId) => ({ id: studentId })),

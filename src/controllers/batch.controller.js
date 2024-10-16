@@ -4,7 +4,10 @@ const batchService = require('../services/batch.service');
 const _ = require('lodash');
 
 const createBatchHandler = catchAsync(async (req, res) => {
-  const createdBatch = await batchService.createBatchHandler(req.body);
+  const createdBatch = await batchService.createBatchHandler(
+    req.body,
+    req.user
+  );
   res.status(httpStatus.OK).send(createdBatch);
 });
 
