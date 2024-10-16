@@ -33,7 +33,7 @@ const fetchAllData = async (loggedInUser) => {
       where: {
         admins: {
           some: {
-            id: userId,
+            id: loggedInUser.id,
           },
         },
       },
@@ -69,7 +69,7 @@ const fetchAllData = async (loggedInUser) => {
       where: {
         coaches: {
           some: {
-            id: userId,
+            id: loggedInUser.id,
           },
         },
       },
