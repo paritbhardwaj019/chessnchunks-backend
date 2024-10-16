@@ -278,6 +278,7 @@ const fetchAllBatches = async (loggedInUser, { page, limit, query }) => {
       academy: {
         select: {
           name: true,
+          id: true,
         },
       },
       startDate: true,
@@ -325,6 +326,13 @@ const fetchAllBatchesForOptions = async (loggedInUser) => {
         select: { students: true },
       },
       startDate: true,
+      students: {
+        select: {
+          profile: true,
+          id: true,
+          email: true,
+        },
+      },
     },
   });
 

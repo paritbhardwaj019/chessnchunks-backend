@@ -48,12 +48,19 @@ const updateUserHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(updatedUser);
 });
 
+const fetchProfileByIdHandler = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const user = await userService.fetchProfileById(id, req.user);
+  res.status(httpStatus.OK).send(user);
+});
+
 const userController = {
   fetchAllUsersHandler,
   signUpSubscriberHandler,
   xlsxUploadHandler,
   updateUserStatusHandler,
   updateUserHandler,
+  fetchProfileByIdHandler,
 };
 
 module.exports = userController;

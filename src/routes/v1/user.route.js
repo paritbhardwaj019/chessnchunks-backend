@@ -42,4 +42,11 @@ userRouter.patch(
   userController.updateUserHandler
 );
 
+userRouter.get(
+  '/profile/:id',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  userController.fetchProfileByIdHandler
+);
+
 module.exports = userRouter;

@@ -499,12 +499,62 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
   return updatedUser;
 };
 
+const fetchProfileById = async (id, loggedInUser) => {
+  const user = await db.user.findUnique({
+    where: { id },
+    include: {
+      profile: true,
+      adminOfAcademies: true,
+      coachOfBatches: true,
+      studentOfBatches: true,
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
+  }
+
+  if (loggedInUser.role !== 'SUPER_ADMIN') {
+    if (loggedInUser.role === 'ADMIN') {
+      const adminAcademyIds = loggedInUser.adminOfAcademies.map(
+        (academy) => academy.id
+      );
+      const userAcademyIds = [
+        ...user.adminOfAcademies.map((academy) => academy.id),
+        ...user.coachOfBatches.map((batch) => batch.academyId),
+        ...user.studentOfBatches.map((batch) => batch.academyId),
+      ];
+
+      const isAuthorized = userAcademyIds.some((academyId) =>
+        adminAcademyIds.includes(academyId)
+      );
+
+      if (!isAuthorized) {
+        throw new ApiError(
+          httpStatus.FORBIDDEN,
+          'You do not have permission to access this user.'
+        );
+      }
+    } else {
+      if (loggedInUser.id !== id) {
+        throw new ApiError(
+          httpStatus.FORBIDDEN,
+          'You do not have permission to access this user.'
+        );
+      }
+    }
+  }
+
+  return user;
+};
+
 const userService = {
   fetchAllUsersHandler,
   signUpSubscriberHandler,
   createUsersFromXlsx,
   updateUserStatus,
   updateUserHandler,
+  fetchProfileById,
 };
 
 module.exports = userService;
