@@ -40,6 +40,6 @@ router.use('/messages', messageRouter); // Routes for messaging system
 router.use('/chats', chatRouter); // Routes for chat system
 router.use('/friend-requests', friendRequestRouter); // Routes for friend requests
 router.use('/channels', channelRouter); // Routes for broadcast channels
-router.use('/task', taskRouter);
+router.use('/tasks', taskRouter);
 
 module.exports = router;

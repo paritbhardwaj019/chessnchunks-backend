@@ -14,10 +14,31 @@ const batchService = require('./batch.service');
 const inviteCoachHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, batchId, subRole } = data;
 
-  // Log the batchId for debugging
   logger.info(`Inviting coach to batchId: ${batchId}`);
 
-  // Create invitation in the database
+  // Fetch batch and academy details
+  const batch = await db.batch.findUnique({
+    where: { id: batchId },
+    select: {
+      batchCode: true,
+      description: true,
+      academy: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  // Check if batch and academy exist
+  if (!batch) {
+    logger.error(`Batch not found with id: ${batchId}`);
+    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
+  }
+
+  const academyName = batch.academy?.name;
+
+  // Create the coach invitation in the database
   const coachInvitation = await db.invitation.create({
     data: {
       data: {
@@ -46,7 +67,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
     },
   });
 
-  // Generate token
+  // Generate a token for the invitation
   const token = await createToken(
     {
       id: coachInvitation.id,
@@ -57,26 +78,14 @@ const inviteCoachHandler = async (data, loggedInUser) => {
 
   logger.info(`Generated token for coach invitation: ${token}`);
 
-  // Fetch batch details for email content
-  const batch = await db.batch.findUnique({
-    where: { id: batchId },
-    select: { batchCode: true, description: true },
-  });
-
-  // Add null check for batch
-  if (!batch) {
-    logger.error(`Batch not found with id: ${batchId}`);
-    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
-  }
-
-  // Generate activation URL
+  // Construct the activation URL with academy name and batch details
   const ACTIVATION_URL = `${
     config.frontendUrl
-  }/accept-invite?type=BATCH_COACH&batchId=${encodeURIComponent(
-    batchId
-  )}&subRole=${encodeURIComponent(subRole)}&token=${token}`;
+  }/accept-invite?type=BATCH_COACH&name=${encodeURIComponent(
+    `${batch.batchCode} as (${subRole}) from ${academyName}`
+  )}&token=${token}`;
 
-  // Generate email content
+  // Configure the email content
   const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
@@ -88,7 +97,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
   const emailContent = {
     body: {
       name: `${firstName} ${lastName}`,
-      intro: `You are invited to join the batch "${batch.batchCode}" as a coach (${subRole})!`,
+      intro: `You are invited to join the academy "${academyName}" in the batch "${batch.batchCode}" as a coach (${subRole})!`,
       action: {
         instructions:
           'To accept this invitation, please click the button below:',
@@ -105,7 +114,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
   const emailBody = mailGenerator.generate(emailContent);
   const emailText = mailGenerator.generatePlaintext(emailContent);
 
-  // Send the email using the provided sendMail function
+  // Send the invitation email
   try {
     await sendMail(email, 'Batch Coach Invitation', emailText, emailBody);
     logger.info(`Invitation email sent to coach: ${email}`);

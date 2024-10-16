@@ -3,12 +3,19 @@ const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 
 const fetchAllInvitationsHandler = async (
+  loggedInUser,
   page = 1,
   limit = 10,
   type,
   query
 ) => {
-  if (page < 1 || limit < 1) {
+  // Validate that page and limit are positive integers
+  if (
+    !Number.isInteger(page) ||
+    !Number.isInteger(limit) ||
+    page < 1 ||
+    limit < 1
+  ) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       'Page and limit must be positive integers.'
@@ -18,7 +25,9 @@ const fetchAllInvitationsHandler = async (
   const skip = (page - 1) * limit;
   const take = limit;
 
-  const where = {};
+  const where = {
+    createdById: loggedInUser.id,
+  };
 
   if (type) {
     where.type = type;
@@ -29,6 +38,7 @@ const fetchAllInvitationsHandler = async (
       {
         email: {
           contains: query,
+          mode: 'insensitive',
         },
       },
       {
@@ -56,15 +66,17 @@ const fetchAllInvitationsHandler = async (
           email: true,
           data: true,
           status: true,
+          createdAt: true,
         },
         orderBy: {
           createdAt: 'desc',
         },
+        skip,
+        take,
       }),
-      db.invitation.count({ where }),
     ]);
 
-    const totalPages = Math.ceil(total / limit);
+    // Calculate total pages
 
     return invitations;
   } catch (error) {

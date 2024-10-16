@@ -164,27 +164,8 @@ const loginWithoutPasswordHandler = async (data) => {
 const verifyLoginWithoutPasswordHandler = async (data) => {
   const { code, email } = data;
 
-  //   TODO: BODY VALIDATION
-
-  console.log(code, email);
-
-  // const storedCode = await db.code.findFirst({
-  //   where: {
-  //     email,
-  //     code,
-  //     type: 'LOGIN_WITHOUT_PASSWORD',
-  //   },
-  //   select: {
-  //     id: true,
-  //     expiresAt: true,
-  //     email: true,
-  //   },
-  // });
-
   const user = await db.user.findUnique({
-    where: {
-      email,
-    },
+    where: { email },
     select: {
       id: true,
       email: true,
@@ -199,26 +180,33 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
     },
   });
 
-  if (_.isEmpty(user)) {
+  if (!user) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
-    return;
   }
 
   const token = await createToken(
-    {
-      id: user.id,
-      role: user.role,
-      subRole: user.subRole,
-    },
+    { id: user.id, role: user.role, subRole: user.subRole },
     config.jwt.secret,
     '7d'
   );
 
-  // await db.code.deleteMany({
-  //   where: {
-  //     email,
-  //   },
-  // });
+  let academy = null;
+
+  if (user.role === 'COACH' || user.role === 'ADMIN') {
+    academy = await db.academy.findFirst({
+      where: {
+        OR: [
+          { admins: { some: { id: user.id } } },
+          { batches: { some: { coaches: { some: { id: user.id } } } } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+      },
+    });
+  }
 
   return {
     token,
@@ -229,9 +217,9 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
       subRole: user.subRole,
       profile: user.profile,
     },
+    academy,
   };
 };
-
 const resetPasswordHandler = async (email) => {
   const user = await db.user.findUnique({
     where: { email },

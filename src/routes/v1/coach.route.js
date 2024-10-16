@@ -8,7 +8,7 @@ const coachRouter = express.Router();
 coachRouter.post(
   '/invite-coach',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN']),
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
   coachController.inviteCoachHandler
 );
 

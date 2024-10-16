@@ -13,10 +13,31 @@ const Mailgen = require('mailgen');
 const inviteStudentHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, batchId } = data;
 
-  // Log the batchId for debugging
   logger.info(`Inviting student to batchId: ${batchId}`);
 
-  // Create invitation in the database
+  // Fetch batch and academy details
+  const batch = await db.batch.findUnique({
+    where: { id: batchId },
+    select: {
+      batchCode: true,
+      description: true,
+      academy: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  // Check if batch and academy exist
+  if (!batch) {
+    logger.error(`Batch not found with id: ${batchId}`);
+    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
+  }
+
+  const academyName = batch.academy?.name;
+
+  // Create the student invitation in the database
   const studentInvitation = await db.invitation.create({
     data: {
       data: {
@@ -44,7 +65,7 @@ const inviteStudentHandler = async (data, loggedInUser) => {
     },
   });
 
-  // Generate token
+  // Generate a token for the invitation
   const token = await createToken(
     {
       id: studentInvitation.id,
@@ -55,25 +76,14 @@ const inviteStudentHandler = async (data, loggedInUser) => {
 
   logger.info(`Generated token for student invitation: ${token}`);
 
-  // Fetch batch details for email content
-  const batch = await db.batch.findUnique({
-    where: { id: batchId },
-    select: { batchCode: true, description: true },
-  });
-
-  // Add null check for batch
-  if (!batch) {
-    logger.error(`Batch not found with id: ${batchId}`);
-    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
-  }
-
-  // Generate activation URL
+  // Construct the activation URL with academy name and batch details
   const ACTIVATION_URL = `${
     config.chessinChunksUrl
-  }/accept-invite?type=BATCH_STUDENT&batchId=${encodeURIComponent(
-    batchId
+  }/accept-invite?type=BATCH_STUDENT&name=${encodeURIComponent(
+    `${firstName} ${lastName} from ${academyName}`
   )}&token=${token}`;
 
+  // Configure the email content
   const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
@@ -85,7 +95,7 @@ const inviteStudentHandler = async (data, loggedInUser) => {
   const emailContent = {
     body: {
       name: `${firstName} ${lastName}`,
-      intro: `You are invited to join the batch "${batch.batchCode}" as a student!`,
+      intro: `You are invited to join the academy "${academyName}" in the batch "${batch.batchCode}" as a student!`,
       action: {
         instructions:
           'To accept this invitation, please click the button below:',
@@ -102,6 +112,7 @@ const inviteStudentHandler = async (data, loggedInUser) => {
   const emailBody = mailGenerator.generate(emailContent);
   const emailText = mailGenerator.generatePlaintext(emailContent);
 
+  // Send the invitation email
   try {
     await sendMail(email, 'Batch Student Invitation', emailText, emailBody);
     logger.info(`Invitation email sent to student: ${email}`);
@@ -115,7 +126,6 @@ const inviteStudentHandler = async (data, loggedInUser) => {
 
   return { studentInvitation };
 };
-
 const verifyStudentHandler = async (token) => {
   if (!token) throw new ApiError(httpStatus.BAD_REQUEST, 'Token not present!');
 
