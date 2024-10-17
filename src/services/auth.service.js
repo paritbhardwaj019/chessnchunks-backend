@@ -31,6 +31,7 @@ const loginWithPasswordHandler = async (data) => {
           lastName: true,
         },
       },
+      hasPassword: true,
     },
   });
 
@@ -62,6 +63,7 @@ const loginWithPasswordHandler = async (data) => {
       role: user.role,
       subRole: user.subRole,
       profile: user.profile,
+      hasPassword: user.hasPassword,
     },
   };
 };
@@ -86,6 +88,7 @@ const loginWithoutPasswordHandler = async (data) => {
           lastName: true,
         },
       },
+      hasPassword: true,
     },
   });
 
@@ -177,6 +180,7 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
           lastName: true,
         },
       },
+      hasPassword: true,
     },
   });
 
@@ -216,6 +220,7 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
       role: user.role,
       subRole: user.subRole,
       profile: user.profile,
+      hasPassword: user.hasPassword,
     },
     academy,
   };
@@ -325,12 +330,55 @@ const verifyResetPasswordHandler = async (data) => {
   return { updatedUser };
 };
 
+const updatePasswordHandler = async (data, loggedInUser) => {
+  const { id, newPassword } = data;
+
+  if (!newPassword || newPassword.length < 6) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Password must be at least 6 characters long.'
+    );
+  }
+
+  if (loggedInUser.role !== 'SUPER_ADMIN' && loggedInUser.id !== id) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'You do not have permission to change this password.'
+    );
+  }
+
+  const user = await db.user.findUnique({
+    where: { id },
+    select: { id: true, email: true },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
+  }
+
+  const hashedNewPassword = await hashedPassword(newPassword, 10);
+
+  const updatedUser = await db.user.update({
+    where: { id },
+    data: { password: hashedNewPassword, hasPassword: true },
+    select: { id: true, email: true },
+  });
+
+  return {
+    user: {
+      id: updatedUser.id,
+      email: updatedUser.email,
+    },
+  };
+};
+
 const authService = {
   loginWithPasswordHandler,
   loginWithoutPasswordHandler,
   verifyLoginWithoutPasswordHandler,
   resetPasswordHandler,
   verifyResetPasswordHandler,
+  updatePasswordHandler,
 };
 
 module.exports = authService;

@@ -86,6 +86,7 @@ function createSuperAdmin() {
         },
         code: newCode,
         role: 'SUPER_ADMIN',
+        hasPassword: true,
       },
       select: {
         id: true,

@@ -34,12 +34,22 @@ const verifyResetPasswordHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(verifyResponse);
 });
 
+const updatePasswordHandler = catchAsync(async (req, res) => {
+  const updatedUser = await authService.updatePasswordHandler(
+    req.body,
+    req.user
+  );
+
+  res.status(httpStatus.OK).send(updatedUser);
+});
+
 const authController = {
   loginWithPasswordHandler,
   loginWithoutPasswordHandler,
   verifyLoginWithoutPasswordHandler,
   resetPasswordHandler,
   verifyResetPasswordHandler,
+  updatePasswordHandler,
 };
 
 module.exports = authController;
