@@ -10,7 +10,7 @@ dashboardRouter
   .get(
     checkJWT,
     checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
-    dashboardController.fetchAllData
+    dashboardController.fetchAllDashboard
   );
 
 module.exports = dashboardRouter;

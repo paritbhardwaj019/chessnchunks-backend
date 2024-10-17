@@ -1,97 +1,128 @@
 const db = require('../database/prisma');
 
-const fetchAllData = async (loggedInUser) => {
-  let dashboardData = {};
+async function getSuperAdminDashboardData() {
+  const totalAcademies = await db.academy.count();
+  const totalBatches = await db.batch.count();
+  const totalStudents = await db.user.count({
+    where: { role: 'STUDENT' },
+  });
+  const totalCoaches = await db.user.count({
+    where: { role: 'COACH' },
+  });
+  const totalPendingInvitations = await db.invitation.count({
+    where: { status: 'PENDING' },
+  });
+  const totalTasks = await db.task.count();
 
-  const noOfPendingInvitations = await db.invitation.count({
+  return {
+    totalAcademies,
+    totalBatches,
+    totalStudents,
+    totalCoaches,
+    totalPendingInvitations,
+    totalTasks,
+  };
+}
+
+async function getAdminDashboardData(adminId) {
+  const adminWithAcademies = await db.user.findUnique({
+    where: { id: adminId },
+    select: { adminOfAcademies: { select: { id: true } } },
+  });
+
+  const academyIds = adminWithAcademies.adminOfAcademies.map((a) => a.id);
+
+  const totalBatches = await db.batch.count({
+    where: { academyId: { in: academyIds } },
+  });
+
+  const totalStudents = await db.user.count({
     where: {
-      status: 'PENDING',
-      createdBy: {
-        id: loggedInUser.id,
+      role: 'STUDENT',
+      studentOfBatches: {
+        some: {
+          academyId: { in: academyIds },
+        },
       },
     },
   });
 
-  dashboardData.noOfPendingInvitations = noOfPendingInvitations;
-
-  if (loggedInUser.role === 'SUPER_ADMIN') {
-    const allAcademies = await db.academy.count();
-
-    const allStudents = await db.user.count({
-      where: {
-        role: 'STUDENT',
-      },
-    });
-
-    const noOfBatches = await db.batch.count({});
-
-    dashboardData.allAcademies = allAcademies;
-    dashboardData.totalStudents = allStudents;
-    dashboardData.noOfBatches = noOfBatches;
-  } else if (loggedInUser.role === 'ADMIN') {
-    const academies = await db.academy.findMany({
-      where: {
-        admins: {
-          some: {
-            id: loggedInUser.id,
-          },
+  const totalCoaches = await db.user.count({
+    where: {
+      role: 'COACH',
+      coachOfBatches: {
+        some: {
+          academyId: { in: academyIds },
         },
       },
-      include: {
-        batches: {
-          include: {
-            students: true,
-          },
-        },
-      },
-    });
+    },
+  });
 
-    const noOfBatchesForAdmin = academies.reduce((total, academy) => {
-      return total + academy.batches.length;
-    }, 0);
+  const totalPendingInvitations = await db.invitation.count({
+    where: {
+      status: 'PENDING',
+    },
+  });
 
-    const totalStudentsInBatchesForAdmin = academies.reduce(
-      (total, academy) => {
-        return (
-          total +
-          academy.batches.reduce((batchTotal, batch) => {
-            return batchTotal + batch.students.length;
-          }, 0)
-        );
-      },
-      0
-    );
+  const totalTasks = await db.task.count({
+    where: {
+      assignedToAcademyId: { in: academyIds },
+    },
+  });
 
-    dashboardData.totalStudents = totalStudentsInBatchesForAdmin;
-    dashboardData.noOfBatches = noOfBatchesForAdmin;
-  } else if (loggedInUser.role === 'COACH') {
-    const batchesForCoach = await db.batch.findMany({
-      where: {
-        coaches: {
-          some: {
-            id: loggedInUser.id,
-          },
-        },
-      },
-      include: {
-        students: true,
-      },
-    });
+  return {
+    totalBatches,
+    totalStudents,
+    totalCoaches,
+    totalPendingInvitations,
+    totalTasks,
+  };
+}
 
-    const noOfBatchesForCoach = batchesForCoach.length;
+async function getCoachDashboardData(coachId) {
+  const coachWithBatches = await db.user.findUnique({
+    where: { id: coachId },
+    select: { coachOfBatches: { select: { id: true } } },
+  });
 
-    const totalStudentsInBatchesForCoach = batchesForCoach.reduce(
-      (total, batch) => total + batch.students.length,
-      0
-    );
+  const batchIds = coachWithBatches.coachOfBatches.map((b) => b.id);
 
-    dashboardData.totalStudents = totalStudentsInBatchesForCoach;
-    dashboardData.noOfBatches = noOfBatchesForCoach;
-  }
+  const totalBatches = batchIds.length;
 
-  return dashboardData;
+  const totalStudents = await db.user.count({
+    where: {
+      role: 'STUDENT',
+      studentOfBatches: { some: { id: { in: batchIds } } },
+    },
+  });
+
+  const totalPendingInvitations = await db.invitation.count({
+    where: {
+      status: 'PENDING',
+    },
+  });
+
+  const totalTasks = await db.task.count({
+    where: {
+      OR: [
+        { assignedToUserId: coachId },
+        { assignedToBatchId: { in: batchIds } },
+      ],
+    },
+  });
+
+  return {
+    totalBatches,
+    totalStudents,
+    totalPendingInvitations,
+    totalTasks,
+  };
+}
+
+const dashboardService = {
+  getSuperAdminDashboardData,
+  getAdminDashboardData,
+  getCoachDashboardData,
 };
-
-const dashboardService = { fetchAllData };
 
 module.exports = dashboardService;

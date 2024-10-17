@@ -62,6 +62,8 @@ model User {
 
   code String
 
+  hasPassword Boolean @default(false)
+
   profile Profile?
 
   coachOfBatches   Batch[]   @relation("BatchCoaches")
@@ -453,6 +455,7 @@ model SeasonalGoal {
 
   @@map("seasonalgoals")
 }
+
 
 enum GOAL_CATEGORY {
   GAMES
