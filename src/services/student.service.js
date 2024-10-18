@@ -385,6 +385,7 @@ const fetchAllStudentsByBatchId = async (batchId, { query }) => {
         createdAt: true,
       },
     },
+    createdAt: true,
   };
 
   const whereClause = {

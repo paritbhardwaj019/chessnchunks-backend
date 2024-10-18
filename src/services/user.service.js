@@ -193,26 +193,64 @@ const signUpSubscriberHandler = async (data) => {
 };
 
 const createUsersFromXlsx = async (file, loggedInUser) => {
+  // Step 1: Validate the file
   if (!file || !file.path) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'File is missing!');
   }
 
+  // Step 2: Fetch the user along with their academies and batches
   const user = await db.user.findUnique({
     where: { id: loggedInUser.id },
     include: {
       adminOfAcademies: true,
+      coachOfBatches: true,
     },
   });
 
-  if (!user || user.adminOfAcademies.length === 0) {
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'User not found.');
+  }
+
+  let academyId = null;
+
+  // Step 3: Determine the academyId based on the user's role
+  if (user.role === 'ADMIN') {
+    if (user.adminOfAcademies.length === 0) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'User is not associated with any academy.'
+      );
+    }
+    // Assuming the admin is associated with a single academy
+    academyId = user.adminOfAcademies[0].id;
+  } else if (user.role === 'COACH') {
+    if (user.coachOfBatches.length === 0) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Coach is not associated with any batches.'
+      );
+    }
+    // Derive academyId from the first associated batch
+    academyId = user.coachOfBatches[0].academyId;
+
+    // Optional: Ensure all coach's batches belong to the same academy
+    const uniqueAcademies = new Set(
+      user.coachOfBatches.map((batch) => batch.academyId)
+    );
+    if (uniqueAcademies.size > 1) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Coach is associated with multiple academies. Please ensure the coach is linked to only one academy.'
+      );
+    }
+  } else {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      'User is not associated with any academy.'
+      'User role does not have permission to create users.'
     );
   }
 
-  const academyId = user.adminOfAcademies[0].id;
-
+  // Step 4: Define role mappings
   const ROLE_MAPPING = {
     1: 'COACH',
     2: 'STUDENT',
@@ -235,6 +273,7 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
     'PUZZLE_MASTER_SCHOLAR',
   ];
 
+  // Step 5: Read and parse the XLSX file
   const workbook = xlsx.readFile(file.path);
   const sheetNames = workbook.SheetNames;
 
@@ -254,6 +293,7 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
       const batchCode = row['BATCH CODE'];
 
       try {
+        // Validate required fields
         if (
           !email ||
           !firstName ||
@@ -264,6 +304,7 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
           throw new Error('Missing required fields');
         }
 
+        // Map role number to role string
         const role = ROLE_MAPPING[roleNumber];
         if (!role) {
           throw new Error(`Invalid role number: ${roleNumber}`);
@@ -287,6 +328,7 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
           }
         }
 
+        // Find the batch within the determined academy
         const batch = await db.batch.findFirst({
           where: {
             batchCode: batchCode,
@@ -300,9 +342,11 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
           );
         }
 
+        // Generate a unique user code
         const userCount = await db.user.count();
         const newCode = formatNumberWithPrefix('U', userCount);
 
+        // Check if the email already exists
         const isEmailAlreadyExists = await db.user.findUnique({
           where: {
             email,
@@ -313,6 +357,7 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
           throw new ApiError(httpStatus.CONFLICT, 'Email is already taken.');
         }
 
+        // Prepare user data
         const userData = {
           email,
           role,
@@ -326,6 +371,7 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
           code: newCode,
         };
 
+        // Connect the user to the appropriate batch based on role
         if (role === 'COACH') {
           userData.coachOfBatches = {
             connect: {
@@ -340,10 +386,12 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
           };
         }
 
+        // Create the new user
         const newUser = await db.user.create({
           data: userData,
         });
 
+        // Track successfully created users
         usersCreated.push({
           email,
           firstName,

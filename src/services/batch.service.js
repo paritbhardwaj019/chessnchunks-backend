@@ -333,6 +333,12 @@ const fetchAllBatchesForOptions = async (loggedInUser) => {
           email: true,
         },
       },
+      academy: {
+        select: {
+          name: true,
+          id: true,
+        },
+      },
     },
   });
 
