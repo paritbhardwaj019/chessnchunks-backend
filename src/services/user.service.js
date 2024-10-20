@@ -5,6 +5,7 @@ const httpStatus = require('http-status');
 const xlsx = require('xlsx');
 const fs = require('fs');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
+const comparePassword = require('../utils/comparePassword');
 
 const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   // Parse and set default pagination parameters
@@ -596,6 +597,43 @@ const fetchProfileById = async (id, loggedInUser) => {
   return user;
 };
 
+const updatePasswordHandler = async (data, loggedInUser) => {
+  if (loggedInUser.id !== data.userId && loggedInUser.role !== 'SUPER_ADMIN') {
+    return new ApiError(
+      httpStatus.FORBIDDEN,
+      'You do not have permission to update this password.'
+    );
+  }
+
+  const user = await db.user.findUnique({
+    where: { id: data.userId },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
+  }
+
+  const { currentPassword, newPassword } = data;
+
+  const isMatch = await comparePassword(currentPassword, user.password);
+
+  if (!isMatch) {
+    throw new ApiError(
+      httpStatus.UNAUTHORIZED,
+      'Current password is incorrect.'
+    );
+  }
+
+  const hashedNewPassword = await hashPassword(newPassword, 10);
+
+  const updatedUser = await db.user.update({
+    where: { id: data.userId },
+    data: { password: hashedNewPassword },
+  });
+
+  return updatedUser;
+};
+
 const userService = {
   fetchAllUsersHandler,
   signUpSubscriberHandler,
@@ -603,6 +641,7 @@ const userService = {
   updateUserStatus,
   updateUserHandler,
   fetchProfileById,
+  updatePasswordHandler,
 };
 
 module.exports = userService;

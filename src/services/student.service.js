@@ -1,5 +1,3 @@
-// services/student.service.js
-
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const createToken = require('../utils/createToken');
@@ -10,13 +8,42 @@ const config = require('../config');
 const sendMail = require('../utils/sendEmail');
 const Mailgen = require('mailgen');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
+const crypto = require('crypto');
+const hashPassword = require('../utils/hashPassword');
 
 const inviteStudentHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, batchId } = data;
 
-  logger.info(`Inviting student to batchId: ${batchId}`);
+  const existingInvitation = await db.invitation.findFirst({
+    where: {
+      email,
+      expiresAt: {
+        gt: new Date(),
+      },
+    },
+  });
 
-  // Fetch batch and academy details
+  if (existingInvitation) {
+    throw new ApiError(
+      httpStatus.CONFLICT,
+      'An invitation has already been sent to this email.'
+    );
+  }
+
+  const existingUser = await db.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    throw new ApiError(
+      httpStatus.CONFLICT,
+      'A user with this email already exists.'
+    );
+  }
+
+  const tempPassword = crypto.randomBytes(8).toString('hex');
+  const hashedPassword = await hashPassword(tempPassword, 10);
+
   const batch = await db.batch.findUnique({
     where: { id: batchId },
     select: {
@@ -30,7 +57,6 @@ const inviteStudentHandler = async (data, loggedInUser) => {
     },
   });
 
-  // Check if batch and academy exist
   if (!batch) {
     logger.error(`Batch not found with id: ${batchId}`);
     throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
@@ -38,7 +64,6 @@ const inviteStudentHandler = async (data, loggedInUser) => {
 
   const academyName = batch.academy?.name;
 
-  // Create the student invitation in the database
   const studentInvitation = await db.invitation.create({
     data: {
       data: {
@@ -46,10 +71,11 @@ const inviteStudentHandler = async (data, loggedInUser) => {
         lastName,
         email,
         batchId,
+        password: hashedPassword,
       },
       email,
       type: 'BATCH_STUDENT',
-      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000), // Set expiration to 3 days
+      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
       createdBy: {
         connect: {
           id: loggedInUser.id,
@@ -66,25 +92,20 @@ const inviteStudentHandler = async (data, loggedInUser) => {
     },
   });
 
-  // Generate a token for the invitation
   const token = await createToken(
     {
       id: studentInvitation.id,
     },
     config.jwt.invitationSecret,
-    '3d' // Token valid for 3 days
+    '3d'
   );
 
-  logger.info(`Generated token for student invitation: ${token}`);
-
-  // Construct the activation URL with academy name and batch details
   const ACTIVATION_URL = `${
     config.chessinChunksUrl
   }/invitation?type=BATCH_STUDENT&name=${encodeURIComponent(
     `${firstName} ${lastName} from ${academyName}`
   )}&token=${token}`;
 
-  // Configure the email content
   const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
@@ -97,6 +118,18 @@ const inviteStudentHandler = async (data, loggedInUser) => {
     body: {
       name: `${firstName} ${lastName}`,
       intro: `You are invited to join the academy "${academyName}" in the batch "${batch.batchCode}" as a student!`,
+      table: {
+        data: [
+          {
+            label: 'Email',
+            value: email,
+          },
+          {
+            label: 'Temporary Password',
+            value: tempPassword,
+          },
+        ],
+      },
       action: {
         instructions:
           'To accept this invitation, please click the button below:',
@@ -113,7 +146,6 @@ const inviteStudentHandler = async (data, loggedInUser) => {
   const emailBody = mailGenerator.generate(emailContent);
   const emailText = mailGenerator.generatePlaintext(emailContent);
 
-  // Send the invitation email
   try {
     await sendMail(email, 'Batch Student Invitation', emailText, emailBody);
     logger.info(`Invitation email sent to student: ${email}`);
@@ -127,6 +159,7 @@ const inviteStudentHandler = async (data, loggedInUser) => {
 
   return { studentInvitation };
 };
+
 const verifyStudentHandler = async (token) => {
   if (!token) throw new ApiError(httpStatus.BAD_REQUEST, 'Token not present!');
 
@@ -224,12 +257,9 @@ const verifyStudentHandler = async (token) => {
     },
   });
 
-  await db.invitation.update({
+  await db.invitation.delete({
     where: {
       id: studentInvitation.id,
-    },
-    data: {
-      status: 'ACCEPTED',
     },
   });
 
@@ -338,6 +368,8 @@ const fetchAllStudentsHandler = async (loggedInUser) => {
 };
 
 const fetchAllStudentsByBatchId = async (batchId, { query }) => {
+  console.log('BATCH ID', batchId);
+
   const batchExists = await db.batch.findUnique({
     where: { id: batchId },
     select: { id: true },
@@ -432,7 +464,9 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
 
   const toBatch = await db.batch.findUnique({
     where: { id: toBatchId },
-    select: { id: true },
+    include: {
+      students: true,
+    },
   });
 
   if (!toBatch) {
@@ -455,29 +489,78 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
     );
   }
 
-  const updatedStudent = await db.user.update({
-    where: { id: studentId },
-    data: {
-      studentOfBatches: {
-        disconnect: { id: fromBatchId },
-        connect: { id: toBatchId },
-      },
-    },
-    select: {
-      id: true,
-      email: true,
-      studentOfBatches: {
-        select: {
-          id: true,
-          batchCode: true,
+  const isAlreadyInBatch = toBatch.students.some((s) => s.id === studentId);
+  if (isAlreadyInBatch) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Student is already in the destination batch.'
+    );
+  }
+
+  const currentStudentCount = toBatch.students.length;
+
+  if (currentStudentCount >= toBatch.studentCapacity) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `Batch ${toBatch.batchCode} is full. Cannot add more students.`
+    );
+  }
+
+  let warning = false;
+  let remainingCapacity = toBatch.studentCapacity - (currentStudentCount + 1);
+
+  if (
+    toBatch.warningCutoff &&
+    currentStudentCount + 1 > toBatch.warningCutoff
+  ) {
+    warning = true;
+    remainingCapacity = toBatch.studentCapacity - (currentStudentCount + 1);
+  }
+
+  const updatedStudent = await db.$transaction(async (prisma) => {
+    await prisma.user.update({
+      where: { id: studentId },
+      data: {
+        studentOfBatches: {
+          disconnect: { id: fromBatchId },
         },
       },
-    },
+    });
+
+    const updated = await prisma.user.update({
+      where: { id: studentId },
+      data: {
+        studentOfBatches: {
+          connect: { id: toBatchId },
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        studentOfBatches: {
+          select: {
+            id: true,
+            batchCode: true,
+          },
+        },
+      },
+    });
+
+    return updated;
   });
 
-  return updatedStudent;
-};
+  const response = {
+    message: 'Student moved successfully.',
+    batchCode: toBatch.batchCode,
+  };
 
+  if (warning) {
+    response.warning = true;
+    response.remainingCapacity = remainingCapacity;
+  }
+
+  return response;
+};
 const studentService = {
   inviteStudentHandler,
   verifyStudentHandler,

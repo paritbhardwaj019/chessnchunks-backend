@@ -8,9 +8,25 @@ const sendMail = require('../utils/sendEmail');
 const Mailgen = require('mailgen');
 const logger = require('../utils/logger');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
+const hashPassword = require('../utils/hashPassword');
+const crypto = require('crypto');
 
 const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyName } = data;
+
+  const existingUser = await db.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    throw new ApiError(
+      httpStatus.CONFLICT,
+      'A user with this email already exists.'
+    );
+  }
+
+  const tempPassword = crypto.randomBytes(8).toString('hex');
+  const hashedPassword = await hashPassword(tempPassword, 10);
 
   const academyAdminInvitation = await db.invitation.create({
     data: {
@@ -19,6 +35,7 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
         lastName,
         academyName,
         email,
+        password: hashedPassword,
       },
       email,
       type: 'CREATE_ACADEMY',
@@ -62,11 +79,22 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
       link: config.frontendUrl,
     },
   });
-
   const emailContent = {
     body: {
       name: `${firstName} ${lastName}`,
       intro: 'You are invited to join our academy as an admin!',
+      table: {
+        data: [
+          {
+            label: 'Email',
+            value: email,
+          },
+          {
+            label: 'Temporary Password',
+            value: tempPassword,
+          },
+        ],
+      },
       action: {
         instructions:
           'To accept this invitation, please click the button below:',
@@ -131,7 +159,7 @@ const verifyAcademyAdminHandler = async (token) => {
     );
   }
 
-  const { firstName, lastName, email, academyName } =
+  const { firstName, lastName, email, academyName, password } =
     academyAdminInvitation.data;
 
   const academyAdminProfile = await db.profile.create({
@@ -167,6 +195,8 @@ const verifyAcademyAdminHandler = async (token) => {
       },
       code: newCode,
       role: 'ADMIN',
+      password,
+      hasPassword: true,
     },
     select: {
       id: true,

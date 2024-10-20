@@ -54,6 +54,18 @@ const fetchProfileByIdHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(user);
 });
 
+const updatePasswordHandler = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const updatedUser = await userService.updatePasswordHandler(
+    {
+      ...req.body,
+      userId: id,
+    },
+    req.user
+  );
+  res.status(httpStatus.OK).send(updatedUser);
+});
+
 const userController = {
   fetchAllUsersHandler,
   signUpSubscriberHandler,
@@ -61,6 +73,7 @@ const userController = {
   updateUserStatusHandler,
   updateUserHandler,
   fetchProfileByIdHandler,
+  updatePasswordHandler,
 };
 
 module.exports = userController;

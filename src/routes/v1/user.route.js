@@ -49,4 +49,11 @@ userRouter.get(
   userController.fetchProfileByIdHandler
 );
 
+userRouter.patch(
+  '/update-password/:id',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'COACH', 'STUDENT', 'ADMIN', 'SUBSCRIBER']),
+  userController.updatePasswordHandler
+);
+
 module.exports = userRouter;

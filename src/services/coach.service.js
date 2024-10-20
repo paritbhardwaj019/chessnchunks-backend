@@ -4,20 +4,47 @@ const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const createToken = require('../utils/createToken');
-const logger = require('../utils/logger');
 const config = require('../config');
 const decodeToken = require('../utils/decodeToken');
 const sendMail = require('../utils/sendEmail');
 const Mailgen = require('mailgen');
-const batchService = require('./batch.service');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
+const hashPassword = require('../utils/hashPassword');
+const crypto = require('crypto');
 
 const inviteCoachHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, batchId, subRole } = data;
 
-  logger.info(`Inviting coach to batchId: ${batchId}`);
+  const existingInvitation = await db.invitation.findFirst({
+    where: {
+      email,
+      expiresAt: {
+        gt: new Date(),
+      },
+    },
+  });
 
-  // Fetch batch and academy details
+  if (existingInvitation) {
+    throw new ApiError(
+      httpStatus.CONFLICT,
+      'An invitation has already been sent to this email.'
+    );
+  }
+
+  const existingUser = await db.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    throw new ApiError(
+      httpStatus.CONFLICT,
+      'A user with this email already exists.'
+    );
+  }
+
+  const tempPassword = crypto.randomBytes(8).toString('hex');
+  const hashedPassword = await hashPassword(tempPassword, 10);
+
   const batch = await db.batch.findUnique({
     where: { id: batchId },
     select: {
@@ -31,15 +58,12 @@ const inviteCoachHandler = async (data, loggedInUser) => {
     },
   });
 
-  // Check if batch and academy exist
   if (!batch) {
-    logger.error(`Batch not found with id: ${batchId}`);
     throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
   }
 
   const academyName = batch.academy?.name;
 
-  // Create the coach invitation in the database
   const coachInvitation = await db.invitation.create({
     data: {
       data: {
@@ -48,10 +72,12 @@ const inviteCoachHandler = async (data, loggedInUser) => {
         batchId,
         email,
         subRole,
+        password: hashedPassword,
+        version: 1,
       },
       email,
       type: 'BATCH_COACH',
-      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000), // Expires in 3 days
+      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
       createdBy: {
         connect: {
           id: loggedInUser.id,
@@ -65,28 +91,25 @@ const inviteCoachHandler = async (data, loggedInUser) => {
       status: true,
       data: true,
       createdBy: true,
+      version: true,
     },
   });
 
-  // Generate a token for the invitation
   const token = await createToken(
     {
       id: coachInvitation.id,
+      version: coachInvitation.version,
     },
     config.jwt.invitationSecret,
-    '3d' // Token valid for 3 days
+    '3d'
   );
 
-  logger.info(`Generated token for coach invitation: ${token}`);
-
-  // Construct the activation URL with academy name and batch details
   const ACTIVATION_URL = `${
     config.frontendUrl
   }/accept-invite?type=BATCH_COACH&name=${encodeURIComponent(
     `${batch.batchCode} as (${subRole}) from ${academyName}`
   )}&token=${token}`;
 
-  // Configure the email content
   const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
@@ -99,6 +122,18 @@ const inviteCoachHandler = async (data, loggedInUser) => {
     body: {
       name: `${firstName} ${lastName}`,
       intro: `You are invited to join the academy "${academyName}" in the batch "${batch.batchCode}" as a coach (${subRole})!`,
+      table: {
+        data: [
+          {
+            label: 'Email',
+            value: email,
+          },
+          {
+            label: 'Temporary Password',
+            value: tempPassword,
+          },
+        ],
+      },
       action: {
         instructions:
           'To accept this invitation, please click the button below:',
@@ -118,9 +153,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
   // Send the invitation email
   try {
     await sendMail(email, 'Batch Coach Invitation', emailText, emailBody);
-    logger.info(`Invitation email sent to coach: ${email}`);
   } catch (error) {
-    logger.error(`Failed to send email to coach: ${email}`, error);
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Failed to send invitation email'
@@ -131,8 +164,6 @@ const inviteCoachHandler = async (data, loggedInUser) => {
 };
 
 const verifyCoachInvitationHandler = async (token) => {
-  console.log('COACH HITTED!!');
-
   if (!token) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Token not present!');
   }
@@ -148,6 +179,7 @@ const verifyCoachInvitationHandler = async (token) => {
       data: true,
       type: true,
       status: true,
+      version: true,
     },
   });
 
@@ -165,7 +197,17 @@ const verifyCoachInvitationHandler = async (token) => {
     );
   }
 
-  const { firstName, lastName, email, batchId, subRole } = coachInvitation.data;
+  const { firstName, lastName, email, batchId, subRole, password, version } =
+    coachInvitation.data;
+
+  console.log(typeof version, typeof coachInvitation.version);
+
+  if (typeof version !== typeof coachInvitation.version) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Invalid or expired invitation link.'
+    );
+  }
 
   const batch = await db.batch.findUnique({
     where: {
@@ -217,6 +259,7 @@ const verifyCoachInvitationHandler = async (token) => {
       },
       role: 'COACH',
       subRole: subRole,
+      password,
     },
 
     select: {
@@ -239,12 +282,9 @@ const verifyCoachInvitationHandler = async (token) => {
     },
   });
 
-  await db.invitation.update({
+  await db.invitation.delete({
     where: {
       id: coachInvitation.id,
-    },
-    data: {
-      status: 'ACCEPTED',
     },
   });
 

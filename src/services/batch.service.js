@@ -339,6 +339,7 @@ const fetchAllBatchesForOptions = async (loggedInUser) => {
           id: true,
         },
       },
+      studentCapacity: true,
     },
   });
 
@@ -427,7 +428,6 @@ const fetchBatchById = async (loggedInUser, id) => {
 };
 
 const addStudentToBatch = async (batchId, studentId) => {
-  // Check if batch exists
   const batch = await db.batch.findUnique({
     where: { id: batchId },
     include: { students: true },
@@ -437,7 +437,6 @@ const addStudentToBatch = async (batchId, studentId) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
   }
 
-  // Check if student exists
   const student = await db.student.findUnique({
     where: { id: studentId },
   });
@@ -446,7 +445,6 @@ const addStudentToBatch = async (batchId, studentId) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Student not found!');
   }
 
-  // Check if student is already in the batch
   const isAlreadyInBatch = batch.students.some((s) => s.id === studentId);
   if (isAlreadyInBatch) {
     throw new ApiError(
@@ -455,7 +453,6 @@ const addStudentToBatch = async (batchId, studentId) => {
     );
   }
 
-  // Add student to batch
   const updatedBatch = await db.batch.update({
     where: { id: batchId },
     data: {
@@ -523,7 +520,7 @@ const addCoachToBatch = async (batchId, coachId) => {
 const getAllCoachesByBatchId = async (batchId) => {
   const batch = await db.batch.findUnique({
     where: { id: batchId },
-    include: {
+    select: {
       coaches: {
         select: {
           id: true,
@@ -536,6 +533,7 @@ const getAllCoachesByBatchId = async (batchId) => {
           },
           role: true,
           subRole: true,
+          createdAt: true,
         },
       },
     },

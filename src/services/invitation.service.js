@@ -1,6 +1,13 @@
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
+const {
+  sendCoachInvitation,
+  sendAcademyAdminInvitation,
+  sendStudentInvitation,
+} = require('../utils/invitationMailer');
+const hashPassword = require('../utils/hashPassword');
+const crypto = require('crypto');
 
 const fetchAllInvitationsHandler = async (
   loggedInUser,
@@ -9,7 +16,6 @@ const fetchAllInvitationsHandler = async (
   type,
   query
 ) => {
-  // Validate that page and limit are positive integers
   if (
     !Number.isInteger(page) ||
     !Number.isInteger(limit) ||
@@ -56,7 +62,7 @@ const fetchAllInvitationsHandler = async (
   }
 
   try {
-    const [invitations, total] = await Promise.all([
+    const [invitations] = await Promise.all([
       db.invitation.findMany({
         where,
         select: {
@@ -130,10 +136,40 @@ const editInvitation = async (loggedInUser, invitationId, newEmail) => {
     );
   }
 
+  if (invitation.status === 'ACCEPTED') {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Cannot edit an invitation that has already been accepted.'
+    );
+  }
+
+  if (new Date(invitation.expiresAt) < new Date()) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Cannot edit an expired invitation.'
+    );
+  }
+
+  const tempPassword = crypto.randomBytes(8).toString('hex');
+  const hashedPassword = await hashPassword(tempPassword, 10);
+
+  const newData = { email: newEmail, password: hashedPassword };
+  const updatedData = Object.assign({}, invitation.data, newData);
+
   try {
     const updatedInvitation = await db.invitation.update({
       where: { id: invitationId },
-      data: { email: newEmail },
+      data: {
+        email: newEmail,
+        expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
+        createdBy: {
+          connect: {
+            id: loggedInUser.id,
+          },
+        },
+        version: invitation.version + 1,
+        data: updatedData,
+      },
       select: {
         id: true,
         type: true,
@@ -143,9 +179,27 @@ const editInvitation = async (loggedInUser, invitationId, newEmail) => {
         createdAt: true,
       },
     });
+
+    switch (updatedInvitation.type) {
+      case 'CREATE_ACADEMY':
+        await sendAcademyAdminInvitation(updatedInvitation, tempPassword);
+        break;
+      case 'BATCH_COACH':
+        await sendCoachInvitation(updatedInvitation, tempPassword);
+        break;
+      case 'BATCH_STUDENT':
+        await sendStudentInvitation(updatedInvitation, tempPassword);
+        break;
+      default:
+        throw new ApiError(
+          httpStatus.BAD_REQUEST,
+          'Unknown invitation type. Cannot resend email.'
+        );
+    }
+
     return updatedInvitation;
   } catch (error) {
-    console.error('Error editing invitation:', error);
+    console.log(error);
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Failed to edit invitation.'

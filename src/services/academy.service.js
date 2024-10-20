@@ -54,13 +54,58 @@ const updateAcademyByIdHandler = async (data, id, loggedInUser) => {
 const fetchAcademyByIdHandler = async (id, loggedInUser) => {
   if (loggedInUser.role === 'SUPER_ADMIN') {
     const academy = await db.academy.findUnique({
-      where: {
-        id,
+      where: { id },
+      include: {
+        admins: {
+          select: {
+            profile: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+            email: true,
+          },
+        },
+        batches: {
+          include: {
+            students: {
+              select: { id: true },
+            },
+            coaches: {
+              select: { id: true },
+            },
+          },
+        },
       },
     });
 
+    if (!academy) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Academy not found');
+    }
+
+    const totalStudents = academy.batches.reduce(
+      (acc, batch) => acc + batch.students.length,
+      0
+    );
+    const totalCoaches = academy.batches.reduce(
+      (acc, batch) => acc + batch.coaches.length,
+      0
+    );
+
     return {
-      academy,
+      academy: {
+        name: academy.name,
+        fullName: academy.admins.map(
+          (admin) => `${admin.profile?.firstName} ${admin.profile?.lastName}`
+        ),
+        email: academy.admins.map((admin) => admin.email),
+        students: totalStudents,
+        coaches: totalCoaches,
+        batches: academy.batches.length,
+        status: academy.status,
+        createdAt: academy.createdAt,
+      },
     };
   } else if (loggedInUser.role === 'ADMIN') {
     const academy = await db.academy.findFirst({

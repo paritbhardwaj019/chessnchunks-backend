@@ -7,12 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Task {
-  id          String      @id @default(uuid())
+  id          String   @id @default(uuid())
   description String
   taskCodeId  String
-  taskCode    TaskCode    @relation(fields: [taskCodeId], references: [id])
+  taskCode    TaskCode @relation(fields: [taskCodeId], references: [id])
 
   startDate DateTime
   endDate   DateTime
@@ -20,16 +19,16 @@ model Task {
   status TASK_STATUS
 
   createdById String
-  createdBy   User @relation("TaskCreatedBy", fields: [createdById], references: [id])
+  createdBy   User   @relation("TaskCreatedBy", fields: [createdById], references: [id])
 
-  assignedToUserId    String?
-  assignedToUser      User?     @relation("AssignedToUser", fields: [assignedToUserId], references: [id])
+  assignedToUserId String?
+  assignedToUser   User?   @relation("AssignedToUser", fields: [assignedToUserId], references: [id])
 
-  assignedToBatchId   String?
-  assignedToBatch     Batch?    @relation("AssignedToBatch", fields: [assignedToBatchId], references: [id])
+  assignedToBatchId String?
+  assignedToBatch   Batch?  @relation("AssignedToBatch", fields: [assignedToBatchId], references: [id])
 
   assignedToAcademyId String?
-  assignedToAcademy   Academy?  @relation("AssignedToAcademy", fields: [assignedToAcademyId], references: [id])
+  assignedToAcademy   Academy? @relation("AssignedToAcademy", fields: [assignedToAcademyId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -38,8 +37,8 @@ model Task {
 }
 
 model TaskCode {
-  id          String @id @default(uuid())
-  code        String @unique
+  id          String  @id @default(uuid())
+  code        String  @unique
   description String?
 
   tasks Task[]
@@ -102,7 +101,7 @@ model User {
 }
 
 model Profile {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   firstName     String
   middleName    String?
   lastName      String
@@ -136,15 +135,16 @@ model Academy {
   subscriptions  Subscription[]
   purchasedPlans PurchasedPlan[]
 
-  status USER_STATUS @default(ACTIVE)
+  status        USER_STATUS @default(ACTIVE)
   // New Relation
-  assignedTasks Task[] @relation("AssignedToAcademy")
+  assignedTasks Task[]      @relation("AssignedToAcademy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("academies")
 }
+
 model Batch {
   id String @id @default(uuid())
 
@@ -192,6 +192,8 @@ model Invitation {
   expiresAt DateTime?
 
   status INVITATION_STATUS @default(PENDING)
+
+  version Int @default(0)
 
   createdById String
   createdBy   User   @relation(fields: [createdById], references: [id])
@@ -340,7 +342,7 @@ model Channel {
   id          String   @id @default(uuid())
   name        String
   isBroadcast Boolean  @default(false)
-  batchId     String? 
+  batchId     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -366,14 +368,14 @@ model ChannelMessage {
 }
 
 model StudentWeeklyGoal {
-  id            String     @id @default(uuid())
+  id            String   @id @default(uuid())
   studentId     String
   weeklyGoalId  String
-  puzzlesTarget Int?       @default(0)
-  puzzlesSolved Int?       @default(0)
-  puzzlesPassed Int?       @default(0)
-  isCustom      Boolean    @default(false)
-  createdAt     DateTime   @default(now())
+  puzzlesTarget Int?     @default(0)
+  puzzlesSolved Int?     @default(0)
+  puzzlesPassed Int?     @default(0)
+  isCustom      Boolean  @default(false)
+  createdAt     DateTime @default(now())
 
   student    User       @relation(fields: [studentId], references: [id])
   weeklyGoal WeeklyGoal @relation(fields: [weeklyGoalId], references: [id])
@@ -394,7 +396,7 @@ model WeeklyGoal {
   monthlyGoal   MonthlyGoal @relation(fields: [monthlyGoalId], references: [id])
 
   batchId String
-  batch   Batch @relation(fields: [batchId], references: [id])
+  batch   Batch  @relation(fields: [batchId], references: [id])
 
   studentGoals StudentWeeklyGoal[]
 
@@ -405,7 +407,7 @@ model WeeklyGoal {
 }
 
 model Target {
-  id         String       @id @default(uuid())
+  id         String @id @default(uuid())
   noOfGames  Int
   minReviews Int
   midReviews Int
@@ -429,7 +431,7 @@ model MonthlyGoal {
   seasonalGoal   SeasonalGoal @relation(fields: [seasonalGoalId], references: [id])
 
   batchId String
-  batch   Batch @relation(fields: [batchId], references: [id])
+  batch   Batch  @relation(fields: [batchId], references: [id])
 
   weeklyGoals WeeklyGoal[]
 
@@ -446,7 +448,7 @@ model SeasonalGoal {
   endDate   DateTime
 
   batchId String
-  batch   Batch @relation(fields: [batchId], references: [id])
+  batch   Batch  @relation(fields: [batchId], references: [id])
 
   monthlyGoals MonthlyGoal[]
 
@@ -455,7 +457,6 @@ model SeasonalGoal {
 
   @@map("seasonalgoals")
 }
-
 
 enum GOAL_CATEGORY {
   GAMES

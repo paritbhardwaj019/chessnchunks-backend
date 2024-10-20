@@ -32,6 +32,8 @@ const loginWithPasswordHandler = async (data) => {
         },
       },
       hasPassword: true,
+      createdAt: true,
+      status: true,
     },
   });
 
@@ -39,10 +41,32 @@ const loginWithPasswordHandler = async (data) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
   }
 
+  if (user.status === 'INACTIVE') {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Your account is INACTIVE');
+  }
+
   const isPasswordValid = await comparePassword(password, user.password);
 
   if (!isPasswordValid) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
+  }
+
+  let academy = null;
+
+  if (user.role === 'COACH' || user.role === 'ADMIN') {
+    academy = await db.academy.findFirst({
+      where: {
+        OR: [
+          { admins: { some: { id: user.id } } },
+          { batches: { some: { coaches: { some: { id: user.id } } } } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+      },
+    });
   }
 
   const token = await createToken(
@@ -64,7 +88,9 @@ const loginWithPasswordHandler = async (data) => {
       subRole: user.subRole,
       profile: user.profile,
       hasPassword: user.hasPassword,
+      createdAt: user.createdAt,
     },
+    academy,
   };
 };
 
@@ -181,11 +207,19 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
         },
       },
       hasPassword: true,
+      createdAt: true,
+      status: true,
     },
   });
 
   if (!user) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
+  }
+
+  console.log(user);
+
+  if (user.status === 'INACTIVE') {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Your account is INACTIVE');
   }
 
   const token = await createToken(
@@ -221,6 +255,7 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
       subRole: user.subRole,
       profile: user.profile,
       hasPassword: user.hasPassword,
+      createdAt: user.createdAt,
     },
     academy,
   };
