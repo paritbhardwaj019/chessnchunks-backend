@@ -11,6 +11,7 @@ const hashedPassword = require('../utils/hashPassword');
 const Mailgen = require('mailgen');
 const sendMail = require('../utils/sendEmail');
 const _ = require('lodash');
+const { getSingleAcademyForUser } = require('./academy.service');
 
 const loginWithPasswordHandler = async (data) => {
   const { email, password } = data;
@@ -54,20 +55,7 @@ const loginWithPasswordHandler = async (data) => {
   let academy = null;
 
   if (user.role === 'COACH' || user.role === 'ADMIN') {
-    academy = await db.academy.findFirst({
-      where: {
-        OR: [
-          { admins: { some: { id: user.id } } },
-          { batches: { some: { coaches: { some: { id: user.id } } } } },
-        ],
-      },
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-        status: true,
-      },
-    });
+    academy = await getSingleAcademyForUser(user);
 
     if (user.role === 'ADMIN' && academy && academy.status === 'INACTIVE') {
       throw new ApiError(
@@ -237,20 +225,7 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
   let academy = null;
 
   if (user.role === 'COACH' || user.role === 'ADMIN') {
-    academy = await db.academy.findFirst({
-      where: {
-        OR: [
-          { admins: { some: { id: user.id } } },
-          { batches: { some: { coaches: { some: { id: user.id } } } } },
-        ],
-      },
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-        status: true,
-      },
-    });
+    academy = await getSingleAcademyForUser(user);
 
     if (user.role === 'ADMIN' && academy && academy.status === 'INACTIVE') {
       throw new ApiError(

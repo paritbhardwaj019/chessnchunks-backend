@@ -24,7 +24,14 @@ const verifyStudentHandler = catchAsync(async (req, res) => {
 });
 
 const fetchAllStudentsHandler = catchAsync(async (req, res) => {
-  const allStudents = await studentService.fetchAllStudentsHandler(req.user);
+  const { page, limit, query } = _.pick(req.query, ['page', 'limit', 'query']);
+
+  const allStudents = await studentService.fetchAllStudentsHandler(
+    page,
+    limit,
+    query,
+    req.user
+  );
   res.status(httpStatus.OK).send(allStudents);
 });
 

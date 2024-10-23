@@ -282,16 +282,32 @@ const verifyStudentHandler = async (token) => {
   };
 };
 
-const fetchAllStudentsHandler = async (loggedInUser) => {
+const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
+  const numberPage = Number(page) || 1;
+  const numberLimit = Number(limit) || 10;
+  const skip = (numberPage - 1) * numberLimit;
+  const take = numberLimit;
+
+  const baseFilter = {
+    role: 'STUDENT',
+    NOT: { id: loggedInUser.id },
+    OR: [
+      { email: { contains: query } },
+      { profile: { firstName: { contains: query } } },
+      { profile: { lastName: { contains: query } } },
+    ],
+  };
+
   const selectFields = {
     id: true,
     email: true,
     role: true,
+    subRole: true,
     profile: {
       select: {
         firstName: true,
-        middleName: true,
         lastName: true,
+        middleName: true,
         dob: true,
         phoneNumber: true,
         addressLine1: true,
@@ -321,44 +337,60 @@ const fetchAllStudentsHandler = async (loggedInUser) => {
         createdAt: true,
       },
     },
+    createdAt: true,
+    updatedAt: true,
+    status: true,
+    code: true,
   };
 
-  let students;
+  let students = [];
 
-  if (loggedInUser.role === 'SUPER_ADMIN') {
+  const user = await db.user.findUnique({
+    where: { id: loggedInUser.id },
+    include: {
+      adminOfAcademies: true,
+      coachOfBatches: true,
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
+  }
+
+  if (user.role === 'SUPER_ADMIN') {
     students = await db.user.findMany({
-      where: {
-        role: 'STUDENT',
-      },
+      skip,
+      take,
+      where: baseFilter,
       select: selectFields,
     });
-  } else if (loggedInUser.role === 'ADMIN') {
+  } else if (user.role === 'ADMIN' || user.role === 'COACH') {
     const academy = await getSingleAcademyForUser(loggedInUser);
 
+    if (!academy) {
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        'No academy associated with the user.'
+      );
+    }
+
     students = await db.user.findMany({
+      skip,
+      take,
       where: {
-        role: 'STUDENT',
+        ...baseFilter,
         assignedToAcademyId: academy.id,
       },
       select: selectFields,
     });
-  } else if (loggedInUser.role === 'COACH') {
-    students = await db.user.findMany({
-      where: {
-        role: 'STUDENT',
-        studentOfBatches: {
-          some: {
-            coaches: {
-              some: {
-                id: loggedInUser.id,
-              },
-            },
-          },
-        },
-      },
-      select: selectFields,
-    });
+  } else {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'You do not have permission to view students'
+    );
   }
+
+  console.log('STUDENTS', students);
 
   return students;
 };

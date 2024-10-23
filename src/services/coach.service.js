@@ -134,7 +134,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
   // Construct activation URL
   const ACTIVATION_URL = `${
     config.frontendUrl
-  }/accept-invite?type=ACADEMY_COACH&name=${encodeURIComponent(
+  }/accept-invite?type=BATCH_COACH&name=${encodeURIComponent(
     `${firstName} ${lastName} from ${academyName}`
   )}&token=${token}`;
 
@@ -370,42 +370,31 @@ const fetchAllCoachesHandler = async (loggedInUser) => {
       select: selectFields,
     });
   } else if (loggedInUser.role === 'ADMIN') {
-    const adminWithAcademies = await db.user.findUnique({
-      where: { id: loggedInUser.id },
-      select: {
-        adminOfAcademies: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-
-    if (
-      !adminWithAcademies ||
-      adminWithAcademies.adminOfAcademies.length === 0
-    ) {
-      throw new ApiError(
-        httpStatus.NOT_FOUND,
-        'Admin is not associated with any academy'
-      );
-    }
-
-    const academyIds = adminWithAcademies.adminOfAcademies.map(
-      (academy) => academy.id
-    );
+    const academy = await getSingleAcademyForUser(loggedInUser);
 
     coaches = await db.user.findMany({
       where: {
         role: 'COACH',
-        coachOfBatches: {
-          some: {
-            academyId: { in: academyIds },
-          },
-        },
+        assignedToAcademyId: academy.id,
       },
       select: selectFields,
     });
+  } else if (loggedInUser.role === 'COACH') {
+    coaches = await db.user.findUnique({
+      where: { id: loggedInUser.id },
+      select: selectFields,
+    });
+
+    if (!coaches) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Coach not found');
+    }
+
+    coaches = [coaches];
+  } else {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'You do not have permission to view coaches'
+    );
   }
 
   return coaches;

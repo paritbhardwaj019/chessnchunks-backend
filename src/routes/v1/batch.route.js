@@ -50,7 +50,7 @@ batchRouter
   .route('/:id')
   .put(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'COACH']),
+    checkRole(['SUPER_ADMIN', 'COACH', 'ADMIN']),
     batchController.updateBatchHandler
   )
   .delete(

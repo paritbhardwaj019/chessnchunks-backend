@@ -15,7 +15,7 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const take = numberLimit;
 
   const baseFilter = {
-    NOT: { id: loggedInUser.id }, // Exclude the logged-in user
+    NOT: { id: loggedInUser.id },
     OR: [
       { email: { contains: query } },
       { profile: { firstName: { contains: query } } },
@@ -23,7 +23,6 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
     ],
   };
 
-  // Define the fields to select from the User model
   const selectFields = {
     id: true,
     email: true,
@@ -42,7 +41,6 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   };
 
   let allUsers = [];
-  let total = 0; // To keep track of the total number of matching users
 
   const user = await db.user.findUnique({
     where: { id: loggedInUser.id },
@@ -63,10 +61,6 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
       where: baseFilter,
       select: selectFields,
     });
-
-    total = await db.user.count({
-      where: baseFilter,
-    });
   } else if (user.role === 'ADMIN') {
     const academy = await getSingleAcademyForUser(loggedInUser);
 
@@ -79,68 +73,24 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
       },
       select: selectFields,
     });
-
-    total = await db.user.count({
-      where: {
-        ...baseFilter,
-        studentOfBatches: {
-          some: {
-            academyId: academy.id,
-          },
-        },
-      },
-    });
   } else if (user.role === 'COACH') {
-    const batchIDs = user.coachOfBatches.map((batch) => batch.id);
+    const academy = await getSingleAcademyForUser(loggedInUser);
 
-    if (batchIDs.length === 0) {
-      allUsers = [];
-      total = 0;
-    } else {
-      const studentFilter = {
-        studentOfBatches: { some: { id: { in: batchIDs } } },
-      };
-
-      const orConditions = [studentFilter];
-
-      if (user.subRole === 'HEAD_COACH') {
-        const coachFilter = {
-          subRole: { not: 'HEAD_COACH' },
-          coachOfBatches: { some: { id: { in: batchIDs } } },
-        };
-        orConditions.push(coachFilter);
-      }
-
-      const whereCondition = {
-        ...baseFilter,
-        AND: [
-          {
-            OR: orConditions,
-          },
-        ],
-      };
-
-      allUsers = await db.user.findMany({
-        skip,
-        take,
-        where: whereCondition,
-        select: selectFields,
-      });
-
-      total = await db.user.count({
-        where: whereCondition,
-      });
-    }
+    allUsers = await db.user.findMany({
+      skip,
+      take,
+      where: { ...baseFilter, assignedToAcademyId: academy.id },
+      select: selectFields,
+    });
   } else {
     allUsers = [];
-    total = 0;
   }
 
   return {
     allUsers,
-    total,
   };
 };
+
 const signUpSubscriberHandler = async (data) => {
   const {
     email,
