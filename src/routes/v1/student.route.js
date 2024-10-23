@@ -8,7 +8,7 @@ const studentRouter = express.Router();
 studentRouter.post(
   '/invite-student',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'COACH']),
+  checkRole(['SUPER_ADMIN', 'COACH', 'ADMIN']),
   studentController.inviteStudentHandler
 );
 

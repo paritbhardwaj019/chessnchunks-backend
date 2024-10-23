@@ -1,7 +1,6 @@
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const createToken = require('../utils/createToken');
-const logger = require('../utils/logger');
 const ApiError = require('../utils/apiError');
 const decodeToken = require('../utils/decodeToken');
 const config = require('../config');
@@ -12,7 +11,35 @@ const crypto = require('crypto');
 const hashPassword = require('../utils/hashPassword');
 
 const inviteStudentHandler = async (data, loggedInUser) => {
-  const { firstName, lastName, email, batchId } = data;
+  const { firstName, lastName, email, academyId: providedAcademyId } = data;
+
+  let academyId;
+
+  if (loggedInUser.role === 'SUPER_ADMIN') {
+    if (!providedAcademyId) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'academyId is required for SUPER_ADMIN users.'
+      );
+    }
+
+    const academyExists = await db.academy.findUnique({
+      where: { id: providedAcademyId },
+      select: { id: true },
+    });
+
+    if (!academyExists) {
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        'Provided academyId does not exist.'
+      );
+    }
+
+    academyId = providedAcademyId;
+  } else {
+    const academy = await getSingleAcademyForUser(loggedInUser);
+    academyId = academy.id;
+  }
 
   const existingInvitation = await db.invitation.findFirst({
     where: {
@@ -44,25 +71,16 @@ const inviteStudentHandler = async (data, loggedInUser) => {
   const tempPassword = crypto.randomBytes(8).toString('hex');
   const hashedPassword = await hashPassword(tempPassword, 10);
 
-  const batch = await db.batch.findUnique({
-    where: { id: batchId },
-    select: {
-      batchCode: true,
-      description: true,
-      academy: {
-        select: {
-          name: true,
-        },
-      },
-    },
+  const academy = await db.academy.findUnique({
+    where: { id: academyId },
+    select: { name: true },
   });
 
-  if (!batch) {
-    logger.error(`Batch not found with id: ${batchId}`);
-    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
+  if (!academy) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Academy not found.');
   }
 
-  const academyName = batch.academy?.name;
+  const academyName = academy.name;
 
   const studentInvitation = await db.invitation.create({
     data: {
@@ -70,11 +88,11 @@ const inviteStudentHandler = async (data, loggedInUser) => {
         firstName,
         lastName,
         email,
-        batchId,
+        academyId,
         password: hashedPassword,
       },
       email,
-      type: 'BATCH_STUDENT',
+      type: 'USER_INVITATION',
       expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
       createdBy: {
         connect: {
@@ -102,7 +120,7 @@ const inviteStudentHandler = async (data, loggedInUser) => {
 
   const ACTIVATION_URL = `${
     config.chessinChunksUrl
-  }/invitation?type=BATCH_STUDENT&name=${encodeURIComponent(
+  }/invitation?type=USER_INVITATION&name=${encodeURIComponent(
     `${firstName} ${lastName} from ${academyName}`
   )}&token=${token}`;
 
@@ -117,7 +135,7 @@ const inviteStudentHandler = async (data, loggedInUser) => {
   const emailContent = {
     body: {
       name: `${firstName} ${lastName}`,
-      intro: `You are invited to join the academy "${academyName}" in the batch "${batch.batchCode}" as a student!`,
+      intro: `You are invited to join the academy "${academyName}" as a student!`,
       table: {
         data: [
           {
@@ -147,10 +165,8 @@ const inviteStudentHandler = async (data, loggedInUser) => {
   const emailText = mailGenerator.generatePlaintext(emailContent);
 
   try {
-    await sendMail(email, 'Batch Student Invitation', emailText, emailBody);
-    logger.info(`Invitation email sent to student: ${email}`);
+    await sendMail(email, 'Academy Student Invitation', emailText, emailBody);
   } catch (error) {
-    logger.error(`Failed to send email to student: ${email}`, error);
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Failed to send invitation email'
@@ -180,8 +196,8 @@ const verifyStudentHandler = async (token) => {
   if (!studentInvitation)
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invitation not found!');
 
-  if (studentInvitation.type !== 'BATCH_STUDENT')
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid token!');
+  if (studentInvitation.type !== 'USER_INVITATION')
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid invitation type!');
 
   if (studentInvitation.status === 'ACCEPTED')
     throw new ApiError(
@@ -189,28 +205,18 @@ const verifyStudentHandler = async (token) => {
       'Invitation already accepted!'
     );
 
-  const { firstName, lastName, email, batchId } = studentInvitation.data;
+  const { firstName, lastName, email, academyId, password } =
+    studentInvitation.data;
 
-  const batch = await db.batch.findUnique({
-    where: {
-      id: batchId,
-    },
+  const academy = await db.academy.findUnique({
+    where: { id: academyId },
     select: {
       id: true,
     },
   });
 
-  if (!batch) throw new ApiError(httpStatus.BAD_REQUEST, 'Batch not found!');
-
-  const studentProfile = await db.profile.create({
-    data: {
-      firstName,
-      lastName,
-    },
-  });
-
-  const userCount = await db.user.count();
-  const newCode = formatNumberWithPrefix('U', userCount);
+  if (!academy)
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Academy not found!');
 
   const isEmailAlreadyExists = await db.user.findUnique({
     where: {
@@ -222,50 +228,56 @@ const verifyStudentHandler = async (token) => {
     throw new ApiError(httpStatus.CONFLICT, 'Email is already taken.');
   }
 
-  const newStudent = await db.user.create({
+  const studentProfile = await db.profile.create({
     data: {
-      email,
-      profile: {
-        connect: {
-          id: studentProfile.id,
+      firstName,
+      lastName,
+    },
+  });
+
+  const userCount = await db.user.count();
+  const newCode = formatNumberWithPrefix('U', userCount + 1);
+
+  const newStudent = await db.$transaction(async (prisma) => {
+    const student = await prisma.user.create({
+      data: {
+        email,
+        profile: {
+          connect: {
+            id: studentProfile.id,
+          },
+        },
+        code: newCode,
+        assignedToAcademy: {
+          connect: {
+            id: academy.id,
+          },
+        },
+        role: 'STUDENT',
+        hasPassword: true,
+        password,
+      },
+      select: {
+        id: true,
+        email: true,
+        assignedToAcademy: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
       },
-      code: newCode,
-      studentOfBatches: {
-        connect: [
-          {
-            id: batch.id,
-          },
-        ],
-      },
-      role: 'STUDENT',
-    },
-    select: {
-      id: true,
-      email: true,
-    },
-  });
+    });
 
-  const updatedBatch = await db.batch.update({
-    where: {
-      id: batchId,
-    },
-    data: {
-      students: {
-        connect: [{ id: newStudent.id }],
-      },
-    },
-  });
+    await prisma.invitation.delete({
+      where: { id: studentInvitation.id },
+    });
 
-  await db.invitation.delete({
-    where: {
-      id: studentInvitation.id,
-    },
+    return student;
   });
 
   return {
     newStudent,
-    updatedBatch,
   };
 };
 

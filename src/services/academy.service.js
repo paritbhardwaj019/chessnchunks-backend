@@ -131,9 +131,68 @@ const fetchAcademyByIdHandler = async (id, loggedInUser) => {
   }
 };
 
+const getSingleAcademyForUser = async (loggedInUser) => {
+  const user = await db.user.findUnique({
+    where: { id: loggedInUser.id },
+    include: {
+      adminOfAcademies: true,
+      coachOfBatches: {
+        include: {
+          academy: true,
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
+  }
+
+  let academyIds = [];
+
+  if (user.role === 'ADMIN') {
+    academyIds = user.adminOfAcademies.map((academy) => academy.id);
+  } else if (user.role === 'COACH') {
+    academyIds = user.coachOfBatches.map((batch) => batch.academyId);
+  } else {
+    logger.error(`Unsupported role "${user.role}" for user id: ${userId}`);
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `Role "${user.role}" is not authorized to perform this action.`
+    );
+  }
+
+  academyIds = [...new Set(academyIds)];
+
+  if (academyIds.length === 0) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `${user.role} is not associated with any academy.`
+    );
+  }
+
+  if (academyIds.length > 1) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `${user.role} is associated with multiple academies. Please specify the academy.`
+    );
+  }
+
+  const academy = await db.academy.findUnique({
+    where: { id: academyIds[0] },
+  });
+
+  if (!academy) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Academy not found.');
+  }
+
+  return academy;
+};
+
 const academyService = {
   updateAcademyByIdHandler,
   fetchAcademyByIdHandler,
+  getSingleAcademyForUser,
 };
 
 module.exports = academyService;

@@ -53,15 +53,13 @@ enum TASK_STATUS {
 }
 
 model User {
-  id       String      @id @default(uuid())
-  email    String      @unique
-  password String?
-  role     ROLE
-  subRole  COACH_ROLE?
-
-  code String
-
-  hasPassword Boolean @default(false)
+  id          String      @id @default(uuid())
+  email       String      @unique
+  password    String?
+  role        ROLE
+  subRole     COACH_ROLE?
+  code        String
+  hasPassword Boolean     @default(false)
 
   profile Profile?
 
@@ -91,6 +89,9 @@ model User {
 
   assignedTasks Task[] @relation("AssignedToUser")
   createdTasks  Task[] @relation("TaskCreatedBy")
+
+  assignedToAcademyId String?
+  assignedToAcademy   Academy? @relation(fields: [assignedToAcademyId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -136,11 +137,12 @@ model Academy {
   purchasedPlans PurchasedPlan[]
 
   status        USER_STATUS @default(ACTIVE)
-  // New Relation
   assignedTasks Task[]      @relation("AssignedToAcademy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  User      User[]
 
   @@map("academies")
 }

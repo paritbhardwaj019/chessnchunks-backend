@@ -13,8 +13,38 @@ const hashPassword = require('../utils/hashPassword');
 const crypto = require('crypto');
 
 const inviteCoachHandler = async (data, loggedInUser) => {
-  const { firstName, lastName, email, batchId, subRole } = data;
+  const { firstName, lastName, email, academyId: providedAcademyId } = data;
 
+  let academyId;
+
+  // Handle academyId based on user role
+  if (loggedInUser.role === 'SUPER_ADMIN') {
+    if (!providedAcademyId) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'academyId is required for SUPER_ADMIN users.'
+      );
+    }
+
+    const academyExists = await db.academy.findUnique({
+      where: { id: providedAcademyId },
+      select: { id: true },
+    });
+
+    if (!academyExists) {
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        'Provided academyId does not exist.'
+      );
+    }
+
+    academyId = providedAcademyId;
+  } else {
+    const academy = await getSingleAcademyForUser(loggedInUser);
+    academyId = academy.id;
+  }
+
+  // Check for existing invitations
   const existingInvitation = await db.invitation.findFirst({
     where: {
       email,
@@ -31,6 +61,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
     );
   }
 
+  // Check if user already exists
   const existingUser = await db.user.findUnique({
     where: { email },
   });
@@ -42,42 +73,36 @@ const inviteCoachHandler = async (data, loggedInUser) => {
     );
   }
 
+  // Generate temporary password
   const tempPassword = crypto.randomBytes(8).toString('hex');
   const hashedPassword = await hashPassword(tempPassword, 10);
 
-  const batch = await db.batch.findUnique({
-    where: { id: batchId },
-    select: {
-      batchCode: true,
-      description: true,
-      academy: {
-        select: {
-          name: true,
-        },
-      },
-    },
+  // Retrieve academy details
+  const academy = await db.academy.findUnique({
+    where: { id: academyId },
+    select: { name: true },
   });
 
-  if (!batch) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
+  if (!academy) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Academy not found.');
   }
 
-  const academyName = batch.academy?.name;
+  const academyName = academy.name;
 
+  // Create coach invitation
   const coachInvitation = await db.invitation.create({
     data: {
       data: {
         firstName,
         lastName,
-        batchId,
         email,
-        subRole,
+        academyId,
+        subRole: data.subRole, // Retain subRole if it's still relevant
         password: hashedPassword,
-        version: 1,
       },
       email,
-      type: 'BATCH_COACH',
-      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
+      type: 'ACADEMY_COACH', // Updated invitation type
+      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000), // 3 days
       createdBy: {
         connect: {
           id: loggedInUser.id,
@@ -91,25 +116,28 @@ const inviteCoachHandler = async (data, loggedInUser) => {
       status: true,
       data: true,
       createdBy: true,
-      version: true,
+      version: true, // Include version if needed
     },
   });
 
+  // Create token for invitation
   const token = await createToken(
     {
       id: coachInvitation.id,
-      version: coachInvitation.version,
+      version: coachInvitation.version, // Include version in token
     },
     config.jwt.invitationSecret,
     '3d'
   );
 
+  // Construct activation URL
   const ACTIVATION_URL = `${
     config.frontendUrl
-  }/accept-invite?type=BATCH_COACH&name=${encodeURIComponent(
-    `${batch.batchCode} as (${subRole}) from ${academyName}`
+  }/accept-invite?type=ACADEMY_COACH&name=${encodeURIComponent(
+    `${firstName} ${lastName} from ${academyName}`
   )}&token=${token}`;
 
+  // Generate email content
   const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
@@ -121,7 +149,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
   const emailContent = {
     body: {
       name: `${firstName} ${lastName}`,
-      intro: `You are invited to join the academy "${academyName}" in the batch "${batch.batchCode}" as a coach (${subRole})!`,
+      intro: `You are invited to join the academy "${academyName}" as a coach!`,
       table: {
         data: [
           {
@@ -152,7 +180,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
 
   // Send the invitation email
   try {
-    await sendMail(email, 'Batch Coach Invitation', emailText, emailBody);
+    await sendMail(email, 'Academy Coach Invitation', emailText, emailBody);
   } catch (error) {
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
@@ -186,55 +214,40 @@ const verifyCoachInvitationHandler = async (token) => {
   if (!coachInvitation)
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invitation not found!');
 
-  if (coachInvitation.type !== 'BATCH_COACH') {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid token!');
-  }
+  if (coachInvitation.type !== 'ACADEMY_COACH')
+    // Updated invitation type check
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid invitation type!');
 
-  if (coachInvitation.status === 'ACCEPTED') {
+  if (coachInvitation.status === 'ACCEPTED')
     throw new ApiError(
       httpStatus.ALREADY_REPORTED,
       'Invitation already accepted!'
     );
-  }
 
-  const { firstName, lastName, email, batchId, subRole, password, version } =
+  const { firstName, lastName, email, academyId, subRole, password, version } =
     coachInvitation.data;
 
-  console.log(typeof version, typeof coachInvitation.version);
-
-  if (typeof version !== typeof coachInvitation.version) {
+  // Verify token version
+  if (data.version !== coachInvitation.version) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       'Invalid or expired invitation link.'
     );
   }
 
-  const batch = await db.batch.findUnique({
-    where: {
-      id: batchId,
-    },
+  // Check if academy exists
+  const academy = await db.academy.findUnique({
+    where: { id: academyId },
     select: {
       id: true,
+      name: true,
     },
   });
 
-  if (!batch) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Batch not found!');
-  }
+  if (!academy)
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Academy not found!');
 
-  const coachProfile = await db.profile.create({
-    data: {
-      firstName,
-      lastName,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  const userCount = await db.user.count();
-  const newCode = formatNumberWithPrefix('U', userCount);
-
+  // Check if email already exists
   const isEmailAlreadyExists = await db.user.findUnique({
     where: {
       email,
@@ -245,52 +258,64 @@ const verifyCoachInvitationHandler = async (token) => {
     throw new ApiError(httpStatus.CONFLICT, 'Email is already taken.');
   }
 
-  const coach = await db.user.create({
+  // Create coach profile
+  const coachProfile = await db.profile.create({
     data: {
-      email,
-      profile: {
-        connect: {
-          id: coachProfile.id,
+      firstName,
+      lastName,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  // Generate unique coach code
+  const userCount = await db.user.count();
+  const newCode = formatNumberWithPrefix('C', userCount + 1); // Prefix 'C' for Coach
+
+  // Create the coach user within a transaction
+  const newCoach = await db.$transaction(async (prisma) => {
+    const coach = await prisma.user.create({
+      data: {
+        email,
+        profile: {
+          connect: {
+            id: coachProfile.id,
+          },
+        },
+        code: newCode,
+        assignedToAcademy: {
+          connect: {
+            id: academy.id,
+          },
+        },
+        role: 'COACH',
+        subRole: subRole, // Assign subRole if applicable
+        hasPassword: true,
+        password,
+      },
+      select: {
+        id: true,
+        email: true,
+        assignedToAcademy: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
       },
-      code: newCode,
-      coachOfBatches: {
-        connect: [{ id: batch.id }],
-      },
-      role: 'COACH',
-      subRole: subRole,
-      password,
-    },
+    });
 
-    select: {
-      id: true,
-      email: true,
-    },
-  });
+    // Update the invitation status to 'ACCEPTED' or delete it
+    await prisma.invitation.delete({
+      where: { id: coachInvitation.id },
+    });
 
-  const updatedBatch = await db.batch.update({
-    where: {
-      id: batchId,
-    },
-    data: {
-      coaches: {
-        connect: [{ id: coach.id }],
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  await db.invitation.delete({
-    where: {
-      id: coachInvitation.id,
-    },
+    return coach;
   });
 
   return {
-    coach,
-    updatedBatch,
+    newCoach,
   };
 };
 
