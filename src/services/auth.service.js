@@ -65,8 +65,16 @@ const loginWithPasswordHandler = async (data) => {
         id: true,
         name: true,
         createdAt: true,
+        status: true,
       },
     });
+
+    if (user.role === 'ADMIN' && academy && academy.status === 'INACTIVE') {
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        'Your academy is marked as inactive, contact support'
+      );
+    }
   }
 
   const token = await createToken(
@@ -96,8 +104,6 @@ const loginWithPasswordHandler = async (data) => {
 
 const loginWithoutPasswordHandler = async (data) => {
   const { email } = data;
-
-  //   TODO: BODY VALIDATION
 
   const user = await db.user.findUnique({
     where: {
@@ -242,8 +248,16 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
         id: true,
         name: true,
         createdAt: true,
+        status: true,
       },
     });
+
+    if (user.role === 'ADMIN' && academy && academy.status === 'INACTIVE') {
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        'Your academy is marked as inactive, contact support'
+      );
+    }
   }
 
   return {

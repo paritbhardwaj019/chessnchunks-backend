@@ -86,23 +86,21 @@ const sendAcademyAdminInvitation = async (invitation, password, version) => {
 };
 
 const sendCoachInvitation = async (invitation, password, version) => {
-  const { firstName, lastName, email, batchId, subRole } = invitation.data;
+  const { firstName, lastName, email, subRole, academyId } = invitation.data;
 
-  const batch = await db.batch.findUnique({
-    where: { id: batchId, version },
+  const academy = await db.academy.findUnique({
+    where: { id: academyId },
     select: {
-      batchCode: true,
-      academy: { select: { name: true } },
+      id: true,
+      name: true,
     },
   });
 
-  if (!batch) {
-    throw new Error('Batch not found for coach invitation');
-  }
+  if (!academy)
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Academy not found!');
 
-  const academyName = batch.academy?.name;
   const token = await createToken(
-    { id: invitation.id },
+    { id: invitation.id, version },
     config.jwt.invitationSecret,
     '3d'
   );
@@ -110,7 +108,7 @@ const sendCoachInvitation = async (invitation, password, version) => {
   const ACTIVATION_URL = `${
     config.frontendUrl
   }/accept-invite?type=BATCH_COACH&name=${encodeURIComponent(
-    `${batch.batchCode} as (${subRole}) from ${academyName}`
+    `${batch.batchCode} as (${subRole}) from ${academy.name}`
   )}&token=${token}`;
 
   const mailGenerator = generateMailGenerator();
@@ -118,7 +116,7 @@ const sendCoachInvitation = async (invitation, password, version) => {
   const emailContent = {
     body: {
       name: `${firstName} ${lastName}`,
-      intro: `You are invited to join the academy "${academyName}" in the batch "${batch.batchCode}" as a coach (${subRole})!`,
+      intro: `You are invited to join the academy "${academy.name}" in the batch "${batch.batchCode}" as a coach (${subRole})!`,
       table: {
         data: [
           { label: 'Email', value: email },
@@ -164,20 +162,18 @@ const sendCoachInvitation = async (invitation, password, version) => {
 };
 
 const sendStudentInvitation = async (invitation, password, version) => {
-  const { firstName, lastName, email, batchId } = invitation.data;
-  const batch = await db.batch.findUnique({
-    where: { id: batchId },
+  const { firstName, lastName, email, academyId } = invitation.data;
+
+  const academy = await db.academy.findUnique({
+    where: { id: academyId },
     select: {
-      batchCode: true,
-      academy: { select: { name: true } },
+      id: true,
     },
   });
 
-  if (!batch) {
-    throw new Error('Batch not found for student invitation');
-  }
+  if (!academy)
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Academy not found!');
 
-  const academyName = batch.academy?.name;
   const token = await createToken(
     { id: invitation.id, version },
     config.jwt.invitationSecret,
@@ -187,7 +183,7 @@ const sendStudentInvitation = async (invitation, password, version) => {
   const ACTIVATION_URL = `${
     config.frontendUrl
   }/accept-invite?type=BATCH_STUDENT&name=${encodeURIComponent(
-    `${firstName} ${lastName} from ${academyName}`
+    `${firstName} ${lastName} from ${academy.name}`
   )}&token=${token}`;
 
   const mailGenerator = generateMailGenerator();
@@ -195,7 +191,7 @@ const sendStudentInvitation = async (invitation, password, version) => {
   const emailContent = {
     body: {
       name: `${firstName} ${lastName}`,
-      intro: `You are invited to join the academy "${academyName}" in the batch "${batch.batchCode}" as a student!`,
+      intro: `You are invited to join the academy "${academy.name}" in the batch "${batch.batchCode}" as a student!`,
       table: {
         data: [
           { label: 'Email', value: email },

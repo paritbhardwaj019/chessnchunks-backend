@@ -9,6 +9,7 @@ const Mailgen = require('mailgen');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 const crypto = require('crypto');
 const hashPassword = require('../utils/hashPassword');
+const { getSingleAcademyForUser } = require('./academy.service');
 
 const inviteStudentHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyId: providedAcademyId } = data;
@@ -92,7 +93,7 @@ const inviteStudentHandler = async (data, loggedInUser) => {
         password: hashedPassword,
       },
       email,
-      type: 'USER_INVITATION',
+      type: 'BATCH_STUDENT',
       expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
       createdBy: {
         connect: {
@@ -196,7 +197,7 @@ const verifyStudentHandler = async (token) => {
   if (!studentInvitation)
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invitation not found!');
 
-  if (studentInvitation.type !== 'USER_INVITATION')
+  if (studentInvitation.type !== 'BATCH_STUDENT')
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid invitation type!');
 
   if (studentInvitation.status === 'ACCEPTED')
@@ -332,29 +333,12 @@ const fetchAllStudentsHandler = async (loggedInUser) => {
       select: selectFields,
     });
   } else if (loggedInUser.role === 'ADMIN') {
-    const adminWithAcademies = await db.user.findUnique({
-      where: { id: loggedInUser.id },
-      select: {
-        adminOfAcademies: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-
-    const academyIds = adminWithAcademies.adminOfAcademies.map(
-      (academy) => academy.id
-    );
+    const academy = await getSingleAcademyForUser(loggedInUser);
 
     students = await db.user.findMany({
       where: {
         role: 'STUDENT',
-        studentOfBatches: {
-          some: {
-            academyId: { in: academyIds },
-          },
-        },
+        assignedToAcademyId: academy.id,
       },
       select: selectFields,
     });

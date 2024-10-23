@@ -11,6 +11,7 @@ const Mailgen = require('mailgen');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 const hashPassword = require('../utils/hashPassword');
 const crypto = require('crypto');
+const { getSingleAcademyForUser } = require('./academy.service');
 
 const inviteCoachHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyId: providedAcademyId } = data;
@@ -97,11 +98,11 @@ const inviteCoachHandler = async (data, loggedInUser) => {
         lastName,
         email,
         academyId,
-        subRole: data.subRole, // Retain subRole if it's still relevant
+        subRole: data.subRole,
         password: hashedPassword,
       },
       email,
-      type: 'ACADEMY_COACH', // Updated invitation type
+      type: 'BATCH_COACH',
       expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000), // 3 days
       createdBy: {
         connect: {
@@ -214,8 +215,7 @@ const verifyCoachInvitationHandler = async (token) => {
   if (!coachInvitation)
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invitation not found!');
 
-  if (coachInvitation.type !== 'ACADEMY_COACH')
-    // Updated invitation type check
+  if (coachInvitation.type !== 'BATCH_COACH')
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid invitation type!');
 
   if (coachInvitation.status === 'ACCEPTED')
