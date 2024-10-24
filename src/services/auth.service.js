@@ -59,8 +59,6 @@ const loginWithPasswordHandler = async (data) => {
   if (user.role === 'COACH' || user.role === 'ADMIN') {
     academy = await getSingleAcademyForUser(user);
 
-    console.log('ACADEMY', academy);
-
     if (user.role === 'ADMIN' && academy && academy.status === 'INACTIVE') {
       throw new ApiError(
         httpStatus.FORBIDDEN,
@@ -150,14 +148,12 @@ const loginWithoutPasswordHandler = async (data) => {
       name: user.profile
         ? `${user.profile.firstName} ${user.profile.lastName}`
         : user.email,
-      intro: 'You requested a login without password.',
-      action: {
-        instructions: `Please use the following OTP code to login. This code will expire in 10 minutes.`,
-        button: {
-          color: '#22BC66',
-          text: `Your OTP Code: ${code}`,
-          link: config.frontendUrl,
-        },
+      intro: [
+        'You requested a login without a password.',
+        'Please use the following OTP code to login. This code will expire in 10 minutes.',
+      ],
+      dictionary: {
+        'Your OTP Code': code,
       },
       outro: 'If you did not request this, please ignore this email.',
     },

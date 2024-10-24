@@ -45,6 +45,7 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
           id: loggedInUser.id,
         },
       },
+      version: 0,
     },
     select: {
       id: true,
@@ -151,7 +152,7 @@ const verifyAcademyAdminHandler = async (token) => {
     },
   });
 
-  if (!academyAdminInvitation.version !== data.version) {
+  if (academyAdminInvitation.version !== data.version) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Expired token');
   }
 
