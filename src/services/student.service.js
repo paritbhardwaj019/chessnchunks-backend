@@ -14,6 +14,8 @@ const { getSingleAcademyForUser } = require('./academy.service');
 const inviteStudentHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyId: providedAcademyId } = data;
 
+  console.log('BODY DATA', data);
+
   let academyId;
 
   if (loggedInUser.role === 'SUPER_ADMIN') {

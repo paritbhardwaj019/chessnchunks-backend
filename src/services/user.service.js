@@ -38,6 +38,18 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
     updatedAt: true,
     status: true,
     code: true,
+    adminOfAcademies: {
+      select: {
+        id: true,
+        name: true,
+      },
+    },
+    assignedToAcademy: {
+      select: {
+        id: true,
+        name: true,
+      },
+    },
   };
 
   let allUsers = [];
@@ -61,7 +73,9 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
       where: baseFilter,
       select: selectFields,
     });
-  } else if (user.role === 'ADMIN') {
+  }
+  // Query for ADMIN and COACH
+  else if (user.role === 'ADMIN' || user.role === 'COACH') {
     const academy = await getSingleAcademyForUser(loggedInUser);
 
     allUsers = await db.user.findMany({
@@ -73,21 +87,32 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
       },
       select: selectFields,
     });
-  } else if (user.role === 'COACH') {
-    const academy = await getSingleAcademyForUser(loggedInUser);
-
-    allUsers = await db.user.findMany({
-      skip,
-      take,
-      where: { ...baseFilter, assignedToAcademyId: academy.id },
-      select: selectFields,
-    });
   } else {
     allUsers = [];
   }
 
+  const usersWithAcademies = allUsers.map((u) => {
+    let academy = null;
+
+    if (u.role === 'ADMIN') {
+      academy = u.adminOfAcademies[0];
+    } else if (u.role === 'COACH' || u.role === 'STUDENT') {
+      academy = u.assignedToAcademy;
+    }
+
+    delete u.adminOfAcademies;
+    delete u.assignedToAcademy;
+
+    return {
+      ...u,
+      academy,
+    };
+  });
+
+  console.log('usersWithAcademies', usersWithAcademies);
+
   return {
-    allUsers,
+    allUsers: usersWithAcademies,
   };
 };
 

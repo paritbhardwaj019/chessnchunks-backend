@@ -123,16 +123,17 @@ const createBatchHandler = async (data, loggedInUser) => {
 };
 
 const updateBatchHandler = async (id, data) => {
+  // Fetch the existing batch from the database
   const batch = await db.batch.findUnique({
-    where: {
-      id: id,
-    },
+    where: { id },
+    include: { students: true }, // Ensure students are included for count
   });
 
   if (!batch) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
   }
 
+  // Destructure the incoming data
   const {
     studentCapacity,
     description,
@@ -145,17 +146,50 @@ const updateBatchHandler = async (id, data) => {
     students,
   } = data;
 
+  // Determine the new student capacity
+  const newCapacity =
+    studentCapacity !== undefined
+      ? Number(studentCapacity)
+      : batch.studentCapacity;
+
+  // Determine the new warning cutoff
+  const newWarningCutoff =
+    warningCutoff !== undefined ? Number(warningCutoff) : batch.warningCutoff;
+
+  // If students are being updated, validate the new number of students against the capacity
+  if (students !== undefined) {
+    if (students.length > newCapacity) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `Number of students (${students.length}) exceeds the maximum capacity (${newCapacity}).`
+      );
+    }
+  }
+
+  // Prepare the update data object
   const updateData = {};
 
-  if (studentCapacity !== undefined)
-    updateData.studentCapacity = Number(studentCapacity);
-  if (description !== undefined) updateData.description = description;
-  if (warningCutoff !== undefined)
-    updateData.warningCutoff = Number(warningCutoff);
-  if (currentClass !== undefined) updateData.currentClass = currentClass;
-  if (startDate !== undefined) updateData.startDate = new Date(startDate);
-  if (startLevel !== undefined) updateData.startLevel = startLevel;
-  if (currentLevel !== undefined) updateData.currentLevel = currentLevel;
+  if (studentCapacity !== undefined) {
+    updateData.studentCapacity = newCapacity;
+  }
+  if (description !== undefined) {
+    updateData.description = description;
+  }
+  if (warningCutoff !== undefined) {
+    updateData.warningCutoff = newWarningCutoff;
+  }
+  if (currentClass !== undefined) {
+    updateData.currentClass = currentClass;
+  }
+  if (startDate !== undefined) {
+    updateData.startDate = new Date(startDate);
+  }
+  if (startLevel !== undefined) {
+    updateData.startLevel = startLevel;
+  }
+  if (currentLevel !== undefined) {
+    updateData.currentLevel = currentLevel;
+  }
 
   if (coaches !== undefined) {
     updateData.coaches = {
@@ -169,17 +203,35 @@ const updateBatchHandler = async (id, data) => {
     };
   }
 
+  // Perform the update operation
   const updatedBatch = await db.batch.update({
-    where: {
-      id: id,
-    },
+    where: { id },
     data: updateData,
-    include: {
-      academy: true,
-    },
+    include: { academy: true },
   });
 
-  return updatedBatch;
+  // Determine the current number of students
+  const currentStudentCount =
+    students !== undefined ? students.length : batch.students.length;
+
+  // Calculate how many more students can be added before reaching capacity
+  const remainingCapacity = newCapacity - currentStudentCount;
+
+  // Initialize warning flags
+  let warningCutoffExceeded = false;
+  let warningMessage = '';
+
+  if (currentStudentCount > newWarningCutoff) {
+    warningCutoffExceeded = true;
+    warningMessage = `Warning: You have exceeded the warning cutoff. You can only add ${remainingCapacity} more student(s) before reaching maximum capacity (${newCapacity}).`;
+  }
+
+  // Return the updated batch along with warning information if applicable
+  return {
+    batch: updatedBatch,
+    warningCutoffExceeded,
+    warningMessage,
+  };
 };
 
 const deleteBatchHandler = async (id) => {
@@ -212,6 +264,7 @@ const deleteBatchHandler = async (id) => {
 
   return { message: 'Batch deleted successfully' };
 };
+
 const fetchAllBatches = async (loggedInUser, { page, limit, query }) => {
   let batchFilter = {};
 

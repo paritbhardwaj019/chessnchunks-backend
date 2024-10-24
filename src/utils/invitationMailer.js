@@ -108,7 +108,7 @@ const sendCoachInvitation = async (invitation, password, version) => {
   const ACTIVATION_URL = `${
     config.frontendUrl
   }/accept-invite?type=BATCH_COACH&name=${encodeURIComponent(
-    `${batch.batchCode} as (${subRole}) from ${academy.name}`
+    `${firstName} ${lastName} from ${academy.name}`
   )}&token=${token}`;
 
   const mailGenerator = generateMailGenerator();

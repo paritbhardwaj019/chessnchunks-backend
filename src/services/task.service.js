@@ -84,77 +84,43 @@ const createTaskHandler = async (data, loggedInUser) => {
  * @returns {Promise<Array>} The list of tasks.
  */
 const getAllTasks = async (loggedInUser) => {
-  let whereCondition = {};
+  let whereCondition = {
+    createdById: loggedInUser.id,
+  };
 
-  if (loggedInUser.role === 'SUPER_ADMIN') {
-    // Super admin can access all tasks
-    whereCondition = {};
-  } else if (loggedInUser.role === 'ADMIN') {
-    // Admins can access tasks assigned to their academies
-    const adminAcademies = await db.academy.findMany({
-      where: { admins: { some: { id: loggedInUser.id } } },
-      select: { id: true },
-    });
-    const academyIds = adminAcademies.map((academy) => academy.id);
-
-    whereCondition = {
-      OR: [
-        { assignedToAcademyId: { in: academyIds } },
-        {
-          assignedToBatch: { academyId: { in: academyIds } },
-        },
-        {
-          assignedToUser: {
-            studentOfBatches: { some: { academyId: { in: academyIds } } },
-          },
-        },
-      ],
-    };
-  } else if (loggedInUser.role === 'COACH') {
-    // Coaches can access tasks assigned to their batches or students
-    const coachBatches = await db.batch.findMany({
-      where: { coaches: { some: { id: loggedInUser.id } } },
-      select: { id: true },
-    });
-    const batchIds = coachBatches.map((batch) => batch.id);
-
-    whereCondition = {
-      OR: [
-        { assignedToBatchId: { in: batchIds } },
-        {
-          assignedToUser: {
-            studentOfBatches: { some: { id: { in: batchIds } } },
-          },
-        },
-      ],
-    };
-  } else if (loggedInUser.role === 'STUDENT') {
-    // Students can access tasks assigned to them or their batches
+  if (loggedInUser.role === 'STUDENT') {
     const studentBatches = await db.batch.findMany({
       where: { students: { some: { id: loggedInUser.id } } },
       select: { id: true },
     });
+
     const batchIds = studentBatches.map((batch) => batch.id);
 
     whereCondition = {
       OR: [
         { assignedToUserId: loggedInUser.id },
         { assignedToBatchId: { in: batchIds } },
-        { assignedToAcademyId: null }, // Assuming tasks assigned to the entire academy are accessible
+        { assignedToAcademyId: null },
       ],
     };
-  } else {
-    throw new ApiError(httpStatus.FORBIDDEN, 'Access denied');
   }
 
   const tasks = await db.task.findMany({
     where: whereCondition,
     include: {
       taskCode: true,
-      assignedToUser: true,
+      assignedToUser: {
+        include: {
+          profile: true,
+        },
+      },
       assignedToBatch: true,
       assignedToAcademy: true,
-      createdBy: true,
+      createdBy: {
+        include: {
+          profile: true,
+        },
+      },
     },
   });
 
@@ -182,8 +148,6 @@ const getTaskById = async (taskId, loggedInUser) => {
   if (!task) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Task not found');
   }
-
-  // Add authorization checks here if needed
 
   return task;
 };
