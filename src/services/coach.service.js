@@ -12,6 +12,7 @@ const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 const hashPassword = require('../utils/hashPassword');
 const crypto = require('crypto');
 const { getSingleAcademyForUser } = require('./academy.service');
+const logger = require('../utils/logger');
 
 const inviteCoachHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyId: providedAcademyId } = data;
@@ -130,6 +131,9 @@ const inviteCoachHandler = async (data, loggedInUser) => {
     config.jwt.invitationSecret,
     '3d'
   );
+
+  console.log('COACH INVITATION', coachInvitation);
+  logger.info(token);
 
   // Construct activation URL
   const ACTIVATION_URL = `${

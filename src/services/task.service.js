@@ -198,6 +198,8 @@ const getTaskById = async (taskId, loggedInUser) => {
 const updateTask = async (taskId, data, loggedInUser) => {
   const existingTask = await db.task.findUnique({ where: { id: taskId } });
 
+  console.log('DATA', data);
+
   if (!existingTask) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Task not found');
   }

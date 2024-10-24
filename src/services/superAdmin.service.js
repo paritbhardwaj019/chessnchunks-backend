@@ -53,12 +53,14 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
       status: true,
       data: true,
       createdBy: true,
+      version: true,
     },
   });
 
   const token = await createToken(
     {
       id: academyAdminInvitation.id,
+      version: academyAdminInvitation.version,
     },
     config.jwt.invitationSecret,
     '3d'
@@ -145,8 +147,13 @@ const verifyAcademyAdminHandler = async (token) => {
       data: true,
       type: true,
       status: true,
+      version: true,
     },
   });
+
+  if (!academyAdminInvitation.version !== data.version) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Expired token');
+  }
 
   if (academyAdminInvitation.type !== 'CREATE_ACADEMY') {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid token');
@@ -288,8 +295,7 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
         batches: {
           select: {
             _count: {
-              select: { students: true },
-              select: { coaches: true },
+              select: { coaches: true, students: true },
             },
           },
         },
@@ -332,11 +338,15 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
     });
   }
 
+  console.log('allAcademies', allAcademies);
+
   const academiesWithStudentCount = allAcademies.map((academy) => {
     const studentCount = academy.batches.reduce(
       (acc, batch) => acc + batch._count.students,
       0
     );
+
+    console.log('studentCount', academy.batches);
 
     const coachesCount = academy.batches.reduce(
       (acc, batch) => acc + batch._count.coaches,

@@ -38,6 +38,8 @@ const loginWithPasswordHandler = async (data) => {
     },
   });
 
+  console.log('USER', user);
+
   if (!user || !user.password) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
   }
@@ -56,6 +58,8 @@ const loginWithPasswordHandler = async (data) => {
 
   if (user.role === 'COACH' || user.role === 'ADMIN') {
     academy = await getSingleAcademyForUser(user);
+
+    console.log('ACADEMY', academy);
 
     if (user.role === 'ADMIN' && academy && academy.status === 'INACTIVE') {
       throw new ApiError(

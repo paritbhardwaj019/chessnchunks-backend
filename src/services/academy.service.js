@@ -141,6 +141,7 @@ const getSingleAcademyForUser = async (loggedInUser) => {
           academy: true,
         },
       },
+      assignedToAcademy: true,
     },
   });
 
@@ -151,11 +152,10 @@ const getSingleAcademyForUser = async (loggedInUser) => {
   let academyIds = [];
 
   if (user.role === 'ADMIN') {
-    academyIds = user.adminOfAcademies.map((academy) => academy.id);
+    academyIds = [user.assignedToAcademy.id];
   } else if (user.role === 'COACH') {
-    academyIds = user.coachOfBatches.map((batch) => batch.academyId);
+    academyIds = [user.assignedToAcademy.id];
   } else {
-    logger.error(`Unsupported role "${user.role}" for user id: ${userId}`);
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       `Role "${user.role}" is not authorized to perform this action.`
