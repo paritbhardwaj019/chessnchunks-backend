@@ -55,6 +55,26 @@ const createBatchHandler = async (data, loggedInUser) => {
     academyId = academyIds[0];
   }
 
+  if (coaches !== undefined) {
+    const coachRecords = await db.user.findMany({
+      where: {
+        id: { in: coaches },
+        role: 'COACH',
+        subRole: 'HEAD_COACH',
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (coachRecords.length > 1) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'A batch can have only one HEAD_COACH.'
+      );
+    }
+  }
+
   const newStartDate = new Date(startDate);
 
   const academy = await db.academy.findUnique({
@@ -123,17 +143,15 @@ const createBatchHandler = async (data, loggedInUser) => {
 };
 
 const updateBatchHandler = async (id, data) => {
-  // Fetch the existing batch from the database
   const batch = await db.batch.findUnique({
     where: { id },
-    include: { students: true }, // Ensure students are included for count
+    include: { students: true },
   });
 
   if (!batch) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
   }
 
-  // Destructure the incoming data
   const {
     studentCapacity,
     description,
@@ -146,17 +164,14 @@ const updateBatchHandler = async (id, data) => {
     students,
   } = data;
 
-  // Determine the new student capacity
   const newCapacity =
     studentCapacity !== undefined
       ? Number(studentCapacity)
       : batch.studentCapacity;
 
-  // Determine the new warning cutoff
   const newWarningCutoff =
     warningCutoff !== undefined ? Number(warningCutoff) : batch.warningCutoff;
 
-  // If students are being updated, validate the new number of students against the capacity
   if (students !== undefined) {
     if (students.length > newCapacity) {
       throw new ApiError(
@@ -166,7 +181,26 @@ const updateBatchHandler = async (id, data) => {
     }
   }
 
-  // Prepare the update data object
+  if (coaches !== undefined) {
+    const coachRecords = await db.user.findMany({
+      where: {
+        id: { in: coaches },
+        role: 'COACH',
+        subRole: 'HEAD_COACH',
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (coachRecords.length > 1) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'A batch can have only one HEAD_COACH.'
+      );
+    }
+  }
+
   const updateData = {};
 
   if (studentCapacity !== undefined) {

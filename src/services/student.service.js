@@ -399,6 +399,7 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
 
 const fetchAllStudentsByBatchId = async (batchId, { query }) => {
   console.log('BATCH ID', batchId);
+  console.log('QUERY', query);
 
   const batchExists = await db.batch.findUnique({
     where: { id: batchId },

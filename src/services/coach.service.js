@@ -122,20 +122,17 @@ const inviteCoachHandler = async (data, loggedInUser) => {
     },
   });
 
-  // Create token for invitation
   const token = await createToken(
     {
       id: coachInvitation.id,
-      version: coachInvitation.version, // Include version in token
+      version: coachInvitation.version,
     },
     config.jwt.invitationSecret,
     '3d'
   );
 
-  console.log('COACH INVITATION', coachInvitation);
   logger.info(token);
 
-  // Construct activation URL
   const ACTIVATION_URL = `${
     config.frontendUrl
   }/accept-invite?type=BATCH_COACH&name=${encodeURIComponent(

@@ -45,6 +45,8 @@ const fetchAllStudentsByBatchId = catchAsync(async (req, res) => {
 
   query = cleanParam(query);
 
+  console.log('CONTROLLER QUERY', req.query);
+
   const allStudents = await studentService.fetchAllStudentsByBatchId(batchId, {
     page,
     limit,

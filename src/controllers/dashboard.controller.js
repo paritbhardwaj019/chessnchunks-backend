@@ -10,16 +10,18 @@ const fetchAllDashboard = catchAsync(async (req, res) => {
 
   switch (loggedInUser.role) {
     case 'SUPER_ADMIN':
-      dashboardData = await dashboardService.getSuperAdminDashboardData();
+      dashboardData = await dashboardService.getSuperAdminDashboardData(
+        loggedInUser
+      );
       break;
     case 'ADMIN':
       dashboardData = await dashboardService.getAdminDashboardData(
-        loggedInUser.id
+        loggedInUser
       );
       break;
     case 'COACH':
       dashboardData = await dashboardService.getCoachDashboardData(
-        loggedInUser.id
+        loggedInUser
       );
       break;
     default:
