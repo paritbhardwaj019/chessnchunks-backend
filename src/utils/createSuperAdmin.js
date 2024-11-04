@@ -75,6 +75,10 @@ function createSuperAdmin() {
       throw new ApiError(httpStatus.CONFLICT, 'Email is already taken.');
     }
 
+    const superAdminRole = await db.role.findUnique({
+      where: { name: 'SUPER_ADMIN' },
+    });
+
     const superAdmin = await db.user.create({
       data: {
         email,
@@ -85,7 +89,11 @@ function createSuperAdmin() {
           },
         },
         code: newCode,
-        role: 'SUPER_ADMIN',
+        role: {
+          connect: {
+            id: superAdminRole.id,
+          },
+        },
         hasPassword: true,
       },
       select: {

@@ -24,7 +24,11 @@ const loginWithPasswordHandler = async (data) => {
       id: true,
       email: true,
       password: true,
-      role: true,
+      role: {
+        select: {
+          name: true,
+        },
+      },
       subRole: true,
       profile: {
         select: {
@@ -37,8 +41,6 @@ const loginWithPasswordHandler = async (data) => {
       status: true,
     },
   });
-
-  console.log('USER', user);
 
   if (!user || !user.password) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
@@ -82,7 +84,7 @@ const loginWithPasswordHandler = async (data) => {
     user: {
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: user.role.name,
       subRole: user.subRole,
       profile: user.profile,
       hasPassword: user.hasPassword,
@@ -192,7 +194,11 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
     select: {
       id: true,
       email: true,
-      role: true,
+      role: {
+        select: {
+          name: true,
+        },
+      },
       subRole: true,
       profile: {
         select: {
@@ -209,8 +215,6 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
   if (!user) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
   }
-
-  console.log(user);
 
   if (user.status === 'INACTIVE') {
     throw new ApiError(httpStatus.FORBIDDEN, 'Your account is INACTIVE');
@@ -240,7 +244,7 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
     user: {
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: user.role.name,
       subRole: user.subRole,
       profile: user.profile,
       hasPassword: user.hasPassword,

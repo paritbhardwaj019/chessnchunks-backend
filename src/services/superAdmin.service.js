@@ -193,6 +193,10 @@ const verifyAcademyAdminHandler = async (token) => {
     throw new ApiError(httpStatus.CONFLICT, 'Email is already taken.');
   }
 
+  const adminRole = await db.role.findUnique({
+    where: { name: 'ADMIN' },
+  });
+
   const academyAdmin = await db.user.create({
     data: {
       email,
@@ -202,7 +206,11 @@ const verifyAcademyAdminHandler = async (token) => {
         },
       },
       code: newCode,
-      role: 'ADMIN',
+      role: {
+        connect: {
+          id: adminRole.id,
+        },
+      },
       password,
       hasPassword: true,
     },
@@ -275,12 +283,14 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
 
   const user = await db.user.findUnique({
     where: { id: loggedInUser.id },
-    include: { adminOfAcademies: true },
+    include: { adminOfAcademies: true, role: true },
   });
+
+  console.log('LOGGED IN USER', loggedInUser, user);
 
   let allAcademies = [];
 
-  if (user.role === 'SUPER_ADMIN') {
+  if (user.role.name === 'SUPER_ADMIN') {
     allAcademies = await db.academy.findMany({
       skip: (numberPage - 1) * numberLimit,
       take: numberLimit,

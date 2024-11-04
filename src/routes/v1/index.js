@@ -19,6 +19,7 @@ const chatRouter = require('./chatRouter');
 const friendRequestRouter = require('./friendRequestRouter');
 const channelRouter = require('./channelRouter');
 const taskRouter = require('./task.route');
+const permissionRouter = require('./permission.route');
 
 const router = express.Router();
 
@@ -41,5 +42,6 @@ router.use('/chats', chatRouter); // Routes for chat system
 router.use('/friend-requests', friendRequestRouter); // Routes for friend requests
 router.use('/channels', channelRouter); // Routes for broadcast channels
 router.use('/tasks', taskRouter);
+router.use('/permission', permissionRouter);
 
 module.exports = router;

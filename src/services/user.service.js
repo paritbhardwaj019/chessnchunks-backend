@@ -26,7 +26,11 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const selectFields = {
     id: true,
     email: true,
-    role: true,
+    role: {
+      select: {
+        name: true,
+      },
+    },
     subRole: true,
     profile: {
       select: {
@@ -59,6 +63,7 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
     include: {
       adminOfAcademies: true,
       coachOfBatches: true,
+      role: true,
     },
   });
 
@@ -66,16 +71,14 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
   }
 
-  if (user.role === 'SUPER_ADMIN') {
+  if (user.role.name === 'SUPER_ADMIN') {
     allUsers = await db.user.findMany({
       skip,
       take,
       where: baseFilter,
       select: selectFields,
     });
-  }
-  // Query for ADMIN and COACH
-  else if (user.role === 'ADMIN' || user.role === 'COACH') {
+  } else if (user.role.name === 'ADMIN' || user.role.name === 'COACH') {
     const academy = await getSingleAcademyForUser(loggedInUser);
 
     allUsers = await db.user.findMany({
@@ -108,8 +111,6 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
       academy,
     };
   });
-
-  console.log('usersWithAcademies', usersWithAcademies);
 
   return {
     allUsers: usersWithAcademies,

@@ -59,7 +59,9 @@ const createBatchHandler = async (data, loggedInUser) => {
     const coachRecords = await db.user.findMany({
       where: {
         id: { in: coaches },
-        role: 'COACH',
+        role: {
+          name: 'COACH',
+        },
         subRole: 'HEAD_COACH',
       },
       select: {
@@ -185,7 +187,9 @@ const updateBatchHandler = async (id, data) => {
     const coachRecords = await db.user.findMany({
       where: {
         id: { in: coaches },
-        role: 'COACH',
+        role: {
+          name: 'COACH',
+        },
         subRole: 'HEAD_COACH',
       },
       select: {
@@ -345,7 +349,11 @@ const fetchAllBatches = async (loggedInUser, { page, limit, query }) => {
               lastName: true,
             },
           },
-          role: true,
+          role: {
+            select: {
+              name: true,
+            },
+          },
         },
       },
       coaches: {
@@ -358,7 +366,11 @@ const fetchAllBatches = async (loggedInUser, { page, limit, query }) => {
               lastName: true,
             },
           },
-          role: true,
+          role: {
+            select: {
+              name: true,
+            },
+          },
           subRole: true,
         },
       },
@@ -381,8 +393,6 @@ const fetchAllBatches = async (loggedInUser, { page, limit, query }) => {
 
 const fetchAllBatchesForOptions = async (loggedInUser) => {
   let batchFilter = {};
-
-  console.log('LOGGED IN USER', loggedInUser);
 
   if (loggedInUser.role === 'ADMIN') {
     batchFilter = {
@@ -475,7 +485,11 @@ const fetchBatchById = async (loggedInUser, id) => {
               lastName: true,
             },
           },
-          role: true,
+          role: {
+            select: {
+              name: true,
+            },
+          },
         },
       },
       coaches: {
@@ -488,7 +502,11 @@ const fetchBatchById = async (loggedInUser, id) => {
               lastName: true,
             },
           },
-          role: true,
+          role: {
+            select: {
+              name: true,
+            },
+          },
           subRole: true,
         },
       },
@@ -618,7 +636,11 @@ const getAllCoachesByBatchId = async (batchId) => {
               lastName: true,
             },
           },
-          role: true,
+          role: {
+            select: {
+              name: true,
+            },
+          },
           subRole: true,
           createdAt: true,
         },

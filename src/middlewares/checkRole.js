@@ -10,10 +10,8 @@ const checkRole = (roles) => async (req, res, next) => {
     const decoded = await decodeToken(token, config.jwt.secret);
 
     const { role, id } = decoded;
-    console.log('ROLE', role);
-    console.log('ID', id);
 
-    if (!roles.includes(role)) {
+    if (!roles.includes(role.name)) {
       return res.status(httpStatus.UNAUTHORIZED).json({
         message: 'Unauthorized access!',
         statusCode: httpStatus.UNAUTHORIZED,
@@ -27,12 +25,14 @@ const checkRole = (roles) => async (req, res, next) => {
       select: {
         email: true,
         id: true,
-        role: true,
+        role: {
+          select: {
+            name: true,
+          },
+        },
         subRole: true,
       },
     });
-
-    console.log('DB USER', user);
 
     if (!user) {
       return res.status(httpStatus.NOT_FOUND).json({
@@ -41,7 +41,9 @@ const checkRole = (roles) => async (req, res, next) => {
       });
     }
 
-    req.user = user;
+    req.user = { ...user, role: user.role.name };
+    console.log('USER ROLE', { ...user, role: user.role.name });
+
     next();
   } catch (error) {
     console.log(error);

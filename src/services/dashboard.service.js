@@ -18,10 +18,18 @@ async function getSuperAdminDashboardData(loggedInUser) {
   const totalAcademies = await db.academy.count();
   const totalBatches = await db.batch.count();
   const totalStudents = await db.user.count({
-    where: { role: 'STUDENT' },
+    where: {
+      role: {
+        name: 'STUDENT',
+      },
+    },
   });
   const totalCoaches = await db.user.count({
-    where: { role: 'COACH' },
+    where: {
+      role: {
+        name: 'COACH',
+      },
+    },
   });
   const totalPendingInvitations = await db.invitation.count({
     where: {
@@ -75,7 +83,9 @@ async function getAdminDashboardData(loggedInUser) {
 
   const totalStudents = await db.user.count({
     where: {
-      role: 'STUDENT',
+      role: {
+        name: 'STUDENT',
+      },
       studentOfBatches: {
         some: {
           academyId: { in: academyIds },
@@ -86,7 +96,9 @@ async function getAdminDashboardData(loggedInUser) {
 
   const totalCoaches = await db.user.count({
     where: {
-      role: 'COACH',
+      role: {
+        name: 'COACH',
+      },
       coachOfBatches: {
         some: {
           academyId: { in: academyIds },
@@ -149,7 +161,9 @@ async function getCoachDashboardData(loggedInUser) {
 
   const totalStudents = await db.user.count({
     where: {
-      role: 'STUDENT',
+      role: {
+        name: 'STUDENT',
+      },
       studentOfBatches: { some: { id: { in: batchIds } } },
     },
   });
