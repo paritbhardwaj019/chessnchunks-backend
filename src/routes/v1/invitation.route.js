@@ -2,27 +2,28 @@ const express = require('express');
 const checkJWT = require('../../middlewares/checkJWT');
 const checkRole = require('../../middlewares/checkRole');
 const invitationController = require('../../controllers/invitation.controller');
+const checkPermission = require('../../middlewares/checkPermission');
 
 const invitationRouter = express.Router();
 
 invitationRouter.get(
   '/all-invitations',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'COACH', 'ADMIN']),
+  checkPermission('view', '/dashboard/invitations'),
   invitationController.fetchAllInvitationsHandler
 );
 
 invitationRouter.delete(
   '/:id',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'COACH', 'ADMIN']),
+  checkPermission('delete', '/dashboard/invitations'),
   invitationController.deleteInvitationHandler
 );
 
 invitationRouter.patch(
   '/:id',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'COACH', 'ADMIN']),
+  checkPermission('update', '/dashboard/invitations'),
   invitationController.editInvitationHandler
 );
 

@@ -59,22 +59,22 @@ async function main() {
         {
           name: 'Seasonal Goals',
           path: '/dashboard/goals/seasonal',
-          actions: ['view', 'add', 'update', 'delete'],
+          actions: ['view', 'add'],
         },
         {
           name: 'Monthly Goals',
           path: '/dashboard/goals/monthly',
-          actions: ['view', 'add', 'update', 'delete'],
+          actions: ['view', 'add'],
         },
         {
           name: 'Weekly Goals',
           path: '/dashboard/goals/weekly',
-          actions: ['view', 'add', 'update', 'delete'],
+          actions: ['view', 'add'],
         },
         {
           name: 'Assign Weekly Goals',
           path: '/dashboard/goals/assign-weekly',
-          actions: ['view', 'add', 'update', 'delete'],
+          actions: ['view', 'add'],
         },
       ],
     },

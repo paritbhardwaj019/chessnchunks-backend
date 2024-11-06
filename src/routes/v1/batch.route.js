@@ -2,6 +2,7 @@ const express = require('express');
 const batchController = require('../../controllers/batch.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 const checkRole = require('../../middlewares/checkRole');
+const checkPermission = require('../../middlewares/checkPermission');
 
 const batchRouter = express.Router();
 
@@ -37,12 +38,12 @@ batchRouter
   .route('/')
   .post(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+    checkPermission('add', '/dashboard/batches'),
     batchController.createBatchHandler
   )
   .get(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+    checkPermission('view', '/dashboard/batches'),
     batchController.fetchAllBatches
   );
 
@@ -50,12 +51,12 @@ batchRouter
   .route('/:id')
   .put(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'COACH', 'ADMIN']),
+    checkPermission('update', '/dashboard/batches'),
     batchController.updateBatchHandler
   )
   .delete(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'COACH']),
+    checkPermission('delete', '/dashboard/batches'),
     batchController.deleteBatchHandler
   )
   .get(

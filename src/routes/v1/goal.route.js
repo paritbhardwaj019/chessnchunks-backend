@@ -2,55 +2,56 @@ const express = require('express');
 const checkJWT = require('../../middlewares/checkJWT');
 const checkRole = require('../../middlewares/checkRole');
 const goalController = require('../../controllers/goal.controller');
+const checkPermission = require('../../middlewares/checkPermission');
 
 const goalRouter = express.Router();
 
 goalRouter.post(
   '/assign-goal-to-batch',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkPermission('add', '/dashboard/goals/assign-weekly'),
   goalController.assignWeeklyGoalHandler
 );
 
 goalRouter.post(
   '/create-seasonal',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkPermission('add', '/dashboard/goals/seasonal'),
   goalController.createSeasonalGoalHandler
 );
 
 goalRouter.post(
   '/create-monthly',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkPermission('add', '/dashboard/goals/monthly'),
   goalController.createMonthlyGoalHandler
 );
 
 goalRouter.post(
   '/create-weekly',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkPermission('add', '/dashboard/goals/weekly'),
   goalController.createWeeklyGoalHandler
 );
 
 goalRouter.get(
   '/seasonal-goals',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkPermission('view', '/dashboard/goals/seasonal'),
   goalController.getAllSeasonalGoalsHandler
 );
 
 goalRouter.get(
   '/monthly-goals',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkPermission('view', '/dashboard/goals/monthly'),
   goalController.getAllMonthlyGoalsHandler
 );
 
 goalRouter.get(
   '/weekly-goals',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkPermission('view', '/dashboard/goals/weekly'),
   goalController.getAllWeeklyGoalsHandler
 );
 

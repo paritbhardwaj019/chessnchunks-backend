@@ -4,13 +4,14 @@ const checkRole = require('../../middlewares/checkRole');
 const userController = require('../../controllers/user.controller');
 const signupLimiter = require('../../middlewares/signupLimiter');
 const uploadFile = require('../../middlewares/uploadFile');
+const checkPermission = require('../../middlewares/checkPermission');
 
 const userRouter = express.Router();
 
 userRouter.get(
   '/all-users',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkPermission('view', '/dashboard/users'),
   userController.fetchAllUsersHandler
 );
 
@@ -23,7 +24,7 @@ userRouter.post(
 userRouter.post(
   '/xlsx-upload',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkPermission('add', '/dashboard/users'),
   uploadFile.single('file'),
   userController.xlsxUploadHandler
 );
@@ -31,14 +32,14 @@ userRouter.post(
 userRouter.patch(
   '/update-status',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkPermission('update', '/dashboard/users'),
   userController.updateUserStatusHandler
 );
 
 userRouter.patch(
   '/update/:id',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkPermission('update', '/dashboard/users'),
   userController.updateUserHandler
 );
 

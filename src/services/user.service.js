@@ -171,12 +171,20 @@ const signUpSubscriberHandler = async (data) => {
     throw new ApiError(httpStatus.CONFLICT, 'Email is already taken.');
   }
 
+  const subscriberRole = await db.role.findFirst({
+    where: {
+      name: 'SUBSCRIBER',
+    },
+  });
+
   const user = await db.user.create({
     data: {
       email,
       password: hashedPassword,
       code: newCode,
-      role: 'SUBSCRIBER',
+      role: {
+        id: subscriberRole.id,
+      },
       profile: {
         connect: { id: profile.id },
       },

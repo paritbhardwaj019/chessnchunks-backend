@@ -2,13 +2,14 @@ const express = require('express');
 const coachController = require('../../controllers/coach.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 const checkRole = require('../../middlewares/checkRole');
+const checkPermission = require('../../middlewares/checkPermission');
 
 const coachRouter = express.Router();
 
 coachRouter.post(
   '/invite-coach',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkPermission('add', '/dashboard/users'),
   coachController.inviteCoachHandler
 );
 

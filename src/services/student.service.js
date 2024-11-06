@@ -241,6 +241,12 @@ const verifyStudentHandler = async (token) => {
   const userCount = await db.user.count();
   const newCode = formatNumberWithPrefix('U', userCount + 1);
 
+  const studentRole = await db.role.findFirst({
+    where: {
+      name: 'STUDENT',
+    },
+  });
+
   const newStudent = await db.$transaction(async (prisma) => {
     const student = await prisma.user.create({
       data: {
@@ -256,7 +262,11 @@ const verifyStudentHandler = async (token) => {
             id: academy.id,
           },
         },
-        role: 'STUDENT',
+        role: {
+          connect: {
+            id: studentRole.id,
+          },
+        },
         hasPassword: true,
         password,
       },
@@ -290,8 +300,14 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
   const skip = (numberPage - 1) * numberLimit;
   const take = numberLimit;
 
+  const studentRole = await db.role.findFirst({
+    where: {
+      name: 'STUDENT',
+    },
+  });
+
   const baseFilter = {
-    role: 'STUDENT',
+    role: { id: studentRole.id },
     NOT: { id: loggedInUser.id },
     OR: [
       { email: { contains: query } },
@@ -451,8 +467,16 @@ const fetchAllStudentsByBatchId = async (batchId, { query }) => {
     createdAt: true,
   };
 
+  const studentRole = await db.role.findFirst({
+    where: {
+      name: 'STUDENT',
+    },
+  });
+
   const whereClause = {
-    role: 'STUDENT',
+    role: {
+      id: studentRole.id,
+    },
     studentOfBatches: {
       some: {
         id: batchId,

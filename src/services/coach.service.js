@@ -275,6 +275,12 @@ const verifyCoachInvitationHandler = async (token) => {
   const newCode = formatNumberWithPrefix('C', userCount + 1); // Prefix 'C' for Coach
 
   // Create the coach user within a transaction
+  const coachRole = await db.role.findFirst({
+    where: {
+      name: 'COACH',
+    },
+  });
+
   const newCoach = await db.$transaction(async (prisma) => {
     const coach = await prisma.user.create({
       data: {
@@ -290,7 +296,11 @@ const verifyCoachInvitationHandler = async (token) => {
             id: academy.id,
           },
         },
-        role: 'COACH',
+        role: {
+          connect: {
+            id: coachRole.id,
+          },
+        },
         subRole: subRole, // Assign subRole if applicable
         hasPassword: true,
         password,
@@ -363,10 +373,16 @@ const fetchAllCoachesHandler = async (loggedInUser) => {
 
   let coaches;
 
+  const coachRole = await db.role.findFirst({
+    where: {
+      name: 'COACH',
+    },
+  });
+
   if (loggedInUser.role === 'SUPER_ADMIN') {
     coaches = await db.user.findMany({
       where: {
-        role: 'COACH',
+        role: coachRole.id,
       },
       select: selectFields,
     });
@@ -375,7 +391,7 @@ const fetchAllCoachesHandler = async (loggedInUser) => {
 
     coaches = await db.user.findMany({
       where: {
-        role: 'COACH',
+        role: coachRole.id,
         assignedToAcademyId: academy.id,
       },
       select: selectFields,

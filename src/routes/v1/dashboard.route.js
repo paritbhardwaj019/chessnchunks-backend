@@ -1,7 +1,7 @@
 const express = require('express');
 const checkJWT = require('../../middlewares/checkJWT');
-const checkRole = require('../../middlewares/checkRole');
 const dashboardController = require('../../controllers/dashboard.controller');
+const checkPermission = require('../../middlewares/checkPermission');
 
 const dashboardRouter = express.Router();
 
@@ -9,7 +9,7 @@ dashboardRouter
   .route('/')
   .get(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+    checkPermission('view', '/dashboard'),
     dashboardController.fetchAllDashboard
   );
 

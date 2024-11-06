@@ -9,12 +9,12 @@ academyRouter
   .route('/:id')
   .put(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'ADMIN']),
+    checkRole(['SUPER_ADMIN']),
     academyController.updateAcademyByIdHandler
   )
   .get(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'ADMIN']),
+    checkRole(['SUPER_ADMIN']),
     academyController.fetchAcademyByIdHandler
   );
 
