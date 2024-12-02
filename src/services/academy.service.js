@@ -142,6 +142,7 @@ const getSingleAcademyForUser = async (loggedInUser) => {
         },
       },
       assignedToAcademy: true,
+      role: true,
     },
   });
 
@@ -151,14 +152,14 @@ const getSingleAcademyForUser = async (loggedInUser) => {
 
   let academyIds = [];
 
-  if (user.role === 'ADMIN') {
+  if (user.role.name === 'ADMIN') {
     academyIds = user.adminOfAcademies.map((academy) => academy.id);
-  } else if (user.role === 'COACH') {
+  } else if (user.role.name === 'COACH') {
     academyIds = [user.assignedToAcademy.id];
   } else {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      `Role "${user.role}" is not authorized to perform this action.`
+      `Role "${user.role.name}" is not authorized to perform this action.`
     );
   }
 

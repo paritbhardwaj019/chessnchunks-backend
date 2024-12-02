@@ -13,6 +13,8 @@ const fetchAllRoles = catchAsync(async (req, res) => {
 });
 
 const updatePermission = catchAsync(async (req, res) => {
+  console.log('REQ BODY', req.body);
+
   const updatedPermission = await permissionService.updateRolePermission(
     req.body.roleId,
     req.body.permissions

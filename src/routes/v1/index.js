@@ -20,6 +20,8 @@ const friendRequestRouter = require('./friendRequestRouter');
 const channelRouter = require('./channelRouter');
 const taskRouter = require('./task.route');
 const permissionRouter = require('./permission.route');
+const eventRouter = require('./event.route');
+const notificationRouter = require('./notification.route');
 
 const router = express.Router();
 
@@ -43,5 +45,7 @@ router.use('/friend-requests', friendRequestRouter); // Routes for friend reques
 router.use('/channels', channelRouter); // Routes for broadcast channels
 router.use('/tasks', taskRouter);
 router.use('/permission', permissionRouter);
+router.use('/events', eventRouter);
+router.use('/notifications', notificationRouter);
 
 module.exports = router;

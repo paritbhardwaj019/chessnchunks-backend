@@ -52,6 +52,11 @@ async function main() {
       actions: ['view', 'add', 'update', 'delete'],
     },
     {
+      name: 'Calendar',
+      path: '/dashboard/calendar',
+      actions: ['view', 'add', 'update', 'delete'],
+    },
+    {
       name: 'Goals',
       path: '/dashboard/goals',
       actions: ['view'],
@@ -99,29 +104,37 @@ async function main() {
 
   for (const route of routes) {
     for (const action of route.actions) {
-      await prisma.permission.upsert({
+      const permissionExists = await prisma.permission.findUnique({
         where: { resource_action: { resource: route.path, action } },
-        update: {},
-        create: {
-          resource: route.path,
-          action,
-          description: `${action} ${route.name}`,
-        },
       });
+
+      if (!permissionExists) {
+        await prisma.permission.create({
+          data: {
+            resource: route.path,
+            action,
+            description: `${action} ${route.name}`,
+          },
+        });
+      }
     }
 
     if (route.subRoutes) {
       for (const subRoute of route.subRoutes) {
         for (const action of subRoute.actions) {
-          await prisma.permission.upsert({
+          const permissionExists = await prisma.permission.findUnique({
             where: { resource_action: { resource: subRoute.path, action } },
-            update: {},
-            create: {
-              resource: subRoute.path,
-              action,
-              description: `${action} ${subRoute.name}`,
-            },
           });
+
+          if (!permissionExists) {
+            await prisma.permission.create({
+              data: {
+                resource: subRoute.path,
+                action,
+                description: `${action} ${subRoute.name}`,
+              },
+            });
+          }
         }
       }
     }
@@ -134,19 +147,23 @@ async function main() {
   });
 
   for (const permission of allPermissions) {
-    await prisma.rolePermission.upsert({
+    const rolePermissionExists = await prisma.rolePermission.findUnique({
       where: {
         roleId_permissionId: {
           roleId: superAdminRole.id,
           permissionId: permission.id,
         },
       },
-      update: {},
-      create: {
-        roleId: superAdminRole.id,
-        permissionId: permission.id,
-      },
     });
+
+    if (!rolePermissionExists) {
+      await prisma.rolePermission.create({
+        data: {
+          roleId: superAdminRole.id,
+          permissionId: permission.id,
+        },
+      });
+    }
   }
 }
 

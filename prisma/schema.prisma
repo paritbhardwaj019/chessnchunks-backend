@@ -100,6 +100,9 @@ model User {
 
   status USER_STATUS @default(ACTIVE)
 
+  // **Added Relation Field for Events Created by User**
+  createdEvents Event[] @relation("UserCreatedEvents")
+
   @@map("users")
 }
 
@@ -146,6 +149,10 @@ model Academy {
 
   User User[]
 
+  // **Added Relation Fields for Events and Notifications**
+  events        Event[]        @relation("AcademyEvents")
+  notifications Notification[] @relation("AcademyNotifications")
+
   @@map("academies")
 }
 
@@ -177,7 +184,6 @@ model Batch {
   startDate DateTime
 
   channels Channel[]
-
   messages Message[]
 
   createdAt DateTime @default(now())
@@ -315,15 +321,41 @@ model Message {
   @@map("messages")
 }
 
-model Notification {
-  id        String   @id @default(uuid())
-  userId    String
-  message   String
-  isRead    Boolean  @default(false)
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  createdById String
+  createdBy   User     @relation("UserCreatedEvents", fields: [createdById], references: [id])
+  academyId   String
+  academy     Academy  @relation("AcademyEvents", fields: [academyId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  notifications Notification[] @relation("EventNotifications")
+
+  @@map("events")
+}
+
+model Notification {
+  id      String  @id @default(uuid())
+  userId  String
+  message String
+  isRead  Boolean @default(false)
+
+  eventId String?
+  event   Event?  @relation("EventNotifications", fields: [eventId], references: [id])
+
+  academyId String?
+  academy   Academy? @relation("AcademyNotifications", fields: [academyId], references: [id])
+
   user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("notifications")
 }
