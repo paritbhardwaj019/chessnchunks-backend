@@ -147,22 +147,29 @@ async function main() {
   });
 
   for (const permission of allPermissions) {
-    const rolePermissionExists = await prisma.rolePermission.findUnique({
-      where: {
-        roleId_permissionId: {
-          roleId: superAdminRole.id,
-          permissionId: permission.id,
-        },
-      },
-    });
-
-    if (!rolePermissionExists) {
-      await prisma.rolePermission.create({
-        data: {
-          roleId: superAdminRole.id,
-          permissionId: permission.id,
+    if (
+      !(
+        permission.action === 'view' &&
+        permission.resource === '/dashboard/calendar'
+      )
+    ) {
+      const rolePermissionExists = await prisma.rolePermission.findUnique({
+        where: {
+          roleId_permissionId: {
+            roleId: superAdminRole.id,
+            permissionId: permission.id,
+          },
         },
       });
+
+      if (!rolePermissionExists) {
+        await prisma.rolePermission.create({
+          data: {
+            roleId: superAdminRole.id,
+            permissionId: permission.id,
+          },
+        });
+      }
     }
   }
 }
