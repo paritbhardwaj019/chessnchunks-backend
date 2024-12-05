@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const superAdminService = require('../services/superAdmin.service');
 const catchAsync = require('../utils/catchAsync');
 const _ = require('lodash');
+const ApiError = require('../utils/apiError');
 
 const inviteAcademyAdminHandler = catchAsync(async (req, res) => {
   const academyAdminInvitation =
@@ -12,7 +13,10 @@ const inviteAcademyAdminHandler = catchAsync(async (req, res) => {
 
 const verifyAcademyAdminHandler = catchAsync(async (req, res) => {
   const verifyAcademyAdminData =
-    await superAdminService.verifyAcademyAdminHandler(req.query.token);
+    await superAdminService.verifyAcademyAdminHandler(
+      req.query.token,
+      req.body.domain
+    );
 
   res.status(httpStatus.OK).send(verifyAcademyAdminData);
 });
@@ -46,11 +50,81 @@ const fetchAllAcademiesHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(allAcademies);
 });
 
+const fetchAllPlansHandler = catchAsync(async (req, res) => {
+  const {
+    page = 1,
+    limit = 10,
+    type,
+    search,
+  } = _.pick(req.query, ['page', 'limit', 'type', 'search']);
+
+  const filters = {
+    type,
+    search,
+  };
+
+  const plans = await superAdminService.fetchAllPlansHandler(
+    filters,
+    parseInt(page),
+    parseInt(limit)
+  );
+
+  res.status(httpStatus.OK).send(plans);
+});
+
+const createPlanHandler = catchAsync(async (req, res) => {
+  const planData = _.pick(req.body, [
+    'name',
+    'tier',
+    'type',
+    'maxUsers',
+    'priceMonthly',
+    'priceYearly',
+    'features',
+  ]);
+
+  const plan = await superAdminService.createPlanHandler(planData);
+  res.status(httpStatus.CREATED).send(plan);
+});
+
+const checkDomainAvailability = catchAsync(async (req, res) => {
+  const { domain } = req.query;
+
+  if (!domain) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Domain is required');
+  }
+
+  const result = await superAdminService.checkDomainAvailabilityHandler(domain);
+  res.status(httpStatus.OK).send(result);
+});
+
+const selectAcademyPlan = catchAsync(async (req, res) => {
+  const { signupId, planId, domain } = req.body;
+
+  if (!signupId || !planId || !domain) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'SignupId, planId and domain are required'
+    );
+  }
+
+  const result = await superAdminService.selectAcademyPlanHandler(
+    signupId,
+    planId,
+    domain
+  );
+  res.status(httpStatus.OK).send(result);
+});
+
 const superAdminController = {
   inviteAcademyAdminHandler,
   verifyAcademyAdminHandler,
   fetchAllAdminsByAcademyId,
   fetchAllAcademiesHandler,
+  createPlanHandler,
+  fetchAllPlansHandler,
+  checkDomainAvailability,
+  selectAcademyPlan,
 };
 
 module.exports = superAdminController;

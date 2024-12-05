@@ -100,7 +100,12 @@ model User {
 
   status USER_STATUS @default(ACTIVE)
 
-  // **Added Relation Field for Events Created by User**
+  batchHistory        UserBatchHistory[]
+  registrationDetails UserRegistration?
+
+  createdBatches  Batch[] @relation("CreatedBatches")
+  modifiedBatches Batch[] @relation("ModifiedBatches")
+
   createdEvents Event[] @relation("UserCreatedEvents")
 
   @@map("users")
@@ -135,6 +140,9 @@ model Academy {
   admins  User[]  @relation("AcademyAdmins")
   batches Batch[]
 
+  signupId String?        @unique // Reference to the signup process
+  signup   AcademySignup? @relation(fields: [signupId], references: [id])
+
   planId String?
   plan   Plan?   @relation(fields: [planId], references: [id])
 
@@ -149,24 +157,29 @@ model Academy {
 
   User User[]
 
-  // **Added Relation Fields for Events and Notifications**
-  events        Event[]        @relation("AcademyEvents")
-  notifications Notification[] @relation("AcademyNotifications")
+  registrations UserRegistration[]
+  domain        String?            @unique
+  events        Event[]            @relation("AcademyEvents")
+  notifications Notification[]     @relation("AcademyNotifications")
 
   @@map("academies")
 }
 
 model Batch {
-  id String @id @default(uuid())
-
-  batchCode   String
-  description String?
-
+  id              String    @id @default(uuid())
+  batchCode       String    @unique
+  description     String?
   studentCapacity Int
   warningCutoff   Int
   currentClass    String
   startLevel      String
   currentLevel    String
+  batchDay        String
+  startTime       String
+  startDate       DateTime
+  endDate         DateTime?
+  isActive        Boolean   @default(true)
+  warningMailSent Boolean   @default(false)
 
   academyId String
   academy   Academy @relation(fields: [academyId], references: [id])
@@ -177,14 +190,17 @@ model Batch {
   seasonalGoals SeasonalGoal[]
   monthlyGoals  MonthlyGoal[]
   weeklyGoals   WeeklyGoal[]
+  assignedTasks Task[]         @relation("AssignedToBatch")
+  channels      Channel[]
+  messages      Message[]
 
-  // New Relation
-  assignedTasks Task[] @relation("AssignedToBatch")
+  batchHistory     UserBatchHistory[]
+  userRegistration UserRegistration[]
 
-  startDate DateTime
-
-  channels Channel[]
-  messages Message[]
+  createdBy      String
+  createdByUser  User   @relation("CreatedBatches", fields: [createdBy], references: [id])
+  modifiedBy     String
+  modifiedByUser User   @relation("ModifiedBatches", fields: [modifiedBy], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -202,6 +218,8 @@ model Invitation {
   expiresAt DateTime?
 
   status INVITATION_STATUS @default(PENDING)
+
+  academySignup AcademySignup? 
 
   version Int @default(0)
 
@@ -245,61 +263,10 @@ model Subscription {
   @@map("subscriptions")
 }
 
-model Plan {
-  id   String @id @default(uuid())
-  name String
-
-  type PLAN_TYPE
-
-  priceMonthly Float
-  priceYearly  Float?
-
-  academies      Academy[]
-  subscriptions  Subscription[]
-  purchasedPlans PurchasedPlan[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("plans")
-}
-
-model Coupon {
-  id String @id @default(uuid())
-
-  code String @unique
-
-  discount Float
-  maxUses  Int
-
-  expiresAt DateTime?
-
-  purchasedPlans PurchasedPlan[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("coupons")
-}
-
-model PurchasedPlan {
-  id String @id @default(uuid())
-
-  academyId String
-  academy   Academy @relation(fields: [academyId], references: [id])
-
-  planId String
-  plan   Plan   @relation(fields: [planId], references: [id])
-
-  couponId String?
-  coupon   Coupon? @relation(fields: [couponId], references: [id])
-
-  totalPrice Float
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("purchasedplans")
+enum PLAN_TIER {
+  BRONZE
+  SILVER
+  GOLD
 }
 
 model Message {
@@ -494,13 +461,20 @@ model SeasonalGoal {
   @@map("seasonalgoals")
 }
 
+enum ROLE {
+  SUPER_ADMIN
+  ADMIN
+  COACH
+  STUDENT
+  SUBSCRIBER
+}
+
 model Role {
   id              String           @id @default(uuid())
-  name            ROLE
+  name            ROLE             @unique
   rolePermissions RolePermission[]
   users           User[]
 
-  @@unique([name])
   @@map("roles")
 }
 
@@ -555,14 +529,6 @@ enum INVITATION_STATUS {
   REJECTED
 }
 
-enum ROLE {
-  SUPER_ADMIN
-  ADMIN
-  COACH
-  STUDENT
-  SUBSCRIBER
-}
-
 enum COACH_ROLE {
   HEAD_COACH
   SENIOR_COACH
@@ -580,4 +546,230 @@ enum FRIEND_REQUEST_STATUS {
 enum USER_STATUS {
   ACTIVE
   INACTIVE
+}
+
+enum SIGNUP_STATUS {
+  INQUIRY
+  RESERVED
+  CONFIRMED
+  WAITING
+}
+
+enum REGISTRATION_STAGE {
+  INQUIRY
+  PAYMENT
+  PRE_ACTIVATION
+  ACTIVATION
+  POST_ACTIVATION
+}
+
+enum PAYMENT_STATUS {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model UserRegistration {
+  id String @id @default(uuid())
+
+  userId String?            @unique
+  user   User?              @relation(fields: [userId], references: [id])
+  email  String             @unique
+  stage  REGISTRATION_STAGE
+  status SIGNUP_STATUS
+
+  coachType         COACH_ROLE?
+  firstName         String
+  middleName        String?
+  lastName          String
+  dob               DateTime
+  parentName        String?
+  parentEmail       String?
+  phoneNumber       String
+  addressLine1      String
+  addressLine2      String?
+  city              String
+  state             String
+  country           String
+  zipCode           String
+  isEmailVerified   Boolean        @default(false)
+  emailVerifiedAt   DateTime?
+  batchInterestId   String?
+  interestedBatch   Batch?         @relation(fields: [batchInterestId], references: [id])
+  chessComId        String?        @unique
+  lichessId         String?
+  uscfId            String?
+  username          String?        @unique
+  mfaEnabled        Boolean        @default(false)
+  paymentStatus     PAYMENT_STATUS @default(PENDING)
+  reservationTime   DateTime?
+  reservationExpiry DateTime?
+  paymentAmount     Float?
+  paymentDate       DateTime?
+  imageUrl          String?
+  academyId         String?
+  academy           Academy?       @relation(fields: [academyId], references: [id])
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@map("user_registrations")
+}
+
+model EmailVerification {
+  id         String    @id @default(uuid())
+  email      String
+  otp        String
+  type       CODE_TYPE
+  expiresAt  DateTime
+  verified   Boolean   @default(false)
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, otp])
+  @@map("email_verifications")
+}
+
+model UserBatchHistory {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  batchId   String
+  batch     Batch     @relation(fields: [batchId], references: [id])
+  fromDate  DateTime
+  toDate    DateTime?
+  reason    String?
+  oldClass  String?
+  newClass  String?
+  oldLevel  String?
+  newLevel  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("user_batch_history")
+}
+
+enum SYSTEM_CODE_MODULE {
+  BATCH
+  PLAN
+}
+
+model SystemCode {
+  id          String             @id @default(uuid())
+  module      SYSTEM_CODE_MODULE
+  prefix      String
+  description String?
+  lastNumber  Int                @default(0)
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@unique([module, prefix])
+  @@map("system_codes")
+}
+
+enum ACADEMY_SIGNUP_STATUS {
+  INQUIRY
+  DOMAIN_SELECTION
+  PAYMENT_PENDING
+  DOMAIN_VERIFICATION
+  ACTIVE
+  REJECTED
+}
+
+model Plan {
+  id           String    @id @default(uuid())
+  name         String
+  tier         PLAN_TIER
+  type         PLAN_TYPE
+  maxUsers     Int
+  priceMonthly Float
+  priceYearly  Float?
+  features     Json?
+
+  planId String
+
+  academies      Academy[]
+  subscriptions  Subscription[]
+  purchasedPlans PurchasedPlan[]
+  academySignups AcademySignup[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("plans")
+}
+
+model AcademySignup {
+  id          String  @id @default(uuid())
+  academyName String
+  contactName String
+  email       String  @unique
+  phoneNumber String
+  logoUrl     String?
+
+  selectedPlanId String?
+  selectedPlan   Plan?   @relation(fields: [selectedPlanId], references: [id])
+
+  requestedDomain String? @unique
+  finalDomain     String? @unique
+
+  status     ACADEMY_SIGNUP_STATUS @default(INQUIRY)
+  statusNote String?
+
+   invitationId String? @unique
+  invitation Invitation? @relation(fields: [invitationId], references: [id])
+  
+
+  paymentStatus PAYMENT_STATUS @default(PENDING)
+  paymentAmount Float?
+  paymentDate   DateTime?
+
+  academy Academy?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("academy_signups")
+}
+
+model Coupon {
+  id String @id @default(uuid())
+
+  code String @unique
+
+  discount Float
+  maxUses  Int
+
+  expiresAt DateTime?
+
+  purchasedPlans PurchasedPlan[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("coupons")
+}
+
+model PurchasedPlan {
+  id String @id @default(uuid())
+
+  academyId String
+  academy   Academy @relation(fields: [academyId], references: [id])
+
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id])
+
+  couponId String?
+  coupon   Coupon? @relation(fields: [couponId], references: [id])
+
+  totalPrice Float
+
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+  isActive  Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("purchasedplans")
 }

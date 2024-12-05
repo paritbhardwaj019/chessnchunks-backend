@@ -299,6 +299,7 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
   const numberLimit = Number(limit) || 10;
   const skip = (numberPage - 1) * numberLimit;
   const take = numberLimit;
+  console.log('LOGGED IN USER', loggedInUser);
 
   const studentRole = await db.role.findFirst({
     where: {
@@ -368,6 +369,7 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
     include: {
       adminOfAcademies: true,
       coachOfBatches: true,
+      role: true,
     },
   });
 
@@ -375,14 +377,14 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
   }
 
-  if (user.role === 'SUPER_ADMIN') {
+  if (user.role.name === 'SUPER_ADMIN') {
     students = await db.user.findMany({
       skip,
       take,
       where: baseFilter,
       select: selectFields,
     });
-  } else if (user.role === 'ADMIN' || user.role === 'COACH') {
+  } else if (user.role.name === 'ADMIN' || user.role.name === 'COACH') {
     const academy = await getSingleAcademyForUser(loggedInUser);
 
     if (!academy) {

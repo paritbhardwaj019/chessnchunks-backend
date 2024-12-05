@@ -10,6 +10,7 @@ const logger = require('../utils/logger');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 const hashPassword = require('../utils/hashPassword');
 const crypto = require('crypto');
+const generateDomain = require('../utils/generateDomain');
 
 const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyName } = data;
@@ -26,7 +27,16 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   }
 
   const tempPassword = crypto.randomBytes(8).toString('hex');
-  const hashedPassword = await hashPassword(tempPassword, 10);
+
+  const academySignup = await db.academySignup.create({
+    data: {
+      academyName,
+      contactName: `${firstName} ${lastName}`,
+      email,
+      phoneNumber: '',
+      status: 'INQUIRY',
+    },
+  });
 
   const academyAdminInvitation = await db.invitation.create({
     data: {
@@ -35,26 +45,22 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
         lastName,
         academyName,
         email,
-        password: hashedPassword,
+        password: tempPassword,
+        signupId: academySignup.id,
       },
       email,
       type: 'CREATE_ACADEMY',
       expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
       createdBy: {
-        connect: {
-          id: loggedInUser.id,
-        },
+        connect: { id: loggedInUser.id },
+      },
+      academySignup: {
+        connect: { id: academySignup.id },
       },
       version: 0,
     },
-    select: {
-      id: true,
-      email: true,
-      type: true,
-      status: true,
-      data: true,
-      createdBy: true,
-      version: true,
+    include: {
+      academySignup: true,
     },
   });
 
@@ -62,6 +68,7 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
     {
       id: academyAdminInvitation.id,
       version: academyAdminInvitation.version,
+      signupId: academySignup.id,
     },
     config.jwt.invitationSecret,
     '3d'
@@ -73,7 +80,7 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
     config.frontendUrl
   }/accept-invite?type=CREATE_ACADEMY&name=${encodeURIComponent(
     academyName
-  )}&token=${token}`;
+  )}&token=${token}&signup=${academySignup.id}`;
 
   const mailGenerator = new Mailgen({
     theme: 'default',
@@ -82,32 +89,50 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
       link: config.frontendUrl,
     },
   });
+
   const emailContent = {
     body: {
       name: `${firstName} ${lastName}`,
-      intro: 'You are invited to join our academy as an admin!',
+      intro: [
+        'You are invited to join Chess in Chunks as an Academy Admin!',
+        'Here are the next steps to set up your academy:',
+      ],
       table: {
         data: [
           {
-            label: 'Email',
-            value: email,
+            item: 'Step 1',
+            description:
+              'Click the "Accept Invitation" button below to start the setup process',
           },
           {
-            label: 'Temporary Password',
-            value: tempPassword,
+            item: 'Step 2',
+            description: 'Choose your academy plan (Bronze, Silver, or Gold)',
+          },
+          {
+            item: 'Step 3',
+            description:
+              'Select your academy domain (yourname.chessinchunks.com)',
+          },
+          {
+            item: 'Step 4',
+            description: 'Complete the payment process',
           },
         ],
       },
       action: {
         instructions:
-          'To accept this invitation, please click the button below:',
+          'To begin setting up your academy, please click the button below:',
         button: {
           color: '#22BC66',
           text: 'Accept Invitation',
           link: ACTIVATION_URL,
         },
       },
-      outro: 'If you have any questions, feel free to reply to this email.',
+      outro: [
+        "After accepting the invitation, you'll be guided through the plan selection and domain setup process.",
+        'Your academy will be activated once all steps are completed.',
+        'If you have any questions, feel free to reply to this email.',
+      ],
     },
   };
 
@@ -117,7 +142,7 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Academy Admin Invitation',
+    subject: 'Welcome to Chess in Chunks - Academy Admin Invitation',
     html: emailBody,
     text: emailText,
   };
@@ -132,7 +157,7 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   return academyAdminInvitation;
 };
 
-const verifyAcademyAdminHandler = async (token) => {
+const verifyAcademyAdminHandler = async (token, domain) => {
   if (!token) {
     throw new ApiError('Token not present!', httpStatus.BAD_REQUEST);
   }
@@ -142,13 +167,6 @@ const verifyAcademyAdminHandler = async (token) => {
   const academyAdminInvitation = await db.invitation.findUnique({
     where: {
       id: data.id,
-    },
-    select: {
-      id: true,
-      data: true,
-      type: true,
-      status: true,
-      version: true,
     },
   });
 
@@ -167,7 +185,7 @@ const verifyAcademyAdminHandler = async (token) => {
     );
   }
 
-  const { firstName, lastName, email, academyName, password } =
+  const { firstName, lastName, email, academyName, password, signupId } =
     academyAdminInvitation.data;
 
   const academyAdminProfile = await db.profile.create({
@@ -182,6 +200,8 @@ const verifyAcademyAdminHandler = async (token) => {
 
   const userCount = await db.user.count();
   const newCode = formatNumberWithPrefix('U', userCount);
+
+  const hashedPassword = await hashPassword(password, 10);
 
   const isEmailAlreadyExists = await db.user.findUnique({
     where: {
@@ -211,7 +231,7 @@ const verifyAcademyAdminHandler = async (token) => {
           id: adminRole.id,
         },
       },
-      password,
+      password: hashedPassword,
       hasPassword: true,
     },
     select: {
@@ -223,17 +243,22 @@ const verifyAcademyAdminHandler = async (token) => {
   const newAcademy = await db.academy.create({
     data: {
       name: academyName,
+      domain: `http://${domain}.localhost:3001`,
       admins: {
-        connect: [
-          {
-            id: academyAdmin.id,
-          },
-        ],
+        connect: [{ id: academyAdmin.id }],
       },
+      signup: {
+        connect: { id: signupId },
+      },
+      status: 'ACTIVE',
     },
-    select: {
-      id: true,
-      name: true,
+  });
+
+  await db.academySignup.update({
+    where: { id: signupId },
+    data: {
+      status: 'ACTIVE',
+      finalDomain: domain,
     },
   });
 
@@ -253,6 +278,75 @@ const verifyAcademyAdminHandler = async (token) => {
       id: academyAdminInvitation.id,
     },
   });
+
+  const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: {
+      name: 'Chess in Chunks',
+      link: config.frontendUrl,
+    },
+  });
+
+  const emailContent = {
+    body: {
+      name: `${firstName} ${lastName}`,
+      intro: [
+        `Congratulations! Your academy "${academyName}" has been successfully created.`,
+        'Here are your academy details:',
+      ],
+      table: {
+        data: [
+          {
+            item: 'Academy Domain',
+            description: `${newAcademy.domain}`,
+          },
+          {
+            item: 'Admin Email',
+            description: email,
+          },
+          {
+            item: 'Admin Password',
+            description: password,
+          },
+        ],
+      },
+      action: {
+        instructions:
+          'Click the button below to access your academy dashboard:',
+        button: {
+          color: '#22BC66',
+          text: 'Access Dashboard',
+          link: `${newAcademy.domain}/dashboard`,
+        },
+      },
+      outro: [
+        'For security reasons, please change your password after your first login.',
+        'If you need any assistance, our support team is here to help!',
+      ],
+    },
+  };
+
+  const emailBody = mailGenerator.generate(emailContent);
+  const emailText = mailGenerator.generatePlaintext(emailContent);
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: `Welcome to Your New Academy - ${academyName}`,
+    html: emailBody,
+    text: emailText,
+  };
+
+  try {
+    await sendMail(
+      email,
+      mailOptions.subject,
+      mailOptions.text,
+      mailOptions.html
+    );
+  } catch (error) {
+    logger.error('Failed to send welcome email:', error);
+  }
 
   return {
     newAcademy,
@@ -286,8 +380,6 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
     include: { adminOfAcademies: true, role: true },
   });
 
-  console.log('LOGGED IN USER', loggedInUser, user);
-
   let allAcademies = [];
 
   if (user.role.name === 'SUPER_ADMIN') {
@@ -300,6 +392,7 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
       select: {
         id: true,
         name: true,
+        domain: true,
         _count: {
           select: { batches: true, admins: true },
         },
@@ -349,8 +442,6 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
     });
   }
 
-  console.log('allAcademies', allAcademies);
-
   const academiesWithStudentCount = allAcademies.map((academy) => {
     const studentCount = academy.batches.reduce(
       (acc, batch) => acc + batch._count.students,
@@ -397,11 +488,8 @@ const fetchAllUsersHandler = async (
   });
 
   if (!user) {
-    console.error('User not found:', loggedInUser.id);
     return { allUsers: [] };
   }
-
-  console.log('Logged In User:', user);
 
   let allUsers = [];
 
@@ -411,14 +499,12 @@ const fetchAllUsersHandler = async (
     query ? { profile: { lastName: { contains: searchQuery } } } : null,
   ].filter(Boolean);
 
-  console.log('Search Filters:', searchFilters);
-
   if (user.role === 'SUPER_ADMIN') {
     allUsers = await db.user.findMany({
       skip: (numberPage - 1) * numberLimit,
       take: numberLimit,
       where: {
-        OR: searchFilters, // Only include valid search filters
+        OR: searchFilters,
       },
       select: {
         email: true,
@@ -434,7 +520,6 @@ const fetchAllUsersHandler = async (
     });
   } else if (user.role === 'ADMIN') {
     const academyIDs = user.adminOfAcademies.map((el) => el.id);
-    console.log('Academy IDs for Admin:', academyIDs);
 
     allUsers = await db.user.findMany({
       skip: (numberPage - 1) * numberLimit,
@@ -486,11 +571,172 @@ const fetchAllUsersHandler = async (
     });
   }
 
-  console.log('Fetched Users:', allUsers);
-
   return {
     allUsers,
   };
+};
+const generatePlanCode = async () => {
+  const systemCode = await db.systemCode.findFirst({
+    where: {
+      module: 'PLAN',
+      isActive: true,
+    },
+  });
+
+  if (!systemCode) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      'Plan system code configuration not found'
+    );
+  }
+
+  const newNumber = systemCode.lastNumber + 1;
+
+  await db.systemCode.update({
+    where: { id: systemCode.id },
+    data: { lastNumber: newNumber },
+  });
+
+  return formatNumberWithPrefix(systemCode.prefix, newNumber);
+};
+
+const createPlanHandler = async (planData) => {
+  const { name, tier, type, maxUsers, priceMonthly, priceYearly, features } =
+    planData;
+
+  const planCode = await generatePlanCode();
+
+  const plan = await db.plan.create({
+    data: {
+      planId: planCode,
+      name,
+      tier,
+      type,
+      maxUsers,
+      priceMonthly,
+      priceYearly,
+      features,
+    },
+  });
+
+  return plan;
+};
+
+const checkDomainAvailabilityHandler = async (domain) => {
+  const formattedDomain = generateDomain(domain);
+
+  const existingDomain = await db.academy.findUnique({
+    where: { domain: formattedDomain },
+  });
+
+  return {
+    domain: formattedDomain,
+    available: !existingDomain,
+  };
+};
+
+const selectAcademyPlanHandler = async (signupId, planId, requestedDomain) => {
+  console.log('---SELECT_ACADEMY_PLAN_HANDLER---', signupId, planId);
+
+  const signup = await db.academySignup.findUnique({
+    where: { id: signupId },
+    include: { selectedPlan: true },
+  });
+
+  if (!signup) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Signup not found');
+  }
+
+  const domainCheck = await checkDomainAvailabilityHandler(requestedDomain);
+  if (!domainCheck.available) {
+    throw new ApiError(httpStatus.CONFLICT, 'Domain is not available');
+  }
+
+  const updatedSignup = await db.academySignup.update({
+    where: { id: signupId },
+    data: {
+      selectedPlanId: planId,
+      requestedDomain: domainCheck.domain,
+      status: 'DOMAIN_SELECTION',
+    },
+    include: {
+      selectedPlan: true,
+    },
+  });
+
+  return updatedSignup;
+};
+
+const fetchAllPlansHandler = async (filters = {}, page = 1, limit = 10) => {
+  try {
+    const { search, sortBy = 'createdAt', sortOrder = 'desc' } = filters;
+
+    const where = {
+      AND: [
+        search
+          ? {
+              OR: [{ name: { contains: search, mode: 'insensitive' } }],
+            }
+          : {},
+      ],
+    };
+
+    const totalCount = await db.plan.count({ where });
+
+    const skip = (page - 1) * limit;
+
+    const plans = await db.plan.findMany({
+      where,
+      take: limit,
+      skip,
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+      select: {
+        id: true,
+        name: true,
+        tier: true,
+        type: true,
+        maxUsers: true,
+        priceMonthly: true,
+        priceYearly: true,
+        features: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            academies: true,
+            academySignups: true,
+          },
+        },
+      },
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
+
+    return {
+      plans,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems: totalCount,
+        itemsPerPage: limit,
+        hasNextPage,
+        hasPreviousPage,
+      },
+      summary: {
+        totalPlans: totalCount,
+        activePlans: plans.length,
+      },
+    };
+  } catch (error) {
+    throw new ApiError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      'Error fetching plans: ' + error.message
+    );
+  }
 };
 
 const superAdminService = {
@@ -499,6 +745,10 @@ const superAdminService = {
   fetchAllAdminsByAcademyId,
   fetchAllAcademiesHandler,
   fetchAllUsersHandler,
+  createPlanHandler,
+  selectAcademyPlanHandler,
+  fetchAllPlansHandler,
+  checkDomainAvailabilityHandler,
 };
 
 module.exports = superAdminService;

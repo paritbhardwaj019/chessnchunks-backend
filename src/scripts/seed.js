@@ -96,6 +96,24 @@ async function main() {
       ],
     },
     {
+      name: 'System Codes',
+      path: '/dashboard/system-code',
+      actions: ['view', 'add', 'update', 'delete'],
+      subRoutes: [],
+    },
+    {
+      name: 'Plans',
+      path: '/dashboard/plans',
+      actions: ['view', 'add', 'update', 'delete'],
+      subRoutes: [],
+    },
+    {
+      name: 'Transactions',
+      path: '/dashboard/transactions',
+      actions: ['view'],
+      subRoutes: [],
+    },
+    {
       name: 'Settings',
       path: '/dashboard/settings',
       actions: ['view', 'update'],
@@ -141,35 +159,31 @@ async function main() {
   }
 
   const allPermissions = await prisma.permission.findMany();
-
   const superAdminRole = await prisma.role.findUnique({
     where: { name: 'SUPER_ADMIN' },
   });
 
   for (const permission of allPermissions) {
-    if (
-      !(
-        permission.action === 'view' &&
-        permission.resource === '/dashboard/calendar'
-      )
-    ) {
-      const rolePermissionExists = await prisma.rolePermission.findUnique({
-        where: {
-          roleId_permissionId: {
-            roleId: superAdminRole.id,
-            permissionId: permission.id,
-          },
+    if (permission.resource.startsWith('/dashboard/calendar')) {
+      continue;
+    }
+
+    const rolePermissionExists = await prisma.rolePermission.findUnique({
+      where: {
+        roleId_permissionId: {
+          roleId: superAdminRole.id,
+          permissionId: permission.id,
+        },
+      },
+    });
+
+    if (!rolePermissionExists) {
+      await prisma.rolePermission.create({
+        data: {
+          roleId: superAdminRole.id,
+          permissionId: permission.id,
         },
       });
-
-      if (!rolePermissionExists) {
-        await prisma.rolePermission.create({
-          data: {
-            roleId: superAdminRole.id,
-            permissionId: permission.id,
-          },
-        });
-      }
     }
   }
 }

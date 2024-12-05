@@ -3,14 +3,23 @@ const authService = require('../services/auth.service');
 const catchAsync = require('../utils/catchAsync');
 
 const loginWithPasswordHandler = catchAsync(async (req, res) => {
-  console.log('Login Request Body:', req.body); // Log the incoming request body
-  const loggedInUser = await authService.loginWithPasswordHandler(req.body);
+  const origin = 'http://' + req.headers['x-origin-host'];
+
+  console.log('origin', origin);
+
+  const loggedInUser = await authService.loginWithPasswordHandler(
+    req.body,
+    origin
+  );
 
   res.status(httpStatus.OK).send(loggedInUser);
 });
 
 const loginWithoutPasswordHandler = catchAsync(async (req, res) => {
-  const successUser = await authService.loginWithoutPasswordHandler(req.body);
+  const successUser = await authService.loginWithoutPasswordHandler(
+    req.body,
+    req.get('host')
+  );
 
   res.status(httpStatus.OK).send(successUser);
 });
@@ -18,7 +27,8 @@ const verifyLoginWithoutPasswordHandler = catchAsync(async (req, res) => {
   console.log(req.body);
 
   const loggedInUser = await authService.verifyLoginWithoutPasswordHandler(
-    req.body
+    req.body,
+    req.get('host')
   );
 
   res.status(httpStatus.OK).send(loggedInUser);

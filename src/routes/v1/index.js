@@ -1,6 +1,5 @@
 const express = require('express');
 
-// Import all routers
 const academyRouter = require('./academy.route');
 const superAdminRouter = require('./superAdmin.route');
 const coachRouter = require('./coach.route');
@@ -12,8 +11,6 @@ const invitationRouter = require('./invitation.route');
 const userRouter = require('./user.route');
 const dashboardRouter = require('./dashboard.route');
 const goalRouter = require('./goal.route');
-
-// New imports for communication features
 const messageRouter = require('./messageRouter');
 const chatRouter = require('./chatRouter');
 const friendRequestRouter = require('./friendRequestRouter');
@@ -22,10 +19,10 @@ const taskRouter = require('./task.route');
 const permissionRouter = require('./permission.route');
 const eventRouter = require('./event.route');
 const notificationRouter = require('./notification.route');
+const systemCodeRouter = require('./systemCode.route');
 
 const router = express.Router();
 
-// Register routes for existing modules
 router.use('/academy', academyRouter);
 router.use('/superadmin', superAdminRouter);
 router.use('/admin', adminRouter);
@@ -37,15 +34,14 @@ router.use('/invitation', invitationRouter);
 router.use('/user', userRouter);
 router.use('/dashboard', dashboardRouter);
 router.use('/goal', goalRouter);
-
-// Register new routes for communication features
-router.use('/messages', messageRouter); // Routes for messaging system
-router.use('/chats', chatRouter); // Routes for chat system
-router.use('/friend-requests', friendRequestRouter); // Routes for friend requests
-router.use('/channels', channelRouter); // Routes for broadcast channels
+router.use('/messages', messageRouter);
+router.use('/chats', chatRouter);
+router.use('/friend-requests', friendRequestRouter);
+router.use('/channels', channelRouter);
 router.use('/tasks', taskRouter);
 router.use('/permission', permissionRouter);
 router.use('/events', eventRouter);
 router.use('/notifications', notificationRouter);
+router.use('/system-code', systemCodeRouter);
 
 module.exports = router;

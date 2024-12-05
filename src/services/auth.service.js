@@ -13,7 +13,84 @@ const sendMail = require('../utils/sendEmail');
 const _ = require('lodash');
 const { getSingleAcademyForUser } = require('./academy.service');
 
-const loginWithPasswordHandler = async (data) => {
+const checkAcademyAccess = async (user, academyDomain) => {
+  if (user.role.name === 'SUPER_ADMIN') {
+    return null;
+  }
+
+  if (academyDomain) {
+    let academy;
+    if (user.role.name === 'ADMIN') {
+      academy = await db.academy.findFirst({
+        where: {
+          domain: academyDomain,
+          admins: {
+            some: {
+              id: user.id,
+            },
+          },
+        },
+      });
+    } else if (user.role.name === 'COACH') {
+      academy = await db.academy.findFirst({
+        where: {
+          domain: academyDomain,
+          batches: {
+            some: {
+              coaches: {
+                some: {
+                  id: user.id,
+                },
+              },
+            },
+          },
+        },
+      });
+    } else if (user.role.name === 'STUDENT') {
+      academy = await db.academy.findFirst({
+        where: {
+          domain: academyDomain,
+          batches: {
+            some: {
+              students: {
+                some: {
+                  id: user.id,
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    if (!academy) {
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        'You do not have access to this academy'
+      );
+    }
+
+    if (academy.status === 'INACTIVE') {
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        'This academy is currently inactive'
+      );
+    }
+
+    return academy;
+  }
+
+  if (!academyDomain && user.role.name !== 'SUPER_ADMIN') {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'Please login through your academy domain'
+    );
+  }
+
+  return null;
+};
+
+const loginWithPasswordHandler = async (data, host) => {
   const { email, password } = data;
 
   const user = await db.user.findUnique({
@@ -56,24 +133,16 @@ const loginWithPasswordHandler = async (data) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
   }
 
-  let academy = null;
-
-  if (user.role === 'COACH' || user.role === 'ADMIN') {
-    academy = await getSingleAcademyForUser(user);
-
-    if (user.role === 'ADMIN' && academy && academy.status === 'INACTIVE') {
-      throw new ApiError(
-        httpStatus.FORBIDDEN,
-        'Your academy is marked as inactive, contact support'
-      );
-    }
-  }
+  const academy = await checkAcademyAccess(user, host);
 
   const token = await createToken(
     {
       id: user.id,
-      role: user.role,
+      role: user.role.name,
       subRole: user.subRole,
+      ...(user.role.name !== 'SUPER_ADMIN' && {
+        academyDomain: host,
+      }),
     },
     config.jwt.secret,
     '7d'

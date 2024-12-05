@@ -1,5 +1,3 @@
-// services/coach.service.js
-
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
@@ -19,7 +17,6 @@ const inviteCoachHandler = async (data, loggedInUser) => {
 
   let academyId;
 
-  // Handle academyId based on user role
   if (loggedInUser.role === 'SUPER_ADMIN') {
     if (!providedAcademyId) {
       throw new ApiError(
@@ -46,7 +43,6 @@ const inviteCoachHandler = async (data, loggedInUser) => {
     academyId = academy.id;
   }
 
-  // Check for existing invitations
   const existingInvitation = await db.invitation.findFirst({
     where: {
       email,
@@ -63,7 +59,6 @@ const inviteCoachHandler = async (data, loggedInUser) => {
     );
   }
 
-  // Check if user already exists
   const existingUser = await db.user.findUnique({
     where: { email },
   });
@@ -75,7 +70,6 @@ const inviteCoachHandler = async (data, loggedInUser) => {
     );
   }
 
-  // Generate temporary password
   const tempPassword = crypto.randomBytes(8).toString('hex');
   const hashedPassword = await hashPassword(tempPassword, 10);
 
@@ -373,7 +367,7 @@ const fetchAllCoachesHandler = async (loggedInUser) => {
 
   let coaches;
 
-  const coachRole = await db.role.findFirst({
+  const coachRole = await db.role.findUnique({
     where: {
       name: 'COACH',
     },
@@ -382,7 +376,9 @@ const fetchAllCoachesHandler = async (loggedInUser) => {
   if (loggedInUser.role === 'SUPER_ADMIN') {
     coaches = await db.user.findMany({
       where: {
-        role: coachRole.id,
+        role: {
+          id: coachRole.id,
+        },
       },
       select: selectFields,
     });
@@ -391,7 +387,9 @@ const fetchAllCoachesHandler = async (loggedInUser) => {
 
     coaches = await db.user.findMany({
       where: {
-        role: coachRole.id,
+        role: {
+          id: coachRole.id,
+        },
         assignedToAcademyId: academy.id,
       },
       select: selectFields,

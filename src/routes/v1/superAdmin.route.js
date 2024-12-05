@@ -31,4 +31,25 @@ superAdminRouter.get(
   superAdminController.fetchAllAcademiesHandler
 );
 
+superAdminRouter.post(
+  '/plans',
+  checkJWT,
+  checkRole(['SUPER_ADMIN']),
+  superAdminController.createPlanHandler
+);
+
+superAdminRouter.get('/plans', superAdminController.fetchAllPlansHandler);
+
+superAdminRouter.get(
+  '/check-domain',
+  checkJWT,
+  superAdminController.checkDomainAvailability
+);
+
+superAdminRouter.post(
+  '/select-plan',
+  checkJWT,
+  superAdminController.selectAcademyPlan
+);
+
 module.exports = superAdminRouter;
