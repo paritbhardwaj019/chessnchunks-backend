@@ -30,6 +30,8 @@ const createEventHandler = async (data, loggedInUser) => {
 const getAcademyEventsHandler = async (loggedInUser) => {
   const academy = await getSingleAcademyForUser(loggedInUser);
 
+  console.log('academy', academy);
+
   return db.event.findMany({
     where: {
       academy: {

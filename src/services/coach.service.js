@@ -128,8 +128,8 @@ const inviteCoachHandler = async (data, loggedInUser) => {
   logger.info(token);
 
   const ACTIVATION_URL = `${
-    config.frontendUrl
-  }/accept-invite?type=BATCH_COACH&name=${encodeURIComponent(
+    config.chessinChunksUrl
+  }/invitation?type=BATCH_COACH&name=${encodeURIComponent(
     `${firstName} ${lastName} from ${academyName}`
   )}&token=${token}`;
 
@@ -206,6 +206,8 @@ const verifyCoachInvitationHandler = async (token) => {
       version: true,
     },
   });
+
+  console.log('----COACH_INVITATION----', coachInvitation);
 
   if (!coachInvitation)
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invitation not found!');

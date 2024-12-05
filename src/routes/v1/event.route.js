@@ -26,10 +26,6 @@ eventRouter
     checkPermission('add', '/dashboard/calendar'),
     eventController.createEventHandler
   )
-  .get(
-    checkJWT,
-    checkPermission('view', '/dashboard/calendar'),
-    eventController.fetchAcademyEventsHandler
-  );
+  .get(checkJWT, eventController.fetchAcademyEventsHandler);
 
 module.exports = eventRouter;

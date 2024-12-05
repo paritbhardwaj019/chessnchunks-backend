@@ -14,6 +14,8 @@ const _ = require('lodash');
 const { getSingleAcademyForUser } = require('./academy.service');
 
 const checkAcademyAccess = async (user, academyDomain) => {
+  console.log('USER', user);
+
   if (user.role.name === 'SUPER_ADMIN') {
     return null;
   }
@@ -119,6 +121,9 @@ const loginWithPasswordHandler = async (data, host) => {
     },
   });
 
+  console.log('USER', user);
+  console.log('DATA', { email, password });
+
   if (!user || !user.password) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
   }
@@ -133,7 +138,15 @@ const loginWithPasswordHandler = async (data, host) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
   }
 
-  const academy = await checkAcademyAccess(user, host);
+  let academy = null;
+
+  console.log('---HOST---', host);
+
+  if (host === 'http://undefined') {
+    academy = getSingleAcademyForUser(user);
+  } else {
+    academy = await checkAcademyAccess(user, host);
+  }
 
   const token = await createToken(
     {
