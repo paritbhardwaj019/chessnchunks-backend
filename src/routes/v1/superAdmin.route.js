@@ -42,7 +42,6 @@ superAdminRouter.get('/plans', superAdminController.fetchAllPlansHandler);
 
 superAdminRouter.get(
   '/check-domain',
-  checkJWT,
   superAdminController.checkDomainAvailability
 );
 
