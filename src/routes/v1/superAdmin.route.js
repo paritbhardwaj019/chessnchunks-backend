@@ -45,10 +45,6 @@ superAdminRouter.get(
   superAdminController.checkDomainAvailability
 );
 
-superAdminRouter.post(
-  '/select-plan',
-  checkJWT,
-  superAdminController.selectAcademyPlan
-);
+superAdminRouter.post('/select-plan', superAdminController.selectAcademyPlan);
 
 module.exports = superAdminRouter;
