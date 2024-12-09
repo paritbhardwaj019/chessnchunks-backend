@@ -12,15 +12,30 @@ const hashPassword = require('../utils/hashPassword');
 const crypto = require('crypto');
 const generateDomain = require('../utils/generateDomain');
 const stripe = require('../config/stripe');
+const { uploadToCloudinary } = require('../utils/cloudinary.utils');
 
 const inviteAcademyAdminHandler = async (data, loggedInUser) => {
-  const { firstName, lastName, email, academyName } = data;
+  const { firstName, lastName, email, academyName, logo, contactNumber } = data;
 
   const existingUser = await db.user.findUnique({
     where: { email },
   });
 
+  let logoUrl = null;
+
+  if (logo) {
+    const uploadResult = await uploadToCloudinary(logo, {
+      folder: 'academy-logos',
+      publicId: `academy-${Date.now()}`,
+      allowedFormats: ['jpg', 'jpeg', 'png'],
+    });
+    logoUrl = uploadResult.url;
+  }
+
   if (existingUser) {
+    if (logoUrl) {
+      await deleteFromCloudinary(logoUrl);
+    }
     throw new ApiError(
       httpStatus.CONFLICT,
       'A user with this email already exists.'
@@ -34,7 +49,8 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
       academyName,
       contactName: `${firstName} ${lastName}`,
       email,
-      phoneNumber: '',
+      phoneNumber: contactNumber || '',
+      logoUrl: logo,
       status: 'INQUIRY',
     },
   });
@@ -48,6 +64,7 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
         email,
         password: tempPassword,
         signupId: academySignup.id,
+        contactNumber,
       },
       email,
       type: 'CREATE_ACADEMY',
@@ -165,8 +182,6 @@ const verifyAcademyAdminHandler = async (token, domain) => {
 
   const data = await decodeToken(token, config.jwt.invitationSecret);
 
-  console.log('token', data);
-
   const academyAdminInvitation = await db.invitation.findUnique({
     where: {
       id: data.id,
@@ -188,13 +203,21 @@ const verifyAcademyAdminHandler = async (token, domain) => {
     );
   }
 
-  const { firstName, lastName, email, academyName, password, signupId } =
-    academyAdminInvitation.data;
+  const {
+    firstName,
+    lastName,
+    email,
+    academyName,
+    password,
+    signupId,
+    contactNumber,
+  } = academyAdminInvitation.data;
 
   const academyAdminProfile = await db.profile.create({
     data: {
       firstName,
       lastName,
+      phoneNumber: contactNumber,
     },
     select: {
       id: true,
@@ -242,10 +265,15 @@ const verifyAcademyAdminHandler = async (token, domain) => {
     },
   });
 
+  const academySignup = await db.academySignup.findUnique({
+    where: { id: signupId },
+  });
+
   const newAcademy = await db.academy.create({
     data: {
       name: academyName,
       domain: `http://${domain}.localhost:3001`,
+      logo: academySignup.logoUrl,
       admins: {
         connect: [{ id: academyAdmin.id }],
       },
@@ -604,7 +632,7 @@ const generatePlanCode = async () => {
 };
 
 const createPlanHandler = async (planData) => {
-  const { name, type, maxUsers, price, features } = planData;
+  const { name, maxUsers, academyPrice, subscriberPrice, features } = planData;
 
   const planCode = await generatePlanCode();
 
@@ -613,21 +641,31 @@ const createPlanHandler = async (planData) => {
     description: `Plan ID: ${planCode}. This plan allows ${maxUsers} users.`,
   });
 
-  const stripePrice = await stripe.prices.create({
+  const academyStripePrice = await stripe.prices.create({
     product: product.id,
-    unit_amount: Math.round(price * 100),
+    unit_amount: Math.round(academyPrice * 100),
     currency: 'usd',
+    nickname: 'Academy Price',
+  });
+
+  const subscriberStripePrice = await stripe.prices.create({
+    product: product.id,
+    unit_amount: Math.round(subscriberPrice * 100),
+    currency: 'usd',
+    nickname: 'Subscriber Price',
   });
 
   const plan = await db.plan.create({
     data: {
       planId: planCode,
       name,
-      type,
       maxUsers,
-      price,
+      academyPrice,
+      subscriberPrice,
       features,
-      stripePlanId: stripePrice.id,
+      isFeatured: planData.isFeatured || false,
+      academyStripePlanId: academyStripePrice.id,
+      subscriberStripePlanId: subscriberStripePrice.id,
     },
   });
 
@@ -705,17 +743,22 @@ const fetchAllPlansHandler = async (filters = {}, page = 1, limit = 10) => {
       select: {
         id: true,
         name: true,
-        type: true,
         maxUsers: true,
-        price: true,
+        academyPrice: true,
+        subscriberPrice: true,
         features: true,
         isFeatured: true,
-        createdAt: true,
         planId: true,
+        academyStripePlanId: true,
+        subscriberStripePlanId: true,
+        discountAllowed: true,
+        createdAt: true,
         updatedAt: true,
         _count: {
           select: {
             academies: true,
+            subscriptions: true,
+            purchasedPlans: true,
             academySignups: true,
           },
         },
@@ -758,6 +801,26 @@ const updatePlanHandler = async (planId, planData) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Plan not found');
   }
 
+  if (planData.academyPrice !== existingPlan.academyPrice) {
+    const newAcademyPrice = await stripe.prices.create({
+      product: existingPlan.stripePlanId,
+      unit_amount: Math.round(planData.academyPrice * 100),
+      currency: 'usd',
+      nickname: 'Academy Price',
+    });
+    planData.academyStripePlanId = newAcademyPrice.id;
+  }
+
+  if (planData.subscriberPrice !== existingPlan.subscriberPrice) {
+    const newSubscriberPrice = await stripe.prices.create({
+      product: existingPlan.stripePlanId,
+      unit_amount: Math.round(planData.subscriberPrice * 100),
+      currency: 'usd',
+      nickname: 'Subscriber Price',
+    });
+    planData.subscriberStripePlanId = newSubscriberPrice.id;
+  }
+
   const updatedPlan = await db.plan.update({
     where: { id: planId },
     data: planData,
@@ -772,20 +835,33 @@ const createCheckoutSessionHandler = async (
   domain,
   token
 ) => {
-  const plan = await db.plan.findUnique({ where: { id: planId } });
+  const plan = await db.plan.findUnique({
+    where: { id: planId },
+    select: {
+      id: true,
+      name: true,
+      academyPrice: true,
+      academyStripePlanId: true,
+    },
+  });
 
   if (!plan) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Plan not found');
   }
 
-  console.log(signupId, planId, domain, token);
+  if (!plan.academyStripePlanId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'This plan is not configured for academy purchases'
+    );
+  }
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     mode: 'payment',
     line_items: [
       {
-        price: plan.stripePlanId,
+        price: plan.academyStripePlanId,
         quantity: 1,
       },
     ],
@@ -800,6 +876,8 @@ const createCheckoutSessionHandler = async (
       signupId,
       planId,
       domain,
+      amount: plan.academyPrice,
+      type: 'ACADEMY_PLAN',
     },
   });
 

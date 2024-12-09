@@ -30,6 +30,11 @@ const config = {
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
   },
   databaseUrl: process.env.DATABASE_URL,
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
+  },
 };
 
 const requiredVariables = [
@@ -46,6 +51,9 @@ const requiredVariables = [
   'STRIPE_SECRET_KEY',
   'STRIPE_PUBLISHABLE_KEY',
   'STRIPE_WEBHOOK_SECRET',
+  'CLOUDINARY_CLOUD_NAME',
+  'CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET',
 ];
 
 const missingVariables = requiredVariables.filter((key) => !process.env[key]);

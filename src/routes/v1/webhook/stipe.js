@@ -25,6 +25,8 @@ router.post('/stripe', async (req, res) => {
       const session = event.data.object;
       const { token, domain } = session.metadata;
 
+      console.log(token, domain);
+
       try {
         await verifyAcademyAdminHandler(token, domain);
       } catch (error) {

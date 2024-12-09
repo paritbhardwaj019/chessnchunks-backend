@@ -141,18 +141,18 @@ model Profile {
 }
 
 model Academy {
-  id String @id @default(uuid())
+  id            String    @id @default(uuid())
+  name          String
+  logo          String?  
 
-  name String
+  admins        User[]    @relation("AcademyAdmins")
+  batches       Batch[]
 
-  admins  User[]  @relation("AcademyAdmins")
-  batches Batch[]
+  signupId      String?   @unique
+  signup        AcademySignup? @relation(fields: [signupId], references: [id])
 
-  signupId String?        @unique
-  signup   AcademySignup? @relation(fields: [signupId], references: [id])
-
-  planId String?
-  plan   Plan?   @relation(fields: [planId], references: [id])
+  planId        String?
+  plan          Plan?     @relation(fields: [planId], references: [id])
 
   subscriptions  Subscription[]
   purchasedPlans PurchasedPlan[]
@@ -160,15 +160,15 @@ model Academy {
   status        USER_STATUS @default(ACTIVE)
   assignedTasks Task[]      @relation("AssignedToAcademy")
 
-  academyPlans AcademyProgram[]
+  academyPlans  AcademyProgram[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  userSignups UserSignup[] @relation("AcademySignups")
+  userSignups   UserSignup[] @relation("AcademySignups")
 
-  isDefault Boolean @default(false)
-  signUpFee Float?
+  isDefault     Boolean @default(false)
+  signUpFee     Float?
 
   usersAssigned User[] @relation("AcademyUsers")
 
@@ -627,21 +627,22 @@ enum ACADEMY_SIGNUP_STATUS {
 }
 
 model Plan {
-  id         String    @id @default(uuid())
-  name       String
-  type       PLAN_TYPE
-  maxUsers   Int
-  price      Float
-  features   Json?
-  isFeatured Boolean   @default(false)
-  planId     String
+  id            String    @id @default(uuid())
+  name          String
+  maxUsers      Int
+  academyPrice  Float
+  subscriberPrice Float
+  features      Json?
+  isFeatured    Boolean   @default(false)
+  planId        String
 
   academies      Academy[]
   subscriptions  Subscription[]
   purchasedPlans PurchasedPlan[]
   academySignups AcademySignup[]
 
-  stripePlanId String @unique
+  academyStripePlanId    String @unique
+  subscriberStripePlanId String @unique
 
   discountAllowed Boolean @default(false)
 

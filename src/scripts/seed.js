@@ -2,6 +2,104 @@ const { PrismaClient } = require('@prisma/client');
 const logger = require('../utils/logger');
 const prisma = new PrismaClient();
 
+async function assignAdminPermissions() {
+  const adminRole = await prisma.role.findUnique({
+    where: { name: 'ADMIN' },
+  });
+
+  const adminRoutes = [
+    {
+      path: '/dashboard',
+      actions: ['view'],
+    },
+    {
+      path: '/dashboard/batches',
+      actions: ['view', 'add', 'update', 'delete'],
+    },
+    {
+      path: '/dashboard/users',
+      actions: ['view', 'add', 'update', 'delete'],
+    },
+    {
+      path: '/dashboard/invitations',
+      actions: ['view', 'add', 'update', 'delete'],
+    },
+    {
+      path: '/dashboard/communication',
+      actions: ['view', 'add', 'update', 'delete'],
+    },
+    {
+      path: '/dashboard/calendar',
+      actions: ['view', 'add', 'update', 'delete'],
+    },
+    {
+      path: '/dashboard/goals',
+      actions: ['view'],
+    },
+    {
+      path: '/dashboard/goals/seasonal',
+      actions: ['view', 'add'],
+    },
+    {
+      path: '/dashboard/goals/monthly',
+      actions: ['view', 'add'],
+    },
+    {
+      path: '/dashboard/goals/weekly',
+      actions: ['view', 'add'],
+    },
+    {
+      path: '/dashboard/goals/assign-weekly',
+      actions: ['view', 'add'],
+    },
+    {
+      path: '/dashboard/tasks',
+      actions: ['view', 'add', 'update', 'delete'],
+    },
+    {
+      path: '/dashboard/tasks/puzzles',
+      actions: ['view', 'add', 'update', 'delete'],
+    },
+    {
+      path: '/dashboard/settings',
+      actions: ['view', 'update'],
+    },
+  ];
+
+  for (const route of adminRoutes) {
+    for (const action of route.actions) {
+      const permission = await prisma.permission.findUnique({
+        where: {
+          resource_action: {
+            resource: route.path,
+            action,
+          },
+        },
+      });
+
+      if (permission) {
+        const rolePermissionExists = await prisma.rolePermission.findUnique({
+          where: {
+            roleId_permissionId: {
+              roleId: adminRole.id,
+              permissionId: permission.id,
+            },
+          },
+        });
+
+        if (!rolePermissionExists) {
+          await prisma.rolePermission.create({
+            data: {
+              roleId: adminRole.id,
+              permissionId: permission.id,
+            },
+          });
+        }
+      }
+    }
+  }
+}
+
 async function seedSystemCodes() {
   const systemCodes = [
     {
@@ -241,6 +339,7 @@ async function main() {
   }
 
   await seedSystemCodes();
+  await assignAdminPermissions();
 }
 
 main()

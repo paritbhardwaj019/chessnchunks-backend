@@ -6,7 +6,10 @@ const ApiError = require('../utils/apiError');
 
 const inviteAcademyAdminHandler = catchAsync(async (req, res) => {
   const academyAdminInvitation =
-    await superAdminService.inviteAcademyAdminHandler(req.body, req.user);
+    await superAdminService.inviteAcademyAdminHandler(
+      { logo: req.file.path, ...req.body },
+      req.user
+    );
 
   res.status(httpStatus.CREATED).send(academyAdminInvitation);
 });
@@ -75,9 +78,9 @@ const fetchAllPlansHandler = catchAsync(async (req, res) => {
 const createPlanHandler = catchAsync(async (req, res) => {
   const planData = _.pick(req.body, [
     'name',
-    'type',
     'maxUsers',
-    'price',
+    'academyPrice',
+    'subscriberPrice',
     'features',
     'isFeatured',
   ]);
@@ -120,9 +123,9 @@ const updatePlanHandler = catchAsync(async (req, res) => {
 
   const planData = _.pick(req.body, [
     'name',
-    'type',
     'maxUsers',
-    'price',
+    'academyPrice',
+    'subscriberPrice',
     'features',
     'isFeatured',
   ]);
