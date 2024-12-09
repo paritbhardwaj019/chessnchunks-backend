@@ -313,6 +313,8 @@ const fetchAllBatchesForOptions = async (loggedInUser) => {
           id: true,
         },
       },
+      batchDay: true,
+      startTime: true,
       studentCapacity: true,
     },
   });

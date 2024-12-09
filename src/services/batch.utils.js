@@ -1,6 +1,7 @@
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
+const httpStatus = require('http-status');
 
 const generateBatchCode = async () => {
   const systemCode = await db.systemCode.findFirst({

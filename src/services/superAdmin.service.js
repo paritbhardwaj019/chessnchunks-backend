@@ -11,6 +11,7 @@ const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 const hashPassword = require('../utils/hashPassword');
 const crypto = require('crypto');
 const generateDomain = require('../utils/generateDomain');
+const stripe = require('../config/stripe');
 
 const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyName } = data;
@@ -164,6 +165,8 @@ const verifyAcademyAdminHandler = async (token, domain) => {
 
   const data = await decodeToken(token, config.jwt.invitationSecret);
 
+  console.log('token', data);
+
   const academyAdminInvitation = await db.invitation.findUnique({
     where: {
       id: data.id,
@@ -232,7 +235,6 @@ const verifyAcademyAdminHandler = async (token, domain) => {
         },
       },
       password: hashedPassword,
-      hasPassword: true,
     },
     select: {
       id: true,
@@ -413,7 +415,7 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
         },
       },
     });
-  } else if (user.role === 'ADMIN') {
+  } else if (user.role.name === 'ADMIN') {
     const academyIDs = user.adminOfAcademies.map((el) => el.id);
 
     allAcademies = await db.academy.findMany({
@@ -484,6 +486,7 @@ const fetchAllUsersHandler = async (
     },
     include: {
       adminOfAcademies: true,
+      role: true,
     },
   });
 
@@ -499,7 +502,7 @@ const fetchAllUsersHandler = async (
     query ? { profile: { lastName: { contains: searchQuery } } } : null,
   ].filter(Boolean);
 
-  if (user.role === 'SUPER_ADMIN') {
+  if (user.role.name === 'SUPER_ADMIN') {
     allUsers = await db.user.findMany({
       skip: (numberPage - 1) * numberLimit,
       take: numberLimit,
@@ -601,21 +604,30 @@ const generatePlanCode = async () => {
 };
 
 const createPlanHandler = async (planData) => {
-  const { name, tier, type, maxUsers, priceMonthly, priceYearly, features } =
-    planData;
+  const { name, type, maxUsers, price, features } = planData;
 
   const planCode = await generatePlanCode();
+
+  const product = await stripe.products.create({
+    name: name,
+    description: `Plan ID: ${planCode}. This plan allows ${maxUsers} users.`,
+  });
+
+  const stripePrice = await stripe.prices.create({
+    product: product.id,
+    unit_amount: Math.round(price * 100),
+    currency: 'usd',
+  });
 
   const plan = await db.plan.create({
     data: {
       planId: planCode,
       name,
-      tier,
       type,
       maxUsers,
-      priceMonthly,
-      priceYearly,
+      price,
       features,
+      stripePlanId: stripePrice.id,
     },
   });
 
@@ -636,8 +648,6 @@ const checkDomainAvailabilityHandler = async (domain) => {
 };
 
 const selectAcademyPlanHandler = async (signupId, planId, requestedDomain) => {
-  console.log('---SELECT_ACADEMY_PLAN_HANDLER---', signupId, planId);
-
   const signup = await db.academySignup.findUnique({
     where: { id: signupId },
     include: { selectedPlan: true },
@@ -695,13 +705,13 @@ const fetchAllPlansHandler = async (filters = {}, page = 1, limit = 10) => {
       select: {
         id: true,
         name: true,
-        tier: true,
         type: true,
         maxUsers: true,
-        priceMonthly: true,
-        priceYearly: true,
+        price: true,
         features: true,
+        isFeatured: true,
         createdAt: true,
+        planId: true,
         updatedAt: true,
         _count: {
           select: {
@@ -739,6 +749,63 @@ const fetchAllPlansHandler = async (filters = {}, page = 1, limit = 10) => {
   }
 };
 
+const updatePlanHandler = async (planId, planData) => {
+  const existingPlan = await db.plan.findUnique({
+    where: { id: planId },
+  });
+
+  if (!existingPlan) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Plan not found');
+  }
+
+  const updatedPlan = await db.plan.update({
+    where: { id: planId },
+    data: planData,
+  });
+
+  return updatedPlan;
+};
+
+const createCheckoutSessionHandler = async (
+  signupId,
+  planId,
+  domain,
+  token
+) => {
+  const plan = await db.plan.findUnique({ where: { id: planId } });
+
+  if (!plan) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Plan not found');
+  }
+
+  console.log(signupId, planId, domain, token);
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    mode: 'payment',
+    line_items: [
+      {
+        price: plan.stripePlanId,
+        quantity: 1,
+      },
+    ],
+    success_url: `${
+      config.frontendUrl
+    }/accept-invite?success=true&type=CREATE_ACADEMY&name=${encodeURIComponent(
+      plan.name
+    )}&token=${token}&signup=${signupId}&domain=${domain}`,
+    cancel_url: `${config.frontendUrl}/accept-invite?canceled=true&type=CREATE_ACADEMY&token=${token}&signup=${signupId}&domain=${domain}`,
+    metadata: {
+      token,
+      signupId,
+      planId,
+      domain,
+    },
+  });
+
+  return session;
+};
+
 const superAdminService = {
   inviteAcademyAdminHandler,
   verifyAcademyAdminHandler,
@@ -749,6 +816,8 @@ const superAdminService = {
   selectAcademyPlanHandler,
   fetchAllPlansHandler,
   checkDomainAvailabilityHandler,
+  updatePlanHandler,
+  createCheckoutSessionHandler,
 };
 
 module.exports = superAdminService;

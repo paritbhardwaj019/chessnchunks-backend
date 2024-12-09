@@ -38,13 +38,23 @@ superAdminRouter.post(
   superAdminController.createPlanHandler
 );
 
-superAdminRouter.get('/plans', superAdminController.fetchAllPlansHandler);
+superAdminRouter.put(
+  '/plans/:planId',
+  checkJWT,
+  checkRole(['SUPER_ADMIN']),
+  superAdminController.updatePlanHandler
+);
 
+superAdminRouter.get('/plans', superAdminController.fetchAllPlansHandler);
 superAdminRouter.get(
   '/check-domain',
   superAdminController.checkDomainAvailability
 );
-
 superAdminRouter.post('/select-plan', superAdminController.selectAcademyPlan);
+
+superAdminRouter.post(
+  '/create-checkout-session',
+  superAdminController.createCheckoutSession
+);
 
 module.exports = superAdminRouter;

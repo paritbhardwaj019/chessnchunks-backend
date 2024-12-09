@@ -115,7 +115,6 @@ const loginWithPasswordHandler = async (data, host) => {
           lastName: true,
         },
       },
-      hasPassword: true,
       createdAt: true,
       status: true,
     },
@@ -169,7 +168,6 @@ const loginWithPasswordHandler = async (data, host) => {
       role: user.role.name,
       subRole: user.subRole,
       profile: user.profile,
-      hasPassword: user.hasPassword,
       createdAt: user.createdAt,
     },
     academy,
@@ -194,7 +192,6 @@ const loginWithoutPasswordHandler = async (data) => {
           lastName: true,
         },
       },
-      hasPassword: true,
     },
   });
 
@@ -288,7 +285,6 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
           lastName: true,
         },
       },
-      hasPassword: true,
       createdAt: true,
       status: true,
     },
@@ -329,7 +325,6 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
       role: user.role.name,
       subRole: user.subRole,
       profile: user.profile,
-      hasPassword: user.hasPassword,
       createdAt: user.createdAt,
     },
     academy,
@@ -470,7 +465,7 @@ const updatePasswordHandler = async (data, loggedInUser) => {
 
   const updatedUser = await db.user.update({
     where: { id },
-    data: { password: hashedNewPassword, hasPassword: true },
+    data: { password: hashedNewPassword },
     select: { id: true, email: true },
   });
 

@@ -298,7 +298,6 @@ const verifyCoachInvitationHandler = async (token) => {
           },
         },
         subRole: subRole, // Assign subRole if applicable
-        hasPassword: true,
         password,
       },
       select: {
@@ -336,7 +335,7 @@ const fetchAllCoachesHandler = async (loggedInUser) => {
         firstName: true,
         middleName: true,
         lastName: true,
-        dob: true,
+        dateOfBirth: true,
         phoneNumber: true,
         addressLine1: true,
         addressLine2: true,

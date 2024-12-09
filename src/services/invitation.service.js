@@ -85,9 +85,7 @@ const fetchAllInvitationsHandler = async (
               selectedPlan: {
                 select: {
                   name: true,
-                  tier: true,
-                  priceMonthly: true,
-                  priceYearly: true,
+                  price: true,
                 },
               },
             },

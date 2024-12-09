@@ -1,5 +1,5 @@
 function formatNumberWithPrefix(prefix, number) {
-  const incrementedNumber = number + 1;
+  const incrementedNumber = number;
 
   const formattedNumber = String(incrementedNumber).padStart(2, '0');
 

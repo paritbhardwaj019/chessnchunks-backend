@@ -26,6 +26,11 @@ function createSuperAdmin() {
         format: 'email',
         required: true,
       },
+      dateOfBirth: {
+        type: 'string',
+        required: true,
+        message: 'Date of birth required (YYYY-MM-DD)',
+      },
       password: {
         type: 'string',
         hidden: true,
@@ -44,67 +49,71 @@ function createSuperAdmin() {
     },
   };
 
-  prompt.get(schema, async (err, { firstName, lastName, password, email }) => {
-    if (err) {
-      logger.error(err);
-      return;
-    }
+  prompt.get(
+    schema,
+    async (err, { firstName, lastName, password, email, dateOfBirth }) => {
+      if (err) {
+        logger.error(err);
+        return;
+      }
 
-    const hashedPassword = await hashPassword(password, 10);
-
-    const superAdminProfile = await db.profile.create({
-      data: {
-        firstName,
-        lastName,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    const userCount = await db.user.count();
-    const newCode = formatNumberWithPrefix('U', userCount);
-
-    const isEmailAlreadyExists = await db.user.findUnique({
-      where: {
-        email,
-      },
-    });
-
-    if (isEmailAlreadyExists) {
-      throw new ApiError(httpStatus.CONFLICT, 'Email is already taken.');
-    }
-
-    const superAdminRole = await db.role.findUnique({
-      where: { name: 'SUPER_ADMIN' },
-    });
-
-    const superAdmin = await db.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        profile: {
-          connect: {
-            id: superAdminProfile.id,
-          },
+      const isEmailAlreadyExists = await db.user.findUnique({
+        where: {
+          email,
         },
-        code: newCode,
-        role: {
-          connect: {
-            id: superAdminRole.id,
-          },
-        },
-        hasPassword: true,
-      },
-      select: {
-        id: true,
-      },
-    });
+      });
 
-    if (!_.isEmpty(superAdmin)) {
-      logger.info('Superadmin created successfully');
+      if (isEmailAlreadyExists) {
+        throw new ApiError(httpStatus.CONFLICT, 'Email is already taken.');
+      }
+
+      const userCount = await db.user.count();
+      const newCode = formatNumberWithPrefix('U', userCount);
+
+      const hashedPassword = await hashPassword(password, 10);
+
+      const superAdminProfile = await db.profile.create({
+        data: {
+          firstName,
+          lastName,
+          dateOfBirth: new Date(dateOfBirth),
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      const superAdminRole = await db.role.findUnique({
+        where: { name: 'SUPER_ADMIN' },
+      });
+
+      const superAdmin = await db.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          profile: {
+            connect: {
+              id: superAdminProfile.id,
+            },
+          },
+          code: newCode,
+          role: {
+            connect: {
+              id: superAdminRole.id,
+            },
+          },
+          status: 'ACTIVE',
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!_.isEmpty(superAdmin)) {
+        logger.info('Superadmin created successfully');
+      }
     }
-  });
+  );
 }
 
 if (flag === '-cu') {

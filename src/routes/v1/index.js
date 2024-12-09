@@ -20,6 +20,9 @@ const permissionRouter = require('./permission.route');
 const eventRouter = require('./event.route');
 const notificationRouter = require('./notification.route');
 const systemCodeRouter = require('./systemCode.route');
+const stipeWebhookRouter = require('./webhook/stipe');
+const academyProgramRouter = require('./academyProgram.route');
+const studentSignupRouter = require('./studentSignup.route');
 
 const router = express.Router();
 
@@ -43,5 +46,8 @@ router.use('/permission', permissionRouter);
 router.use('/events', eventRouter);
 router.use('/notifications', notificationRouter);
 router.use('/system-code', systemCodeRouter);
+router.use('/webhook', stipeWebhookRouter);
+router.use('/academy-programs', academyProgramRouter);
+router.use('/student-signups', studentSignupRouter);
 
 module.exports = router;

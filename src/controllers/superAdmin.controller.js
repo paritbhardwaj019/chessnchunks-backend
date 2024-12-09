@@ -75,12 +75,11 @@ const fetchAllPlansHandler = catchAsync(async (req, res) => {
 const createPlanHandler = catchAsync(async (req, res) => {
   const planData = _.pick(req.body, [
     'name',
-    'tier',
     'type',
     'maxUsers',
-    'priceMonthly',
-    'priceYearly',
+    'price',
     'features',
+    'isFeatured',
   ]);
 
   const plan = await superAdminService.createPlanHandler(planData);
@@ -116,6 +115,44 @@ const selectAcademyPlan = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(result);
 });
 
+const updatePlanHandler = catchAsync(async (req, res) => {
+  const { planId } = req.params;
+
+  const planData = _.pick(req.body, [
+    'name',
+    'type',
+    'maxUsers',
+    'price',
+    'features',
+    'isFeatured',
+  ]);
+
+  const updatedPlan = await superAdminService.updatePlanHandler(
+    planId,
+    planData
+  );
+  res.status(httpStatus.OK).send(updatedPlan);
+});
+
+const createCheckoutSession = catchAsync(async (req, res) => {
+  const { signupId, planId, domain, token } = req.body;
+
+  if (!signupId || !planId || !domain || !token) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'signupId, planId, domain, and token are required'
+    );
+  }
+
+  const session = await superAdminService.createCheckoutSessionHandler(
+    signupId,
+    planId,
+    domain,
+    token
+  );
+  res.status(httpStatus.OK).send({ url: session.url });
+});
+
 const superAdminController = {
   inviteAcademyAdminHandler,
   verifyAcademyAdminHandler,
@@ -125,6 +162,8 @@ const superAdminController = {
   fetchAllPlansHandler,
   checkDomainAvailability,
   selectAcademyPlan,
+  updatePlanHandler,
+  createCheckoutSession,
 };
 
 module.exports = superAdminController;

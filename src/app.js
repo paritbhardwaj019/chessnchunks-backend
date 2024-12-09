@@ -5,8 +5,14 @@ const errorHandler = require('./middlewares/errorHandler');
 const router = require('./routes/v1');
 const { isOriginAllowed } = require('./services/origin.service');
 const logger = require('./utils/logger');
+const initializeCronJobs = require('./cron/studentSignup.cron');
 
 const app = express();
+
+// CRON JOBS
+initializeCronJobs();
+
+app.use('/api/v1/webhook/stripe', express.raw({ type: 'application/json' }));
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -16,7 +22,7 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header(
       'Access-Control-Allow-Headers',
-      'Origin, X-Requested-With, Content-Type, Accept, x-auth-token,  x-origin-host'
+      'Origin, X-Requested-With, Content-Type, Accept, x-auth-token, x-origin-host, stripe-signature'
     );
 
     if (req.method === 'OPTIONS') {
@@ -33,11 +39,17 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(bodyParser.json({ limit: '4mb' }));
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/v1/webhook/stripe') {
+    next();
+  } else {
+    bodyParser.json()(req, res, next);
+  }
+});
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(helmet());
 
-/* ALL ROUTES */
 app.use('/api/v1', router);
 
 app.use(errorHandler);

@@ -20,7 +20,6 @@ async function updateOrigins() {
     });
 
     cachedOrigins = newOrigins;
-    logger.info(`Origins updated. Total origins: ${cachedOrigins.size}`);
     return Array.from(cachedOrigins);
   } catch {
     return Array.from(cachedOrigins);
@@ -28,7 +27,6 @@ async function updateOrigins() {
 }
 
 function isOriginAllowed(origin) {
-  console.log('---CACHED_ORIGINS---', cachedOrigins);
   return cachedOrigins.has(origin);
 }
 
@@ -42,7 +40,6 @@ function addOrigin(origin) {
 }
 
 cron.schedule('* * * * * *', async () => {
-  logger.info('Running scheduled origin update...');
   await updateOrigins();
 });
 

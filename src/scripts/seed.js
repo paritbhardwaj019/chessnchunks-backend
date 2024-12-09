@@ -2,6 +2,59 @@ const { PrismaClient } = require('@prisma/client');
 const logger = require('../utils/logger');
 const prisma = new PrismaClient();
 
+async function seedSystemCodes() {
+  const systemCodes = [
+    {
+      module: 'BATCH',
+      prefix: 'BAT',
+      description: 'Batch number prefix',
+      lastNumber: 0,
+      isActive: true,
+    },
+    {
+      module: 'PLAN',
+      prefix: 'PLN',
+      description: 'Plan number prefix',
+      lastNumber: 0,
+      isActive: true,
+    },
+    {
+      module: 'USER_SIGNUP',
+      prefix: 'USP',
+      description: 'User signup number prefix',
+      lastNumber: 0,
+      isActive: true,
+    },
+    {
+      module: 'USER',
+      prefix: 'USR',
+      description: 'User number prefix',
+      lastNumber: 0,
+      isActive: true,
+    },
+    {
+      module: 'ACADEMY_PROGRAM',
+      prefix: 'ACP',
+      description: 'Academy program number prefix',
+      lastNumber: 0,
+      isActive: true,
+    },
+  ];
+
+  for (const code of systemCodes) {
+    await prisma.systemCode.upsert({
+      where: {
+        module_prefix: {
+          module: code.module,
+          prefix: code.prefix,
+        },
+      },
+      update: {},
+      create: code,
+    });
+  }
+}
+
 async function main() {
   const roles = ['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER'];
 
@@ -186,6 +239,8 @@ async function main() {
       });
     }
   }
+
+  await seedSystemCodes();
 }
 
 main()

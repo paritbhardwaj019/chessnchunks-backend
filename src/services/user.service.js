@@ -123,7 +123,7 @@ const signUpSubscriberHandler = async (data) => {
     password,
     firstName,
     lastName,
-    dob,
+    dateOfBirth,
     phoneNumber,
     addressLine1,
     addressLine2,
@@ -142,13 +142,13 @@ const signUpSubscriberHandler = async (data) => {
 
   const hashedPassword = await hashPassword(password, 10);
 
-  const newDOB = new Date(dob);
+  const newDOB = new Date(dateOfBirth);
 
   const profile = await db.profile.create({
     data: {
       firstName,
       lastName,
-      dob: newDOB,
+      dateOfBirth: newDOB,
       phoneNumber,
       addressLine1,
       addressLine2,
