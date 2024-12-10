@@ -12,6 +12,7 @@ const config = require('../config');
 const Mailgen = require('mailgen');
 const createToken = require('../utils/createToken');
 const sendMail = require('../utils/sendEmail');
+const stripe = require('../config/stripe');
 
 const validateBatchCapacity = async (batchId) => {
   const batch = await db.batch.findUnique({
@@ -388,76 +389,51 @@ const addProgramPurchaseHandler = async (userId, programData) => {
   return cartItem;
 };
 
-const checkoutSessionHandler = async (userId, cartItemIds) => {
-  const cartItems = await db.cartItem.findMany({
+const checkoutSessionHandler = async (programId, userEmail) => {
+  const program = await db.academyProgram.findFirst({
     where: {
-      id: { in: cartItemIds },
-      userId,
-      status: 'PENDING',
+      id: programId,
+      isActive: true,
     },
     include: {
-      program: true,
+      academy: true,
     },
   });
 
-  if (cartItems.length !== cartItemIds.length) {
+  if (!program) {
     throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      'One or more cart items are invalid or not accessible'
+      httpStatus.NOT_FOUND,
+      'Program not found or is not active'
     );
   }
 
-  const totalAmount = cartItems.reduce((sum, item) => sum + item.finalPrice, 0);
-
-  const subscriptions = await Promise.all(
-    cartItems.map(async (item) => {
-      const endDate =
-        item.program.duration === 'MONTHLY'
-          ? new Date(new Date().setMonth(new Date().getMonth() + 1))
-          : new Date(new Date().setMonth(new Date().getMonth() + 4));
-
-      return db.studentSubscription.create({
-        data: {
-          userId,
-          academyPlanId: item.programId,
-          startDate: new Date(),
-          endDate,
-          status: 'ACTIVE',
-          autoRenew: true,
-          paymentStatus: 'PENDING',
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: program.name,
+            description: program.description,
+          },
+          unit_amount: program.price * 100,
         },
-      });
-    })
-  );
-
-  await db.cartItem.updateMany({
-    where: {
-      id: { in: cartItemIds },
+        quantity: 1,
+      },
+    ],
+    metadata: {
+      programId: programId,
+      userEmail,
     },
-    data: {
-      status: 'COMPLETED',
-    },
+    mode: 'payment',
+    success_url: `${config.chessinChunksUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${config.chessinChunksUrl}/checkout/cancel`,
   });
 
-  await Promise.all(
-    cartItems.map(async (item) => {
-      if (item.program.creditPoints) {
-        await db.studentProgramCredit.create({
-          data: {
-            userId,
-            programId: item.programId,
-            pointsEarned: item.program.creditPoints,
-            isRedeemed: false,
-          },
-        });
-      }
-    })
-  );
-
   return {
-    cartItems,
-    totalAmount,
-    subscriptions,
+    sessionId: session.id,
+    sessionUrl: session.url,
   };
 };
 

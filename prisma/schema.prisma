@@ -30,6 +30,9 @@ model Task {
   assignedToAcademyId String?
   assignedToAcademy   Academy? @relation("AssignedToAcademy", fields: [assignedToAcademyId], references: [id])
 
+  studentQuizAttempts StudentQuizAttempt[]
+  quizzes Quiz[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -102,6 +105,9 @@ model User {
   roleId  String
   role    Role     @relation(fields: [roleId], references: [id])
   profile Profile?
+
+  createdQuizzes Quiz[] @relation("QuizCreatedBy")
+  quizAttempts StudentQuizAttempt[]
 
   userSignup           UserSignup?
   studentSubscriptions StudentSubscription[]
@@ -601,6 +607,8 @@ enum SYSTEM_CODE_MODULE {
   USER_SIGNUP
   USER
   ACADEMY_PROGRAM
+  QUIZ
+  QUIZ_QUESTION
 }
 
 model SystemCode {
@@ -911,3 +919,96 @@ enum SIGNUP_STATUS {
   CONFIRMED
 }
 
+// QUIZ TYPE
+
+enum QUESTION_TYPE {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  LONG_ANSWER
+  MATCHING
+}
+
+
+model Quiz {
+  id           String    @id @default(uuid())
+  quizCode     String    @unique
+  title        String
+  description  String?
+  timeLimit    Int?    
+  passingScore Float?
+  isActive     Boolean   @default(true)
+  
+  questions    QuizQuestion[]
+  task         Task      @relation(fields: [taskId], references: [id])
+  taskId       String
+  
+  createdById  String
+  createdBy    User      @relation("QuizCreatedBy", fields: [createdById], references: [id])
+  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id            String        @id @default(uuid())
+  questionCode  String        @unique
+  questionText  String        @db.Text
+  type          QUESTION_TYPE
+  marks         Float
+  orderIndex    Int
+  options       Json 
+  correctAnswer String
+  
+  quizId        String
+  quiz          Quiz         @relation(fields: [quizId], references: [id])
+  
+  studentAnswers StudentQuizAnswer[]
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@map("quiz_questions")
+}
+
+
+model StudentQuizAttempt {
+  id          String   @id @default(uuid())
+  startTime   DateTime
+  endTime     DateTime?
+  score       Float?
+  status      TASK_STATUS
+  
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id])
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  answers     StudentQuizAnswer[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("student_quiz_attempts")
+}
+
+model StudentQuizAnswer {
+  id          String   @id @default(uuid())
+  answerText  String   @db.Text
+  isCorrect   Boolean?
+  marksObtained Float?
+  
+  questionId  String
+  question    QuizQuestion @relation(fields: [questionId], references: [id])
+  
+  attemptId   String
+  attempt     StudentQuizAttempt @relation(fields: [attemptId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("student_quiz_answers")
+}

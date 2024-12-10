@@ -88,15 +88,8 @@ const addProgramPurchase = catchAsync(async (req, res) => {
 });
 
 const checkoutSession = catchAsync(async (req, res) => {
-  const { cartItemIds } = req.body;
-
-  if (!cartItemIds?.length) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Cart items are required');
-  }
-
   const result = await studentSignupService.checkoutSessionHandler(
-    req.user.id,
-    cartItemIds
+    req.body.programId
   );
   res.status(httpStatus.OK).send(result);
 });

@@ -23,6 +23,7 @@ const systemCodeRouter = require('./systemCode.route');
 const stipeWebhookRouter = require('./webhook/stipe');
 const academyProgramRouter = require('./academyProgram.route');
 const studentSignupRouter = require('./studentSignup.route');
+const quizRouter = require('./quiz.route');
 
 const router = express.Router();
 
@@ -49,5 +50,6 @@ router.use('/system-code', systemCodeRouter);
 router.use('/webhook', stipeWebhookRouter);
 router.use('/academy-programs', academyProgramRouter);
 router.use('/student-signups', studentSignupRouter);
+router.use('/quiz', quizRouter);
 
 module.exports = router;

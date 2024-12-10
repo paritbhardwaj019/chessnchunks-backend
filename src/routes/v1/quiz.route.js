@@ -1,0 +1,87 @@
+const express = require('express');
+const checkJWT = require('../../middlewares/checkJWT');
+const checkRole = require('../../middlewares/checkRole');
+const quizController = require('../../controllers/quiz.controller');
+
+const quizRouter = express.Router();
+
+quizRouter.get(
+  '/',
+  checkJWT,
+  checkRole(['ADMIN', 'COACH']),
+  quizController.listQuizzesHandler
+);
+
+/**
+ * @route   POST /api/quiz
+ * @desc    Create a new quiz
+ * @access  Protected (ADMIN, COACH)
+ */
+quizRouter.post(
+  '/',
+  checkJWT,
+  checkRole(['ADMIN', 'COACH']),
+  quizController.createQuizHandler
+);
+
+/**
+ * @route   GET /api/quiz/:taskId
+ * @desc    Get quiz details by Task ID
+ * @access  Protected (ADMIN, COACH, STUDENT)
+ */
+quizRouter.get(
+  '/:taskId',
+  checkJWT,
+  checkRole(['ADMIN', 'COACH', 'STUDENT']),
+  quizController.getQuizByTaskIdHandler
+);
+
+/**
+ * @route   POST /api/quiz/attempt/:taskId
+ * @desc    Start a new quiz attempt for a Task
+ * @access  Protected (STUDENT)
+ */
+quizRouter.post(
+  '/attempt/:taskId',
+  checkJWT,
+  checkRole(['STUDENT']),
+  quizController.startQuizAttemptHandler
+);
+
+/**
+ * @route   POST /api/quiz/submit/:attemptId/:questionId
+ * @desc    Submit an answer for a specific question in an attempt
+ * @access  Protected (STUDENT)
+ */
+quizRouter.post(
+  '/submit/:attemptId/:questionId',
+  checkJWT,
+  checkRole(['STUDENT']),
+  quizController.submitQuizAnswerHandler
+);
+
+/**
+ * @route   PATCH /api/quiz/complete/:attemptId
+ * @desc    Complete a quiz attempt
+ * @access  Protected (STUDENT)
+ */
+quizRouter.patch(
+  '/complete/:attemptId',
+  checkJWT,
+  checkRole(['STUDENT']),
+  quizController.completeQuizAttemptHandler
+);
+
+/**
+ * @route   GET /api/quiz/review/:attemptId
+ * @desc    Review a completed quiz attempt
+ * @access  Protected (ADMIN, COACH, STUDENT)
+ */
+quizRouter.get(
+  '/review/:attemptId',
+  checkJWT,
+  checkRole(['ADMIN', 'COACH', 'STUDENT']),
+  quizController.reviewQuizAttemptHandler
+);
+
+module.exports = quizRouter;

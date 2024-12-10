@@ -298,7 +298,6 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
   const numberLimit = Number(limit) || 10;
   const skip = (numberPage - 1) * numberLimit;
   const take = numberLimit;
-  console.log('LOGGED IN USER', loggedInUser);
 
   const studentRole = await db.role.findFirst({
     where: {
@@ -316,11 +315,19 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
     ],
   };
 
+  // Updated select fields according to schema
   const selectFields = {
     id: true,
     email: true,
-    role: true,
+    status: true,
+    code: true,
     subRole: true,
+    role: {
+      select: {
+        id: true,
+        name: true,
+      },
+    },
     profile: {
       select: {
         firstName: true,
@@ -334,7 +341,7 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
         state: true,
         country: true,
         parentName: true,
-        parentEmailId: true,
+        parentEmail: true, // Changed from parentEmailId to parentEmail as per schema
       },
     },
     studentOfBatches: {
@@ -345,20 +352,18 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
         studentCapacity: true,
         currentClass: true,
         currentLevel: true,
+        startDate: true,
+        createdAt: true,
         academy: {
           select: {
             id: true,
             name: true,
           },
         },
-        startDate: true,
-        createdAt: true,
       },
     },
     createdAt: true,
     updatedAt: true,
-    status: true,
-    code: true,
   };
 
   let students = [];
@@ -409,15 +414,10 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
     );
   }
 
-  console.log('STUDENTS', students);
-
   return students;
 };
 
 const fetchAllStudentsByBatchId = async (batchId, { query }) => {
-  console.log('BATCH ID', batchId);
-  console.log('QUERY', query);
-
   const batchExists = await db.batch.findUnique({
     where: { id: batchId },
     select: { id: true },
@@ -430,7 +430,12 @@ const fetchAllStudentsByBatchId = async (batchId, { query }) => {
   const selectFields = {
     id: true,
     email: true,
-    role: true,
+    role: {
+      select: {
+        id: true,
+        name: true,
+      },
+    },
     profile: {
       select: {
         firstName: true,
@@ -444,7 +449,7 @@ const fetchAllStudentsByBatchId = async (batchId, { query }) => {
         state: true,
         country: true,
         parentName: true,
-        parentEmailId: true,
+        parentEmail: true,
       },
     },
     studentOfBatches: {
@@ -455,14 +460,14 @@ const fetchAllStudentsByBatchId = async (batchId, { query }) => {
         studentCapacity: true,
         currentClass: true,
         currentLevel: true,
+        startDate: true,
+        createdAt: true,
         academy: {
           select: {
             id: true,
             name: true,
           },
         },
-        startDate: true,
-        createdAt: true,
       },
     },
     createdAt: true,

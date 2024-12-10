@@ -34,9 +34,7 @@ router
   .route('/program/purchase')
   .post(checkJWT, studentSignupController.addProgramPurchase);
 
-router
-  .route('/checkout')
-  .post(checkJWT, studentSignupController.checkoutSession);
+router.route('/checkout').post(studentSignupController.checkoutSession);
 
 router
   .route('/credits')
