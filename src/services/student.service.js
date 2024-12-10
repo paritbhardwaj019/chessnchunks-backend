@@ -300,142 +300,34 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
   const take = numberLimit;
 
   const studentRole = await db.role.findFirst({
-    where: {
-      name: 'STUDENT',
-    },
+    where: { name: 'STUDENT' },
   });
 
+  if (!studentRole) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Student role not found');
+  }
+
   const baseFilter = {
-    role: { id: studentRole.id },
+    roleId: studentRole.id,
     NOT: { id: loggedInUser.id },
-    OR: [
-      { email: { contains: query } },
-      { profile: { firstName: { contains: query } } },
-      { profile: { lastName: { contains: query } } },
-    ],
+    OR: query
+      ? [
+          { email: { contains: query } },
+          { profile: { firstName: { contains: query } } },
+          { profile: { lastName: { contains: query } } },
+          { profile: { middleName: { contains: query } } },
+          { code: { contains: query } },
+        ]
+      : undefined,
   };
 
-  // Updated select fields according to schema
   const selectFields = {
     id: true,
     email: true,
     status: true,
     code: true,
-    subRole: true,
-    role: {
-      select: {
-        id: true,
-        name: true,
-      },
-    },
-    profile: {
-      select: {
-        firstName: true,
-        lastName: true,
-        middleName: true,
-        dateOfBirth: true,
-        phoneNumber: true,
-        addressLine1: true,
-        addressLine2: true,
-        city: true,
-        state: true,
-        country: true,
-        parentName: true,
-        parentEmail: true, // Changed from parentEmailId to parentEmail as per schema
-      },
-    },
-    studentOfBatches: {
-      select: {
-        id: true,
-        batchCode: true,
-        description: true,
-        studentCapacity: true,
-        currentClass: true,
-        currentLevel: true,
-        startDate: true,
-        createdAt: true,
-        academy: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    },
-    createdAt: true,
-    updatedAt: true,
-  };
-
-  let students = [];
-
-  const user = await db.user.findUnique({
-    where: { id: loggedInUser.id },
-    include: {
-      adminOfAcademies: true,
-      coachOfBatches: true,
-      role: true,
-    },
-  });
-
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
-  }
-
-  if (user.role.name === 'SUPER_ADMIN') {
-    students = await db.user.findMany({
-      skip,
-      take,
-      where: baseFilter,
-      select: selectFields,
-    });
-  } else if (user.role.name === 'ADMIN' || user.role.name === 'COACH') {
-    const academy = await getSingleAcademyForUser(loggedInUser);
-
-    if (!academy) {
-      throw new ApiError(
-        httpStatus.NOT_FOUND,
-        'No academy associated with the user.'
-      );
-    }
-
-    students = await db.user.findMany({
-      skip,
-      take,
-      where: {
-        ...baseFilter,
-        assignedToAcademyId: academy.id,
-      },
-      select: selectFields,
-    });
-  } else {
-    throw new ApiError(
-      httpStatus.FORBIDDEN,
-      'You do not have permission to view students'
-    );
-  }
-
-  return students;
-};
-
-const fetchAllStudentsByBatchId = async (batchId, { query }) => {
-  const batchExists = await db.batch.findUnique({
-    where: { id: batchId },
-    select: { id: true },
-  });
-
-  if (!batchExists) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
-  }
-
-  const selectFields = {
-    id: true,
-    email: true,
-    role: {
-      select: {
-        id: true,
-        name: true,
-      },
-    },
+    lastLoginAt: true,
+    mfaEnabled: true,
     profile: {
       select: {
         firstName: true,
@@ -450,6 +342,10 @@ const fetchAllStudentsByBatchId = async (batchId, { query }) => {
         country: true,
         parentName: true,
         parentEmail: true,
+        chessComId: true,
+        lichessId: true,
+        uscfId: true,
+        imageUrl: true,
       },
     },
     studentOfBatches: {
@@ -459,56 +355,222 @@ const fetchAllStudentsByBatchId = async (batchId, { query }) => {
         description: true,
         studentCapacity: true,
         currentClass: true,
+        startLevel: true,
         currentLevel: true,
         startDate: true,
-        createdAt: true,
+        isActive: true,
         academy: {
           select: {
             id: true,
             name: true,
+            domain: true,
           },
         },
       },
     },
+    studentSubscriptions: {
+      select: {
+        id: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        academyPlan: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            duration: true,
+          },
+        },
+      },
+      where: {
+        status: 'ACTIVE',
+      },
+    },
     createdAt: true,
+    updatedAt: true,
   };
 
-  const studentRole = await db.role.findFirst({
-    where: {
-      name: 'STUDENT',
+  let students = [];
+  let total = 0;
+
+  if (loggedInUser.role.name === 'SUPER_ADMIN') {
+    [students, total] = await Promise.all([
+      db.user.findMany({
+        where: baseFilter,
+        select: selectFields,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+      }),
+      db.user.count({ where: baseFilter }),
+    ]);
+  } else {
+    const academy = await getSingleAcademyForUser(loggedInUser);
+    if (!academy) {
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        'No academy associated with the user'
+      );
+    }
+
+    [students, total] = await Promise.all([
+      db.user.findMany({
+        where: {
+          ...baseFilter,
+          assignedToAcademyId: academy.id,
+        },
+        select: selectFields,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+      }),
+      db.user.count({
+        where: {
+          ...baseFilter,
+          assignedToAcademyId: academy.id,
+        },
+      }),
+    ]);
+  }
+
+  return {
+    data: students,
+    pagination: {
+      total,
+      page: numberPage,
+      limit: numberLimit,
+      totalPages: Math.ceil(total / numberLimit),
+    },
+  };
+};
+
+const fetchAllStudentsByBatchId = async (batchId, { query }) => {
+  const batch = await db.batch.findUnique({
+    where: { id: batchId },
+    select: {
+      id: true,
+      academy: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
   });
 
-  const whereClause = {
-    role: {
-      id: studentRole.id,
-    },
-    studentOfBatches: {
-      some: {
-        id: batchId,
-      },
-    },
-  };
-
-  if (query) {
-    whereClause.OR = [
-      { email: { contains: query } },
-      {
-        profile: { firstName: { contains: query } },
-      },
-      { profile: { lastName: { contains: query } } },
-      {
-        profile: { middleName: { contains: query } },
-      },
-    ];
+  if (!batch) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
   }
+
+  const studentRole = await db.role.findFirst({
+    where: { name: 'STUDENT' },
+  });
+
+  if (!studentRole) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Student role not found');
+  }
+
+  const whereClause = {
+    roleId: studentRole.id,
+    studentOfBatches: {
+      some: { id: batchId },
+    },
+    ...(query && {
+      OR: [
+        { email: { contains: query } },
+        { profile: { firstName: { contains: query } } },
+        { profile: { lastName: { contains: query } } },
+        { profile: { middleName: { contains: query } } },
+        { code: { contains: query } },
+      ],
+    }),
+  };
 
   const students = await db.user.findMany({
     where: whereClause,
-    select: selectFields,
+    select: {
+      id: true,
+      email: true,
+      status: true,
+      code: true,
+      lastLoginAt: true,
+      profile: {
+        select: {
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          dateOfBirth: true,
+          phoneNumber: true,
+          parentName: true,
+          parentEmail: true,
+          chessComId: true,
+          lichessId: true,
+          uscfId: true,
+          imageUrl: true,
+        },
+      },
+      studentOfBatches: {
+        where: { id: batchId },
+        select: {
+          id: true,
+          batchCode: true,
+          currentClass: true,
+          currentLevel: true,
+          startDate: true,
+        },
+      },
+      studentGoals: {
+        where: {
+          weeklyGoal: {
+            batch: { id: batchId },
+          },
+        },
+        select: {
+          id: true,
+          puzzlesTarget: true,
+          puzzlesSolved: true,
+          puzzlesPassed: true,
+          weeklyGoal: {
+            select: {
+              id: true,
+              code: true,
+              startDate: true,
+              endDate: true,
+            },
+          },
+        },
+      },
+      batchHistory: {
+        where: { batchId },
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: {
+          fromDate: true,
+          oldClass: true,
+          newClass: true,
+          oldLevel: true,
+          newLevel: true,
+        },
+      },
+      createdAt: true,
+      updatedAt: true,
+    },
+    orderBy: {
+      profile: {
+        firstName: 'asc',
+      },
+    },
   });
 
-  return students;
+  return {
+    data: students,
+    batchInfo: {
+      id: batch.id,
+      academyId: batch.academy.id,
+      academyName: batch.academy.name,
+    },
+  };
 };
 
 const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {

@@ -137,12 +137,12 @@ const loginWithPasswordHandler = async (data, host) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
   }
 
-  let academy = null;
-
-  console.log('---HOST---', host);
+  let academy;
 
   if (host === 'http://undefined') {
-    academy = getSingleAcademyForUser(user);
+    if (user.role.name !== 'STUDENT') {
+      academy = getSingleAcademyForUser(user);
+    }
   } else {
     academy = await checkAcademyAccess(user, host);
   }
