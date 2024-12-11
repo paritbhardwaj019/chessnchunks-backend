@@ -24,6 +24,7 @@ const stipeWebhookRouter = require('./webhook/stipe');
 const academyProgramRouter = require('./academyProgram.route');
 const studentSignupRouter = require('./studentSignup.route');
 const quizRouter = require('./quiz.route');
+const navigationRouter = require('./navigation.route');
 
 const router = express.Router();
 
@@ -51,5 +52,6 @@ router.use('/webhook', stipeWebhookRouter);
 router.use('/academy-programs', academyProgramRouter);
 router.use('/student-signups', studentSignupRouter);
 router.use('/quiz', quizRouter);
+router.use('/navigation', navigationRouter);
 
 module.exports = router;

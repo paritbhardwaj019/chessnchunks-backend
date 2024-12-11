@@ -178,6 +178,8 @@ model Academy {
 
   usersAssigned User[] @relation("AcademyUsers")
 
+    navigation AcademyNavigation[]
+
   domain        String?        @unique
   events        Event[]        @relation("AcademyEvents")
   notifications Notification[] @relation("AcademyNotifications")
@@ -1011,4 +1013,24 @@ model StudentQuizAnswer {
   updatedAt   DateTime @updatedAt
 
   @@map("student_quiz_answers")
+}
+
+model AcademyNavigation {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String
+  order       Int
+  isActive    Boolean   @default(true)
+  parentId    String?
+  parent      AcademyNavigation?  @relation("NavParentChild", fields: [parentId], references: [id])
+  children    AcademyNavigation[] @relation("NavParentChild")
+  
+  academyId   String
+  academy     Academy   @relation(fields: [academyId], references: [id])
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([academyId, slug])
+  @@map("academy_navigations")
 }

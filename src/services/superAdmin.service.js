@@ -13,6 +13,7 @@ const crypto = require('crypto');
 const generateDomain = require('../utils/generateDomain');
 const stripe = require('../config/stripe');
 const { uploadToCloudinary } = require('../utils/cloudinary.utils');
+const { defaultNavigation } = require('../data/defaultNavigation');
 
 const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyName, logo, contactNumber } = data;
@@ -175,6 +176,25 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   return academyAdminInvitation;
 };
 
+const createNavigationItems = async (items, academyId, parentId = null) => {
+  for (const item of items) {
+    const navItem = await db.academyNavigation.create({
+      data: {
+        title: item.title,
+        slug: item.slug,
+        order: item.order,
+        isActive: true,
+        parentId,
+        academyId,
+      },
+    });
+
+    if (item.subItems && item.subItems.length > 0) {
+      await createNavigationItems(item.subItems, academyId, navItem.id);
+    }
+  }
+};
+
 const verifyAcademyAdminHandler = async (token, domain) => {
   if (!token) {
     throw new ApiError('Token not present!', httpStatus.BAD_REQUEST);
@@ -283,6 +303,8 @@ const verifyAcademyAdminHandler = async (token, domain) => {
       status: 'ACTIVE',
     },
   });
+
+  await createNavigationItems(defaultNavigation, newAcademy.id);
 
   await db.academySignup.update({
     where: { id: signupId },

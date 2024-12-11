@@ -60,7 +60,7 @@ router.post('/stripe', async (req, res) => {
     const event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      config.stripe.webhookSecret
+      'whsec_BzETu3ZIxFMhpoHuydwzos28aGKq2rEj'
     );
 
     if (event.type === 'checkout.session.completed') {
@@ -91,7 +91,7 @@ router.post('/stripe/student', async (req, res) => {
     const event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      'whsec_MwQoMoEjH7n4yDlHF7O7G0jls4W3naHI'
+      'whsec_7zqpqvaPPrrmUq90xvfh6vV3vrszYA0Z'
     );
 
     if (event.type === 'checkout.session.completed') {

@@ -7,7 +7,8 @@
     "dev": "nodemon src/index.js",
     "seed": "node src/scripts/seed.js",
     "test": "jest",
-    "superadmin:create": "node src/utils/createSuperAdmin.js -cu"
+    "superadmin:create": "node src/utils/createSuperAdmin.js -cu",
+    "db:auto": "node src/scripts/automateDatabase.js"
   },
   "keywords": [],
   "author": "",
