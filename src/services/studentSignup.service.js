@@ -13,6 +13,7 @@ const Mailgen = require('mailgen');
 const createToken = require('../utils/createToken');
 const sendMail = require('../utils/sendEmail');
 const stripe = require('../config/stripe');
+const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
 
 const validateBatchCapacity = async (batchId) => {
   const batch = await db.batch.findUnique({
@@ -48,7 +49,9 @@ const sendSignupEmail = async (signup) => {
     '3d'
   );
 
-  const ACTIVATION_URL = `${config.chessinChunksUrl}/complete-signup?token=${token}&id=${signup.id}`;
+  const domain = getDomainFromAdmin(signup.academy.domain);
+
+  const ACTIVATION_URL = `${domain}/complete-signup?token=${token}&id=${signup.id}`;
 
   const mailGenerator = new Mailgen({
     theme: 'default',
@@ -264,6 +267,8 @@ const confirmSignupHandler = async (id, userId) => {
 const fetchAllSignupsHandler = async (filters = {}) => {
   const where = {};
 
+  console.log('FILTERS', filters);
+
   if (filters.academyId) {
     where.academyId = filters.academyId;
   }
@@ -407,6 +412,8 @@ const checkoutSessionHandler = async (programId, userEmail) => {
     );
   }
 
+  const domain = getDomainFromAdmin(program.academy.domain);
+
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: [
@@ -427,8 +434,8 @@ const checkoutSessionHandler = async (programId, userEmail) => {
       userEmail,
     },
     mode: 'payment',
-    success_url: `${config.chessinChunksUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${config.chessinChunksUrl}/checkout/cancel`,
+    success_url: `${domain}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${domain}/checkout/cancel`,
   });
 
   return {

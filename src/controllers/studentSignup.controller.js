@@ -61,7 +61,12 @@ const fetchAllSignups = catchAsync(async (req, res) => {
     'status',
     'stage',
   ]);
-  const signups = await studentSignupService.fetchAllSignupsHandler(filters);
+
+  const academyId = await getAndValidateAcademy(req.user);
+  const signups = await studentSignupService.fetchAllSignupsHandler({
+    ...filters,
+    academyId,
+  });
   res.status(httpStatus.OK).send(signups);
 });
 

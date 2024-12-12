@@ -7,7 +7,6 @@ const {
   PROGRAM_DURATION,
   SYSTEM_CODE_MODULE,
 } = require('@prisma/client');
-const { getSingleAcademyForUser } = require('./academy.service');
 const generateSystemCode = require('../utils/generateSystemCode');
 
 const createSearchConditions = (searchText) => {

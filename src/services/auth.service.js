@@ -137,15 +137,7 @@ const loginWithPasswordHandler = async (data, host) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
   }
 
-  let academy;
-
-  if (host === 'http://undefined') {
-    if (user.role.name !== 'STUDENT') {
-      academy = getSingleAcademyForUser(user);
-    }
-  } else {
-    academy = await checkAcademyAccess(user, host);
-  }
+  let academy = await checkAcademyAccess(user, host);
 
   const token = await createToken(
     {

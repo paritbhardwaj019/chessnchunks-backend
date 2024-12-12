@@ -190,10 +190,206 @@ const getSingleAcademyForUser = async (loggedInUser) => {
   return academy;
 };
 
+const getAcademyByDomain = async (domain) => {
+  const academy = await db.academy.findUnique({
+    where: { domain },
+    select: {
+      id: true,
+      name: true,
+      logo: true,
+      domain: true,
+      navigation: {
+        where: {
+          isActive: true,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+        include: {
+          children: {
+            where: {
+              isActive: true,
+            },
+            orderBy: {
+              order: 'asc',
+            },
+          },
+        },
+      },
+      pages: {
+        where: {
+          status: 'PUBLISHED',
+        },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          metaTitle: true,
+          metaDescription: true,
+          isHome: true,
+          components: {
+            orderBy: {
+              order: 'asc',
+            },
+            select: {
+              id: true,
+              type: true,
+              props: true,
+              order: true,
+            },
+          },
+          publishedAt: true,
+        },
+      },
+    },
+  });
+
+  if (!academy) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Academy not found');
+  }
+
+  // Get home page
+  const homePage = academy.pages.find((page) => page.isHome);
+  if (!homePage) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      'Home page not found for this academy'
+    );
+  }
+
+  // Organize navigation into a tree structure
+  const organizeNavigation = (items, parentId = null) => {
+    return items
+      .filter((item) => item.parentId === parentId)
+      .map((item) => ({
+        ...item,
+        children: organizeNavigation(items, item.id),
+      }));
+  };
+
+  // Structure the response
+  const response = {
+    academy: {
+      id: academy.id,
+      name: academy.name,
+      logo: academy.logo,
+      domain: academy.domain,
+    },
+    navigation: organizeNavigation(academy.navigation),
+    pages: academy.pages,
+    homePage,
+  };
+
+  return response;
+};
+
+const getPublicPageBySlug = async (domain, slug) => {
+  const academy = await db.academy.findUnique({
+    where: { domain },
+    select: {
+      id: true,
+      pages: {
+        where: {
+          slug,
+          status: 'PUBLISHED',
+        },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          metaTitle: true,
+          metaDescription: true,
+          components: {
+            orderBy: {
+              order: 'asc',
+            },
+            select: {
+              id: true,
+              type: true,
+              props: true,
+              order: true,
+            },
+          },
+          publishedAt: true,
+        },
+      },
+    },
+  });
+
+  if (!academy) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Academy not found');
+  }
+
+  if (!academy.pages.length) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Page not found');
+  }
+
+  return academy.pages[0];
+};
+
+const updateComponentById = async (pageId, componentId, componentData) => {
+  return await db.$transaction(async (prisma) => {
+    const existingPage = await prisma.page.findUnique({
+      where: { id: pageId },
+      include: {
+        components: {
+          where: {
+            id: componentId,
+          },
+        },
+      },
+    });
+
+    if (!existingPage) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Page not found');
+    }
+
+    if (!existingPage.components.length) {
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        'Component not found in this page'
+      );
+    }
+
+    // Update the component
+    const updatedComponent = await prisma.pageComponent.update({
+      where: {
+        id: componentId,
+      },
+      data: {
+        type: componentData.type,
+        props: componentData.props,
+        order: componentData.order,
+      },
+    });
+
+    const updatedPage = await prisma.page.findUnique({
+      where: { id: pageId },
+      include: {
+        components: {
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      },
+    });
+
+    return {
+      component: updatedComponent,
+      page: updatedPage,
+    };
+  });
+};
+
 const academyService = {
   updateAcademyByIdHandler,
   fetchAcademyByIdHandler,
   getSingleAcademyForUser,
+  getAcademyByDomain,
+  getPublicPageBySlug,
+  updateComponentById,
 };
 
 module.exports = academyService;

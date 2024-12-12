@@ -14,6 +14,7 @@ const generateDomain = require('../utils/generateDomain');
 const stripe = require('../config/stripe');
 const { uploadToCloudinary } = require('../utils/cloudinary.utils');
 const { defaultNavigation } = require('../data/defaultNavigation');
+const createDefaultPagesForAcademy = require('../utils/createDefaultPages');
 
 const inviteAcademyAdminHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyName, logo, contactNumber } = data;
@@ -305,6 +306,7 @@ const verifyAcademyAdminHandler = async (token, domain) => {
   });
 
   await createNavigationItems(defaultNavigation, newAcademy.id);
+  await createDefaultPagesForAcademy(newAcademy.id);
 
   await db.academySignup.update({
     where: { id: signupId },

@@ -6,11 +6,19 @@ const router = require('./routes/v1');
 const { isOriginAllowed } = require('./services/origin.service');
 const logger = require('./utils/logger');
 const initializeCronJobs = require('./cron/studentSignup.cron');
+const morgan = require('morgan');
 
 const app = express();
 
-// CRON JOBS
 initializeCronJobs();
+
+const morganMiddleware = morgan('dev', {
+  stream: {
+    write: (message) => logger.info(message.trim()),
+  },
+});
+
+app.use(morganMiddleware);
 
 app.use('/api/v1/webhook/stripe', express.raw({ type: 'application/json' }));
 
@@ -34,6 +42,7 @@ app.use((req, res, next) => {
     }
   } else {
     logger.warn(`Blocked request from unauthorized origin: ${origin}`);
+    return res.status(403).json({ message: 'Forbidden: Origin not allowed' });
   }
 
   next();

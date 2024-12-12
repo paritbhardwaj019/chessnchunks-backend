@@ -18,4 +18,20 @@ academyRouter
     academyController.fetchAcademyByIdHandler
   );
 
+academyRouter
+  .route('/domain/:domain')
+  .get(academyController.getAcademyByDomain);
+
+academyRouter
+  .route('/domain/:domain/pages/:slug')
+  .get(academyController.getPublicPageBySlug);
+
+academyRouter
+  .route('/domain/:domain/pages/:pageId/components/:componentId')
+  .put(
+    checkJWT,
+    checkRole(['SUPER_ADMIN', 'ADMIN']),
+    academyController.updateComponentById
+  );
+
 module.exports = academyRouter;
