@@ -874,6 +874,7 @@ model UserSignup {
   state        String
   country      String
   zipCode      String
+ 
 
   chessComId String? @unique
   lichessId  String?
@@ -1033,4 +1034,14 @@ model AcademyNavigation {
 
   @@unique([academyId, slug])
   @@map("academy_navigations")
+}
+
+model SignupOTP  {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  otp       String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
+const ApiError = require('../utils/apiError')
+const { generateOTP } = require('../utils/generateOTP');
 const {
   REGISTRATION_STAGE,
   SIGNUP_STATUS,
@@ -38,11 +39,11 @@ const validateBatchCapacity = async (batchId) => {
   return batch;
 };
 
-const sendSignupEmail = async (signup) => {
+const sendSignupEmail = async (signup,otp) => {
   const token = await createToken(
     {
       id: signup.id,
-      email: signup.email,
+      email: signup.email
     },
     config.jwt.invitationSecret,
     '3d'
@@ -91,6 +92,7 @@ const sendSignupEmail = async (signup) => {
       'Start Date': new Date(
         signup.interestedBatch.startDate
       ).toLocaleDateString(),
+      'otp':otp
     };
   }
 
@@ -136,6 +138,26 @@ const createSignupHandler = async (data, academyId) => {
   }
 
   await validateBatchCapacity(batchInterestId);
+
+  const otp = generateOTP(6); // 6-digit OTP
+  const otpExpiryTime = new Date();
+  otpExpiryTime.setHours(otpExpiryTime.getHours() + 72);
+
+  // Save OTP in database
+  await db.signupOTP.upsert({
+    where: { email },
+    update: {
+      otp,
+      expiresAt: otpExpiryTime,
+      verified: false,
+    },
+    create: {
+      email,
+      otp,
+      expiresAt: otpExpiryTime,
+      verified: false,
+    },
+  });
 
   const signupId = await generateSystemCode(SYSTEM_CODE_MODULE.STUDENT);
 
@@ -184,7 +206,7 @@ const createSignupHandler = async (data, academyId) => {
     },
   });
 
-  await sendSignupEmail(signup);
+  await sendSignupEmail(signup,otp);
 
   return signup;
 };
@@ -315,8 +337,14 @@ const fetchSignupByIdHandler = async (id) => {
   if (!signup) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Signup not found');
   }
+  const otpRecord = await db.signupOTP.findUnique({
+    where: { email: signup.email },
+  });
 
-  return signup;
+  return {
+    ...signup,
+    otp: otpRecord?.otp || null,
+  };
 };
 
 const handleWaitlistHandler = async (batchId) => {
