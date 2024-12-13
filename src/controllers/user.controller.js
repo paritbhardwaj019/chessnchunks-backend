@@ -66,6 +66,27 @@ const updatePasswordHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(updatedUser);
 });
 
+const requestEmailChange = catchAsync(async (req, res) => {
+  const { newEmail } = req.body;
+
+  const academy = await userService.getSingleAcademyForUser(req.user);
+  const academyDomain = academy.domain;
+
+  const result = await userService.requestEmailChangeHandler(
+    req.user.id,
+    newEmail,
+    academyDomain
+  );
+
+  res.status(httpStatus.OK).send(result);
+});
+
+const verifyEmailChange = catchAsync(async (req, res) => {
+  const { token } = req.body;
+  const result = await userService.verifyEmailChangeHandler(req.user.id, token);
+  res.status(httpStatus.OK).send(result);
+});
+
 const userController = {
   fetchAllUsersHandler,
   signUpSubscriberHandler,
@@ -74,6 +95,8 @@ const userController = {
   updateUserHandler,
   fetchProfileByIdHandler,
   updatePasswordHandler,
+  requestEmailChange,
+  verifyEmailChange,
 };
 
 module.exports = userController;

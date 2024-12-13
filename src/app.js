@@ -7,10 +7,18 @@ const { isOriginAllowed } = require('./services/origin.service');
 const logger = require('./utils/logger');
 const initializeCronJobs = require('./cron/studentSignup.cron');
 const morgan = require('morgan');
+const {
+  scheduleBatchExpiryCheck,
+} = require('./cron/batchExpiryNotification.cron');
+const {
+  checkAndUpdateExpiredBatches,
+} = require('./cron/batchStatusUpdate.cron');
 
 const app = express();
 
 initializeCronJobs();
+scheduleBatchExpiryCheck();
+checkAndUpdateExpiredBatches();
 
 const morganMiddleware = morgan('dev', {
   stream: {

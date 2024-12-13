@@ -79,6 +79,7 @@ model User {
   code String @unique
 
   subRole COACH_ROLE?
+   emailVerificationTokens EmailVerificationToken[]
 
   friends  User[] @relation("UserFriends")
   friendOf User[] @relation("UserFriends")
@@ -941,8 +942,8 @@ model Quiz {
   isActive     Boolean @default(true)
 
   questions QuizQuestion[]
-  task      Task           @relation(fields: [taskId], references: [id])
-  taskId    String
+  task      Task?           @relation(fields: [taskId], references: [id])
+  taskId    String?
 
   createdById String
   createdBy   User   @relation("QuizCreatedBy", fields: [createdById], references: [id])
@@ -956,7 +957,7 @@ model Quiz {
 model QuizQuestion {
   id            String        @id @default(uuid())
   questionCode  String        @unique
-  questionText  String        @db.Text
+  questionText  String       
   type          QUESTION_TYPE
   marks         Float
   orderIndex    Int
@@ -1094,4 +1095,15 @@ model PageComponent {
   updatedAt DateTime @updatedAt
 
   @@map("page_components")
+}
+
+model EmailVerificationToken {
+  id         String   @id @default(uuid())
+  userId     String
+  newEmail   String
+  token      String
+  expiresAt  DateTime
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
 }

@@ -14,18 +14,26 @@ const _ = require('lodash');
 const { getSingleAcademyForUser } = require('./academy.service');
 
 const checkAcademyAccess = async (user, academyDomain) => {
-  console.log('USER', user);
+  const normalizeDomain = (domain) => {
+    if (!domain) return null;
+    const parts = domain.split(':');
+    return parts[0];
+  };
 
   if (user.role.name === 'SUPER_ADMIN') {
     return null;
   }
 
   if (academyDomain) {
+    const normalizedRequestDomain = normalizeDomain(academyDomain);
     let academy;
+
     if (user.role.name === 'ADMIN') {
       academy = await db.academy.findFirst({
         where: {
-          domain: academyDomain,
+          domain: {
+            startsWith: normalizedRequestDomain,
+          },
           admins: {
             some: {
               id: user.id,
@@ -33,32 +41,15 @@ const checkAcademyAccess = async (user, academyDomain) => {
           },
         },
       });
-    } else if (user.role.name === 'COACH') {
+    } else {
       academy = await db.academy.findFirst({
         where: {
-          domain: academyDomain,
-          batches: {
-            some: {
-              coaches: {
-                some: {
-                  id: user.id,
-                },
-              },
-            },
+          domain: {
+            startsWith: normalizedRequestDomain,
           },
-        },
-      });
-    } else if (user.role.name === 'STUDENT') {
-      academy = await db.academy.findFirst({
-        where: {
-          domain: academyDomain,
-          batches: {
+          usersAssigned: {
             some: {
-              students: {
-                some: {
-                  id: user.id,
-                },
-              },
+              id: user.id,
             },
           },
         },

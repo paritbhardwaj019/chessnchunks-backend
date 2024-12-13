@@ -104,6 +104,26 @@ const createBatchHandler = async (data, loggedInUser) => {
 
 const updateBatchHandler = async (id, data, loggedInUser) => {
   const batch = await getBatchById(db, id);
+
+  if (data.studentCapacity !== undefined) {
+    const newCapacity = Number(data.studentCapacity);
+    const currentCapacity = batch.studentCapacity;
+
+    if (newCapacity < currentCapacity) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `Student capacity cannot be reduced below the current capacity of ${currentCapacity}`
+      );
+    }
+
+    if (newCapacity < batch.students.length) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `Student capacity cannot be less than current number of students (${batch.students.length})`
+      );
+    }
+  }
+
   const updateData = {};
 
   Object.assign(updateData, {

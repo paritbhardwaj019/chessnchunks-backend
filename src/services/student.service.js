@@ -574,15 +574,22 @@ const fetchAllStudentsByBatchId = async (batchId, { query }) => {
 const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
   console.log(studentId, fromBatchId, toBatchId);
 
+  // Get source batch with class and level info
   const fromBatch = await db.batch.findUnique({
     where: { id: fromBatchId },
-    select: { id: true },
+    select: {
+      id: true,
+      currentClass: true,
+      currentLevel: true,
+      batchCode: true,
+    },
   });
 
   if (!fromBatch) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Source batch not found');
   }
 
+  // Get destination batch with all necessary info
   const toBatch = await db.batch.findUnique({
     where: { id: toBatchId },
     include: {
@@ -638,7 +645,40 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
     remainingCapacity = toBatch.studentCapacity - (currentStudentCount + 1);
   }
 
+  const currentDate = new Date();
+
+  // Handle everything in a transaction
   const updatedStudent = await db.$transaction(async (prisma) => {
+    // Create exit history record
+    await prisma.userBatchHistory.create({
+      data: {
+        userId: studentId,
+        batchId: fromBatchId,
+        fromDate: student.studentOfBatches[0].createdAt || new Date(), // Use batch assignment date or current date
+        toDate: currentDate,
+        reason: 'Batch Transfer',
+        oldClass: fromBatch.currentClass,
+        oldLevel: fromBatch.currentLevel,
+        newClass: toBatch.currentClass,
+        newLevel: toBatch.currentLevel,
+      },
+    });
+
+    // Create entry history record
+    await prisma.userBatchHistory.create({
+      data: {
+        userId: studentId,
+        batchId: toBatchId,
+        fromDate: currentDate,
+        reason: 'Batch Transfer',
+        oldClass: fromBatch.currentClass,
+        oldLevel: fromBatch.currentLevel,
+        newClass: toBatch.currentClass,
+        newLevel: toBatch.currentLevel,
+      },
+    });
+
+    // Remove from old batch
     await prisma.user.update({
       where: { id: studentId },
       data: {
@@ -648,6 +688,7 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
       },
     });
 
+    // Add to new batch
     const updated = await prisma.user.update({
       where: { id: studentId },
       data: {
@@ -671,7 +712,7 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
   });
 
   const response = {
-    message: 'Student moved successfully.',
+    message: `Student moved successfully from batch ${fromBatch.batchCode} to ${toBatch.batchCode}`,
     batchCode: toBatch.batchCode,
   };
 
@@ -682,6 +723,11 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
 
   return response;
 };
+
+module.exports = {
+  moveStudentToBatchHandler,
+};
+
 const studentService = {
   inviteStudentHandler,
   verifyStudentHandler,

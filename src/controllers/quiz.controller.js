@@ -76,8 +76,8 @@ const listQuizzesHandler = catchAsync(async (req, res) => {
     take: take ? parseInt(take, 10) : 10,
   };
 
-  const { quizzes, total } = await quizService.listQuizzes(filters, pagination);
-  res.status(httpStatus.OK).send({ quizzes, total });
+  const quizzes = await quizService.listQuizzes(filters, pagination);
+  res.status(httpStatus.OK).send(quizzes);
 });
 
 /**
@@ -111,6 +111,16 @@ const deleteQuizHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const getQuizOptionsHandler = catchAsync(async (req, res) => {
+  const options = await quizService.getQuizOptions();
+  res.status(httpStatus.OK).json({
+    status: 'success',
+    data: {
+      options,
+    },
+  });
+});
+
 const quizController = {
   createQuizHandler,
   getQuizByTaskIdHandler,
@@ -122,6 +132,7 @@ const quizController = {
   getQuizByIdHandler,
   updateQuizHandler,
   deleteQuizHandler,
+  getQuizOptionsHandler,
 };
 
 module.exports = quizController;
