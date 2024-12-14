@@ -14,6 +14,27 @@ const createToken = require('../utils/createToken');
 const sendMail = require('../utils/sendEmail');
 const stripe = require('../config/stripe');
 const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
+const ChessWebAPI = require('chess-web-api');
+
+const chessAPI = new ChessWebAPI();
+
+const validateChessComUsername = async (username) => {
+  try {
+    await chessAPI.getPlayer(username);
+    return true;
+  } catch (error) {
+    if (error.statusCode === 404) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Invalid Chess.com username. Please check and try again.'
+      );
+    }
+    throw new ApiError(
+      httpStatus.SERVICE_UNAVAILABLE,
+      'Unable to verify Chess.com username at the moment. Please try again later.'
+    );
+  }
+};
 
 const validateBatchCapacity = async (batchId) => {
   const batch = await db.batch.findUnique({
@@ -125,6 +146,7 @@ const createSignupHandler = async (data, academyId) => {
     country,
     zipCode,
     batchInterestId,
+    chessComId,
   } = data;
 
   const existingSignup = await db.userSignup.findUnique({
@@ -136,6 +158,10 @@ const createSignupHandler = async (data, academyId) => {
       httpStatus.BAD_REQUEST,
       'Email already registered for signup'
     );
+  }
+
+  if (chessComId) {
+    await validateChessComUsername(chessComId);
   }
 
   await validateBatchCapacity(batchInterestId);
@@ -163,6 +189,7 @@ const createSignupHandler = async (data, academyId) => {
       state,
       country,
       zipCode,
+      chessComId,
       signupStage: REGISTRATION_STAGE.INQUIRY,
       signupStatus: SIGNUP_STATUS.INQUIRY,
       interestedBatch: batchInterestId
