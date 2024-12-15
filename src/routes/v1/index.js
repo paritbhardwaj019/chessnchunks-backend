@@ -26,6 +26,9 @@ const studentSignupRouter = require('./studentSignup.route');
 const quizRouter = require('./quiz.route');
 const navigationRouter = require('./navigation.route');
 const pageRouter = require('./page.route');
+const batchReportRouter = require('./batchReport.route');
+const enrollmentReportRouter = require('./enrollmentReport.route');
+const studentReportRouter = require('./studentReport.route');
 
 const router = express.Router();
 
@@ -55,5 +58,8 @@ router.use('/student-signups', studentSignupRouter);
 router.use('/quiz', quizRouter);
 router.use('/navigation', navigationRouter);
 router.use('/pages', pageRouter);
+router.use('/reports/batches', batchReportRouter);
+router.use('/reports/enrollments', enrollmentReportRouter);
+router.use('/reports/students', studentReportRouter);
 
 module.exports = router;

@@ -205,6 +205,8 @@ model Batch {
   endDate         DateTime?
   isActive        Boolean   @default(true)
   warningMailSent Boolean   @default(false)
+  waitlistCount       Int       @default(0)
+
 
   academyId String
   academy   Academy @relation(fields: [academyId], references: [id])
