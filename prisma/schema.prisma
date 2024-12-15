@@ -877,6 +877,7 @@ model UserSignup {
   state        String
   country      String
   zipCode      String
+ 
 
   chessComId String? @unique
   lichessId  String?
@@ -1108,4 +1109,13 @@ model EmailVerificationToken {
 
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId])
+}
+model SignupOTP  {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  otp       String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
