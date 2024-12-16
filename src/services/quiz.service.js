@@ -3,11 +3,32 @@ const ApiError = require('../utils/apiError');
 const db = require('../database/prisma');
 const generateSystemCode = require('../utils/generateSystemCode');
 
+const questionTypeMapping = {
+  mcq: 'MULTIPLE_CHOICE',
+  'true-false': 'TRUE_FALSE',
+  'fill-blanks': 'SHORT_ANSWER',
+};
+
 const createQuiz = async (data, userId) => {
   const { title, description, timeLimit, passingScore, taskId, questions } =
     data;
 
   const quizCode = await generateSystemCode('QUIZ');
+
+  const mappedQuestions = await Promise.all(
+    questions.map(async (q, index) => {
+      const questionCode = await generateSystemCode('QUIZ_QUESTION');
+      return {
+        questionText: q.questionText,
+        type: questionTypeMapping[q.type] || q.type,
+        marks: q.marks,
+        orderIndex: index + 1,
+        questionCode,
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+      };
+    })
+  );
 
   const quiz = await db.quiz.create({
     data: {
@@ -19,20 +40,7 @@ const createQuiz = async (data, userId) => {
       taskId,
       createdById: userId,
       questions: {
-        create: await Promise.all(
-          questions.map(async (q, index) => {
-            const questionCode = await generateSystemCode('QUIZ_QUESTION');
-            return {
-              questionText: q.questionText,
-              type: q.type,
-              marks: q.marks,
-              orderIndex: index + 1,
-              questionCode,
-              options: q.options,
-              correctAnswer: q.correctAnswer,
-            };
-          })
-        ),
+        create: mappedQuestions,
       },
     },
     include: {
@@ -339,6 +347,47 @@ const updateQuiz = async (quizId, data, userId) => {
   return finalQuiz;
 };
 
+const getQuizOptions = async () => {
+  const quizzes = await db.quiz.findMany({
+    select: {
+      id: true,
+      title: true,
+      quizCode: true,
+      description: true,
+      isActive: true,
+      createdAt: true,
+      createdBy: {
+        select: {
+          id: true,
+          email: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+    },
+    where: {
+      isActive: true,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  return quizzes.map((quiz) => ({
+    value: quiz.id,
+    label: `${quiz.quizCode} ${quiz.title}`,
+    description: quiz.description,
+    createdBy:
+      `${quiz.createdBy.profile?.firstName || ''} ${
+        quiz.createdBy.profile?.lastName || ''
+      }`.trim() || quiz.createdBy.email,
+  }));
+};
+
 const quizService = {
   createQuiz,
   getQuizByTaskId,
@@ -346,6 +395,8 @@ const quizService = {
   submitQuizAnswer,
   completeQuizAttempt,
   reviewQuizAttempt,
+  listQuizzes,
+  getQuizOptions,
 };
 
 module.exports = quizService;

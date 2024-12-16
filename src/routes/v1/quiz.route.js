@@ -5,6 +5,18 @@ const quizController = require('../../controllers/quiz.controller');
 
 const quizRouter = express.Router();
 
+/**
+ * @route   GET /api/quiz/options
+ * @desc    Get quiz options for dropdowns
+ * @access  Protected (ADMIN, COACH)
+ */
+quizRouter.get(
+  '/options',
+  checkJWT,
+  checkRole(['ADMIN', 'COACH']),
+  quizController.getQuizOptionsHandler
+);
+
 quizRouter.get(
   '/',
   checkJWT,

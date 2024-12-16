@@ -9,6 +9,7 @@ const Mailgen = require('mailgen');
 const sendMail = require('../../../utils/sendEmail');
 const db = require('../../../database/prisma');
 const hashPassword = require('../../../utils/hashPassword');
+const { getDomainFromAdmin } = require('../../../utils/getDomainFromAdmin');
 
 const router = express.Router();
 
@@ -17,7 +18,13 @@ router.use(
   express.raw({ type: 'application/json' })
 );
 
-const sendCredentialsEmail = async (email, password, firstName, lastName) => {
+const sendCredentialsEmail = async (
+  email,
+  password,
+  firstName,
+  lastName,
+  domain
+) => {
   const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
@@ -34,6 +41,7 @@ const sendCredentialsEmail = async (email, password, firstName, lastName) => {
       dictionary: {
         Email: email,
         Password: password,
+        Academy: domain,
       },
       outro: [
         'Please login with these credentials and change your password immediately.',
@@ -159,6 +167,9 @@ router.post('/stripe/student', async (req, res) => {
 
         const program = await prisma.academyProgram.findUnique({
           where: { id: programId },
+          include: {
+            academy: true,
+          },
         });
 
         if (program) {
@@ -200,7 +211,8 @@ router.post('/stripe/student', async (req, res) => {
           signup.email,
           tempPassword,
           signup.firstName,
-          signup.lastName
+          signup.lastName,
+          getDomainFromAdmin(program.academy.domain)
         );
       });
     }

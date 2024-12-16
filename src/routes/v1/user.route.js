@@ -57,4 +57,18 @@ userRouter.patch(
   userController.updatePasswordHandler
 );
 
+userRouter.post(
+  '/request-email-change',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  userController.requestEmailChange
+);
+
+userRouter.post(
+  '/verify-email-change',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  userController.verifyEmailChange
+);
+
 module.exports = userRouter;

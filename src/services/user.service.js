@@ -635,6 +635,110 @@ const updatePasswordHandler = async (data, loggedInUser) => {
   return updatedUser;
 };
 
+const requestEmailChangeHandler = async (userId, newEmail, academyDomain) => {
+  const existingUser = await db.user.findUnique({
+    where: { email: newEmail },
+  });
+
+  if (existingUser) {
+    throw new ApiError(httpStatus.CONFLICT, 'Email is already in use.');
+  }
+
+  const token = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date();
+  expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+
+  await db.emailVerificationToken.deleteMany({
+    where: {
+      userId,
+      newEmail,
+    },
+  });
+
+  await db.emailVerificationToken.create({
+    data: {
+      userId,
+      newEmail,
+      token,
+      expiresAt,
+    },
+  });
+
+  const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: {
+      name: 'Chess in Chunks',
+      link: academyDomain,
+    },
+  });
+
+  const mailgenBody = {
+    body: {
+      name: 'User',
+      intro: 'You requested to change your email address on Chess in Chunks.',
+      action: {
+        instructions:
+          'Please use the following OTP to verify your new email address within 10 minutes:',
+        button: {
+          color: '#22BC66',
+          text: `${token}`,
+          link: academyDomain,
+        },
+      },
+      outro:
+        'If you did not request this, please ignore this email or contact our support.',
+    },
+  };
+
+  const emailBody = mailGenerator.generate(mailgenBody);
+  const emailText = mailGenerator.generatePlaintext(mailgenBody);
+
+  await sendEmail({
+    to: newEmail,
+    subject: 'Verify Your New Email Address - Chess in Chunks',
+    text: emailText,
+    html: emailBody,
+  });
+
+  return { message: 'OTP has been sent to your new email address.' };
+};
+
+/**
+ * Verify the OTP and change the user's email if valid.
+ * @param {string} userId The ID of the logged-in user.
+ * @param {string} token The OTP provided by the user.
+ */
+const verifyEmailChangeHandler = async (userId, token) => {
+  const record = await db.emailVerificationToken.findFirst({
+    where: {
+      userId,
+      token,
+    },
+  });
+
+  if (!record) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Invalid OTP.');
+  }
+
+  if (record.expiresAt < new Date()) {
+    await db.emailVerificationToken.delete({
+      where: { id: record.id },
+    });
+    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP has expired.');
+  }
+
+  await db.user.update({
+    where: { id: userId },
+    data: { email: record.newEmail },
+  });
+
+  await db.emailVerificationToken.delete({
+    where: { id: record.id },
+  });
+
+  return { message: 'Email updated successfully.' };
+};
+
 const userService = {
   fetchAllUsersHandler,
   signUpSubscriberHandler,
@@ -643,6 +747,8 @@ const userService = {
   updateUserHandler,
   fetchProfileById,
   updatePasswordHandler,
+  requestEmailChangeHandler,
+  verifyEmailChangeHandler,
 };
 
 module.exports = userService;

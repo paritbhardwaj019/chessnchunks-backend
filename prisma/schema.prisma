@@ -31,7 +31,7 @@ model Task {
   assignedToAcademy   Academy? @relation("AssignedToAcademy", fields: [assignedToAcademyId], references: [id])
 
   studentQuizAttempts StudentQuizAttempt[]
-  quizzes Quiz[]
+  quizzes             Quiz[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -78,7 +78,8 @@ model User {
 
   code String @unique
 
-   subRole     COACH_ROLE? 
+  subRole COACH_ROLE?
+   emailVerificationTokens EmailVerificationToken[]
 
   friends  User[] @relation("UserFriends")
   friendOf User[] @relation("UserFriends")
@@ -106,8 +107,8 @@ model User {
   role    Role     @relation(fields: [roleId], references: [id])
   profile Profile?
 
-  createdQuizzes Quiz[] @relation("QuizCreatedBy")
-  quizAttempts StudentQuizAttempt[]
+  createdQuizzes Quiz[]               @relation("QuizCreatedBy")
+  quizAttempts   StudentQuizAttempt[]
 
   userSignup           UserSignup?
   studentSubscriptions StudentSubscription[]
@@ -119,7 +120,7 @@ model User {
 }
 
 model Profile {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   firstName    String
   middleName   String?
   lastName     String
@@ -132,7 +133,7 @@ model Profile {
   country      String?
   parentName   String?
   parentEmail  String?
-  chessComId   String?  @unique
+  chessComId   String?   @unique
   lichessId    String?
   uscfId       String?
   imageUrl     String?
@@ -147,18 +148,18 @@ model Profile {
 }
 
 model Academy {
-  id            String    @id @default(uuid())
-  name          String
-  logo          String?  
+  id   String  @id @default(uuid())
+  name String
+  logo String?
 
-  admins        User[]    @relation("AcademyAdmins")
-  batches       Batch[]
+  admins  User[]  @relation("AcademyAdmins")
+  batches Batch[]
 
-  signupId      String?   @unique
-  signup        AcademySignup? @relation(fields: [signupId], references: [id])
+  signupId String?        @unique
+  signup   AcademySignup? @relation(fields: [signupId], references: [id])
 
-  planId        String?
-  plan          Plan?     @relation(fields: [planId], references: [id])
+  planId String?
+  plan   Plan?   @relation(fields: [planId], references: [id])
 
   subscriptions  Subscription[]
   purchasedPlans PurchasedPlan[]
@@ -166,19 +167,21 @@ model Academy {
   status        USER_STATUS @default(ACTIVE)
   assignedTasks Task[]      @relation("AssignedToAcademy")
 
-  academyPlans  AcademyProgram[]
+  academyPlans AcademyProgram[]
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  userSignups   UserSignup[] @relation("AcademySignups")
+  userSignups UserSignup[] @relation("AcademySignups")
 
-  isDefault     Boolean @default(false)
-  signUpFee     Float?
+  isDefault Boolean @default(false)
+  signUpFee Float?
 
   usersAssigned User[] @relation("AcademyUsers")
 
-    navigation AcademyNavigation[]
+  navigation AcademyNavigation[]
+
+  pages Page[]
 
   domain        String?        @unique
   events        Event[]        @relation("AcademyEvents")
@@ -637,14 +640,14 @@ enum ACADEMY_SIGNUP_STATUS {
 }
 
 model Plan {
-  id            String    @id @default(uuid())
-  name          String
-  maxUsers      Int
-  academyPrice  Float
+  id              String  @id @default(uuid())
+  name            String
+  maxUsers        Int
+  academyPrice    Float
   subscriberPrice Float
-  features      Json?
-  isFeatured    Boolean   @default(false)
-  planId        String
+  features        Json?
+  isFeatured      Boolean @default(false)
+  planId          String
 
   academies      Academy[]
   subscriptions  Subscription[]
@@ -681,12 +684,11 @@ model AcademyProgram {
 
   isSignUpFee Boolean @default(false)
 
-  creditPoints Int?              @default(0)
-  condition   PROGRAM_CONDITION?
+  creditPoints Int?               @default(0)
+  condition    PROGRAM_CONDITION?
 
   discountRules  Json?
   discountAmount Float?
-
 
   latePaymentFees Float?
   dueDate         DateTime?
@@ -767,7 +769,6 @@ model AcademySignup {
   email       String  @unique
   phoneNumber String
   logoUrl     String?
-
 
   selectedPlanId String?
   selectedPlan   Plan?   @relation(fields: [selectedPlanId], references: [id])
@@ -932,25 +933,24 @@ enum QUESTION_TYPE {
   MATCHING
 }
 
-
 model Quiz {
-  id           String    @id @default(uuid())
-  quizCode     String    @unique
+  id           String  @id @default(uuid())
+  quizCode     String  @unique
   title        String
   description  String?
-  timeLimit    Int?    
+  timeLimit    Int?
   passingScore Float?
-  isActive     Boolean   @default(true)
-  
-  questions    QuizQuestion[]
-  task         Task      @relation(fields: [taskId], references: [id])
-  taskId       String
-  
-  createdById  String
-  createdBy    User      @relation("QuizCreatedBy", fields: [createdById], references: [id])
-  
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  isActive     Boolean @default(true)
+
+  questions QuizQuestion[]
+  task      Task?           @relation(fields: [taskId], references: [id])
+  taskId    String?
+
+  createdById String
+  createdBy   User   @relation("QuizCreatedBy", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("quizzes")
 }
@@ -958,90 +958,153 @@ model Quiz {
 model QuizQuestion {
   id            String        @id @default(uuid())
   questionCode  String        @unique
-  questionText  String        @db.Text
+  questionText  String       
   type          QUESTION_TYPE
   marks         Float
   orderIndex    Int
-  options       Json 
+  options       Json
   correctAnswer String
-  
-  quizId        String
-  quiz          Quiz         @relation(fields: [quizId], references: [id])
-  
+
+  quizId String
+  quiz   Quiz   @relation(fields: [quizId], references: [id])
+
   studentAnswers StudentQuizAnswer[]
-  
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("quiz_questions")
 }
 
-
 model StudentQuizAttempt {
-  id          String   @id @default(uuid())
-  startTime   DateTime
-  endTime     DateTime?
-  score       Float?
-  status      TASK_STATUS
-  
-  taskId      String
-  task        Task     @relation(fields: [taskId], references: [id])
-  
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  
-  answers     StudentQuizAnswer[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String      @id @default(uuid())
+  startTime DateTime
+  endTime   DateTime?
+  score     Float?
+  status    TASK_STATUS
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  answers StudentQuizAnswer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("student_quiz_attempts")
 }
 
 model StudentQuizAnswer {
-  id          String   @id @default(uuid())
-  answerText  String   @db.Text
-  isCorrect   Boolean?
+  id            String   @id @default(uuid())
+  answerText    String   @db.Text
+  isCorrect     Boolean?
   marksObtained Float?
-  
-  questionId  String
-  question    QuizQuestion @relation(fields: [questionId], references: [id])
-  
-  attemptId   String
-  attempt     StudentQuizAttempt @relation(fields: [attemptId], references: [id])
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  questionId String
+  question   QuizQuestion @relation(fields: [questionId], references: [id])
+
+  attemptId String
+  attempt   StudentQuizAttempt @relation(fields: [attemptId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("student_quiz_answers")
 }
 
 model AcademyNavigation {
-  id          String    @id @default(uuid())
-  title       String
-  slug        String
-  order       Int
-  isActive    Boolean   @default(true)
-  parentId    String?
-  parent      AcademyNavigation?  @relation("NavParentChild", fields: [parentId], references: [id])
-  children    AcademyNavigation[] @relation("NavParentChild")
-  
-  academyId   String
-  academy     Academy   @relation(fields: [academyId], references: [id])
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id       String              @id @default(uuid())
+  title    String
+  slug     String
+  order    Int
+  isActive Boolean             @default(true)
+  parentId String?
+  parent   AcademyNavigation?  @relation("NavParentChild", fields: [parentId], references: [id])
+  children AcademyNavigation[] @relation("NavParentChild")
+
+  academyId String
+  academy   Academy @relation(fields: [academyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([academyId, slug])
   @@map("academy_navigations")
 }
 
-model SignupOTP  {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  otp       String
-  expiresAt DateTime
-  verified  Boolean  @default(false)
+enum PAGE_STATUS {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum COMPONENT_TYPE {
+  PAGE_HEADER
+  LEVEL_CARD
+  CHESS_BATCH
+  CONTACT_SECTION
+  TEXT_BLOCK
+  IMAGE_BLOCK
+  HERO_SECTION
+  PROGRAM_LIST
+  TESTIMONIAL
+  COACH_PROFILE
+  NEWS_SECTION
+  ACHIEVEMENT_SHOWCASE
+  SEPARATOR
+  SECTION_HEADER
+}
+
+model Page {
+  id          String      @id @default(uuid())
+  title       String
+  slug        String
+  description String?
+  status      PAGE_STATUS @default(DRAFT)
+  isHome      Boolean     @default(false)
+
+  metaTitle       String?
+  metaDescription String?
+
+  academyId String
+  academy   Academy @relation(fields: [academyId], references: [id])
+
+  components PageComponent[]
+
+  publishedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([academyId, slug])
+  @@map("pages")
+}
+
+model PageComponent {
+  id    String         @id @default(uuid())
+  type  COMPONENT_TYPE
+  props Json 
+  order Int
+
+  pageId String
+  page   Page   @relation(fields: [pageId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("page_components")
+}
+
+model EmailVerificationToken {
+  id         String   @id @default(uuid())
+  userId     String
+  newEmail   String
+  token      String
+  expiresAt  DateTime
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
 }
