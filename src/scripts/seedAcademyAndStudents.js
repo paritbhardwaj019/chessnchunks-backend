@@ -7,7 +7,7 @@ const academyData = {
   name: 'Chess In Chunks Academy',
   logo: 'https://placeholder.com/logo.png',
   isDefault: true,
-  domain: 'https://chess-in-chunks.localhost:3001',
+  domain: 'http://chess-in-chunks.localhost:3001',
 };
 
 const DEFAULT_PASSWORD = 'password1';
