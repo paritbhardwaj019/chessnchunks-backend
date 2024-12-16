@@ -111,9 +111,6 @@ const loginWithPasswordHandler = async (data, host) => {
     },
   });
 
-  console.log('USER', user);
-  console.log('DATA', { email, password });
-
   if (!user || !user.password) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
   }
@@ -142,6 +139,13 @@ const loginWithPasswordHandler = async (data, host) => {
     config.jwt.secret,
     '7d'
   );
+
+  await db.user.update({
+    where: { id: user.id },
+    data: {
+      lastLoginAt: new Date(),
+    },
+  });
 
   return {
     token,
@@ -299,6 +303,13 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
       );
     }
   }
+
+  await db.user.update({
+    where: { id: user.id },
+    data: {
+      lastLoginAt: new Date(),
+    },
+  });
 
   return {
     token,

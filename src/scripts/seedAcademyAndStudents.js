@@ -12,6 +12,19 @@ const academyData = {
 
 const DEFAULT_PASSWORD = 'password1';
 
+const adminData = {
+  email: 'admin@chessinchunks.com',
+  firstName: 'Admin',
+  lastName: 'ChessInChunks',
+  dateOfBirth: new Date('1985-01-01'),
+  phoneNumber: '+1234567897',
+  addressLine1: '123 Admin Street',
+  city: 'Chess City',
+  state: 'Chess State',
+  country: 'USA',
+  adminRole: 'MASTER_ADMIN',
+};
+
 const students = [
   {
     email: 'kitten@example.com',
@@ -135,6 +148,12 @@ async function main() {
       throw new Error('Failed to hash password');
     }
 
+    const adminRole = await prisma.role.upsert({
+      where: { name: 'ADMIN' },
+      update: {},
+      create: { name: 'ADMIN' },
+    });
+
     const studentRole = await prisma.role.upsert({
       where: { name: 'STUDENT' },
       update: {},
@@ -157,6 +176,41 @@ async function main() {
     });
 
     logger.info(`Academy created: ${academy.name}`);
+
+    const admin = await prisma.user.create({
+      data: {
+        email: adminData.email,
+        password: hashedPassword,
+        status: 'ACTIVE',
+        adminRole: adminData.adminRole,
+        code: `ADMIN${Math.random()
+          .toString(36)
+          .substring(2, 8)
+          .toUpperCase()}`,
+        roleId: adminRole.id,
+        profile: {
+          create: {
+            firstName: adminData.firstName,
+            lastName: adminData.lastName,
+            dateOfBirth: adminData.dateOfBirth,
+            phoneNumber: adminData.phoneNumber,
+            addressLine1: adminData.addressLine1,
+            city: adminData.city,
+            state: adminData.state,
+            country: adminData.country,
+          },
+        },
+        adminOfAcademies: {
+          connect: [{ id: academy.id }],
+        },
+        assignedToAcademyId: academy.id,
+      },
+      include: {
+        profile: true,
+      },
+    });
+
+    logger.info(`Admin created: ${admin.email}`);
 
     const createdCoaches = [];
     for (const coachData of coaches) {
@@ -202,8 +256,8 @@ async function main() {
       data: {
         ...batchData,
         academyId: academy.id,
-        createdBy: createdCoaches[0].id,
-        modifiedBy: createdCoaches[0].id,
+        createdBy: admin.id,
+        modifiedBy: admin.id,
         coaches: {
           connect: createdCoaches.map((coach) => ({ id: coach.id })),
         },

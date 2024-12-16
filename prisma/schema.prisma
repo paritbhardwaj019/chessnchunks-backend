@@ -55,6 +55,11 @@ enum TASK_STATUS {
   COMPLETED
 }
 
+enum ADMIN_ROLE {
+  MASTER_ADMIN
+  ACADEMY_ADMIN
+}
+
 model User {
   id          String      @id @default(uuid())
   email       String      @unique
@@ -109,6 +114,8 @@ model User {
 
   createdQuizzes Quiz[]               @relation("QuizCreatedBy")
   quizAttempts   StudentQuizAttempt[]
+
+  adminRole   ADMIN_ROLE? 
 
   userSignup           UserSignup?
   studentSubscriptions StudentSubscription[]
@@ -205,6 +212,8 @@ model Batch {
   endDate         DateTime?
   isActive        Boolean   @default(true)
   warningMailSent Boolean   @default(false)
+  waitlistCount       Int       @default(0)
+
 
   academyId String
   academy   Academy @relation(fields: [academyId], references: [id])
@@ -532,6 +541,7 @@ enum PLAN_TYPE {
 enum CODE_TYPE {
   FORGOT_PASSWORD
   LOGIN_WITHOUT_PASSWORD
+  ADMIN_SETUP
 }
 
 enum INVITATION_TYPE {
@@ -1107,4 +1117,13 @@ model EmailVerificationToken {
 
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId])
+}
+model SignupOTP  {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  otp       String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
