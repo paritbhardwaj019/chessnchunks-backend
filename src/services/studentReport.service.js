@@ -5,80 +5,117 @@ const logger = require('../utils/logger');
 
 const getStudentPerformanceHandler = async (filters = {}) => {
   try {
-    const { studentId, timeframe = 'weekly', batchId, academyId } = filters;
+    const { academyId, studentId, batchId, searchQuery } = filters;
 
-    console.log('FILTERS', filters);
-
-    let dateFilter = getDateFilterByTimeframe(timeframe);
-
-    const query = `
+    const studentsQuery = `
       SELECT 
         u.id as userId,
         p.firstName,
         p.lastName,
         p.chessComId,
-        cs.RapidLastRating,
-        cs.RapidBest,
-        cs.RapidWin + cs.RapidLoss + cs.RapidDraw as totalGames,
-        cs.RapidWin as wins,
-        cs.RapidLoss as losses,
-        cs.RapidDraw as draws,
-        ROUND((cs.RapidWin / NULLIF(cs.RapidWin + cs.RapidLoss + cs.RapidDraw, 0)) * 100, 2) as winRate,
-        cs.RapidDifference as ratingChange,
-        cs.TacticsHighestRating,
-        cs.RushBestScore,
-        cs.CreatedDate as lastUpdated,
         b.batchCode,
         b.currentClass,
-        b.currentLevel
+        b.currentLevel,
+        a.name as academyName
       FROM users u
-      JOIN profiles p ON u.id = p.userId
-      JOIN user_chess_stats cs ON u.code = cs.UserId
-      JOIN _BatchStudents bs ON u.id = bs.B
-      JOIN batches b ON bs.A = b.id
-      WHERE 1=1
-      ${studentId ? 'AND u.id = ?' : ''}
-      ${batchId ? 'AND b.id = ?' : ''}
-      ${dateFilter}
-      ORDER BY cs.RapidLastRating DESC
+      JOIN roles r ON u.roleId COLLATE utf8mb4_unicode_ci = r.id COLLATE utf8mb4_unicode_ci
+      LEFT JOIN profiles p ON u.id COLLATE utf8mb4_unicode_ci = p.userId COLLATE utf8mb4_unicode_ci
+      LEFT JOIN _BatchStudents bs ON u.id COLLATE utf8mb4_unicode_ci = bs.B COLLATE utf8mb4_unicode_ci
+      LEFT JOIN batches b ON bs.A COLLATE utf8mb4_unicode_ci = b.id COLLATE utf8mb4_unicode_ci
+      LEFT JOIN academies a ON b.academyId COLLATE utf8mb4_unicode_ci = a.id COLLATE utf8mb4_unicode_ci
+      WHERE r.name COLLATE utf8mb4_unicode_ci = 'STUDENT'
+      ${
+        academyId
+          ? 'AND (a.id COLLATE utf8mb4_unicode_ci = ? OR a.id IS NULL)'
+          : ''
+      }
+      ${studentId ? 'AND u.id COLLATE utf8mb4_unicode_ci = ?' : ''}
+      ${
+        batchId
+          ? 'AND (b.id COLLATE utf8mb4_unicode_ci = ? OR b.id IS NULL)'
+          : ''
+      }
+      ${
+        searchQuery
+          ? 'AND (p.firstName COLLATE utf8mb4_unicode_ci LIKE ? OR p.lastName COLLATE utf8mb4_unicode_ci LIKE ? OR p.chessComId COLLATE utf8mb4_unicode_ci LIKE ?)'
+          : ''
+      }
+      ORDER BY p.firstName COLLATE utf8mb4_unicode_ci, p.lastName COLLATE utf8mb4_unicode_ci
     `;
 
-    const queryParams = [
+    const studentQueryParams = [
+      ...(academyId ? [academyId] : []),
       ...(studentId ? [studentId] : []),
       ...(batchId ? [batchId] : []),
+      ...(searchQuery
+        ? [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`]
+        : []),
     ];
 
-    const [results] = await mysqlPool.query(query, queryParams);
+    const chessStatsQuery = `
+      SELECT *
+      FROM user_chess_stats
+      ORDER BY CreatedDate DESC
+    `;
 
-    console.log('RESULTS', results);
+    const [students] = await mysqlPool.query(studentsQuery, studentQueryParams);
+    const [chessStats] = await mysqlPool.query(chessStatsQuery);
 
-    return results.map((student) => ({
-      studentInfo: {
-        id: student.userId,
-        name: `${student.firstName} ${student.lastName}`,
-        chessComId: student.chessComId,
-        batch: student.batchCode,
-        class: student.currentClass,
-        level: student.currentLevel,
-      },
-      ratings: {
-        current: student.RapidLastRating,
-        best: student.RapidBest,
-        tactics: student.TacticsHighestRating,
-        puzzleRush: student.RushBestScore,
-      },
-      performance: {
-        totalGames: student.totalGames,
-        wins: student.wins,
-        losses: student.losses,
-        draws: student.draws,
-        winRate: student.winRate,
-        ratingChange: student.ratingChange,
-      },
-      lastUpdated: student.lastUpdated,
-    }));
+    const chessStatsMap = chessStats.reduce((acc, stat) => {
+      if (
+        !acc[stat.UserId] ||
+        new Date(stat.CreatedDate) > new Date(acc[stat.UserId].CreatedDate)
+      ) {
+        acc[stat.UserId] = stat;
+      }
+      return acc;
+    }, {});
+
+    return students.map((student) => {
+      const stats = chessStatsMap[student.userId] || {};
+
+      return {
+        studentInfo: {
+          id: student.userId,
+          name:
+            student.firstName && student.lastName
+              ? `${student.firstName} ${student.lastName}`
+              : 'N/A',
+          chessComId: student.chessComId || 'N/A',
+          batch: student.batchCode || 'Unassigned',
+          class: student.currentClass || 'N/A',
+          level: student.currentLevel || 'N/A',
+          academy: student.academyName || 'Unassigned',
+        },
+        ratings: {
+          current: stats.RapidLastRating || 0,
+          best: stats.RapidBest || 0,
+          tactics: stats.TacticsHighestRating || 0,
+          puzzleRush: stats.RushBestScore || 0,
+        },
+        performance: {
+          totalGames:
+            (stats.RapidWin || 0) +
+            (stats.RapidLoss || 0) +
+            (stats.RapidDraw || 0),
+          wins: stats.RapidWin || 0,
+          losses: stats.RapidLoss || 0,
+          draws: stats.RapidDraw || 0,
+          winRate: stats.RapidWin
+            ? Math.round(
+                (stats.RapidWin /
+                  (stats.RapidWin + stats.RapidLoss + stats.RapidDraw)) *
+                  100 *
+                  100
+              ) / 100
+            : 0,
+          ratingChange: stats.RapidDifference || 0,
+        },
+        lastUpdated: stats.CreatedDate || null,
+      };
+    });
   } catch (error) {
-    logger.error('Error in getStudentPerformanceHandler:', error);
+    console.log(error);
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Error fetching student performance data'
@@ -191,13 +228,13 @@ const getStudentComparisonHandler = async (studentId, batchId) => {
 const getDateFilterByTimeframe = (timeframe) => {
   switch (timeframe) {
     case 'weekly':
-      return 'AND cs.CreatedDate >= DATE_SUB(NOW(), INTERVAL 1 WEEK)';
+      return 'AND (cs.CreatedDate >= DATE_SUB(NOW(), INTERVAL 1 WEEK) OR cs.CreatedDate IS NULL)';
     case 'monthly':
-      return 'AND cs.CreatedDate >= DATE_SUB(NOW(), INTERVAL 1 MONTH)';
+      return 'AND (cs.CreatedDate >= DATE_SUB(NOW(), INTERVAL 1 MONTH) OR cs.CreatedDate IS NULL)';
     case 'seasonal':
-      return 'AND cs.CreatedDate >= DATE_SUB(NOW(), INTERVAL 3 MONTH)';
+      return 'AND (cs.CreatedDate >= DATE_SUB(NOW(), INTERVAL 3 MONTH) OR cs.CreatedDate IS NULL)';
     default:
-      return 'AND cs.CreatedDate >= DATE_SUB(NOW(), INTERVAL 1 WEEK)';
+      return 'AND (cs.CreatedDate >= DATE_SUB(NOW(), INTERVAL 1 WEEK) OR cs.CreatedDate IS NULL)';
   }
 };
 

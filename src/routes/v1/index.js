@@ -34,7 +34,6 @@ const router = express.Router();
 
 router.use('/academy', academyRouter);
 router.use('/superadmin', superAdminRouter);
-router.use('/admin', adminRouter);
 router.use('/coach', coachRouter);
 router.use('/batch', batchRouter);
 router.use('/auth', authRouter);
@@ -61,5 +60,6 @@ router.use('/pages', pageRouter);
 router.use('/reports/batches', batchReportRouter);
 router.use('/reports/enrollments', enrollmentReportRouter);
 router.use('/reports/students', studentReportRouter);
+router.use('/admins', adminRouter);
 
 module.exports = router;

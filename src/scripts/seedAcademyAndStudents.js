@@ -22,6 +22,7 @@ const adminData = {
   city: 'Chess City',
   state: 'Chess State',
   country: 'USA',
+  adminRole: 'MASTER_ADMIN',
 };
 
 const students = [
@@ -181,6 +182,7 @@ async function main() {
         email: adminData.email,
         password: hashedPassword,
         status: 'ACTIVE',
+        adminRole: adminData.adminRole,
         code: `ADMIN${Math.random()
           .toString(36)
           .substring(2, 8)
