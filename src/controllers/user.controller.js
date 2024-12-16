@@ -55,7 +55,8 @@ const fetchProfileByIdHandler = catchAsync(async (req, res) => {
 });
 
 const updatePasswordHandler = catchAsync(async (req, res) => {
-  const { id } = req.params;
+  console.log("req==>",req.params.id);
+  const id  = await req.params.id;
   const updatedUser = await userService.updatePasswordHandler(
     {
       ...req.body,

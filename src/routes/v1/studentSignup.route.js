@@ -12,7 +12,7 @@ router
 router
   .route('/:id')
   .get(studentSignupController.fetchSignupById)
-  .put(checkJWT, studentSignupController.updateSignupHandler);
+  .put(studentSignupController.updateSignupHandler);
 
 router
   .route('/:id/verify-email')
@@ -43,5 +43,9 @@ router
 router
   .route('/subscriptions')
   .get(checkJWT, studentSignupController.getActiveSubscriptions);
+
+router
+  .route('/:id/update-password')
+  .put(studentSignupController.updatePasswordHandler);
 
 module.exports = router;

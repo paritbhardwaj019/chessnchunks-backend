@@ -29,7 +29,7 @@ authRouter.post(
 
 authRouter.post(
   '/update-password',
-  checkJWT,
+  // checkJWT,
   checkRole(['ADMIN', 'COACH', 'SUPER_ADMIN']),
   authController.updatePasswordHandler
 );
