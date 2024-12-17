@@ -73,14 +73,6 @@ const getBatchesSnapshotHandler = async (filters = {}) => {
         switch (subscription.paymentStatus) {
           case PAYMENT_STATUS.COMPLETED:
             acc.paid++;
-            // Track upcoming renewals
-            if (
-              subscription.nextBillingDate &&
-              new Date(subscription.nextBillingDate) <=
-                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-            ) {
-              acc.upcomingRenewals++;
-            }
             break;
           case PAYMENT_STATUS.PENDING:
             acc.pending++;
@@ -106,35 +98,23 @@ const getBatchesSnapshotHandler = async (filters = {}) => {
         new: 0,
         withhold: 0,
         overdue: 0,
-        upcomingRenewals: 0,
       }
     );
 
     return {
+      id: batch.id,
       batchCode: batch.batchCode,
       timing: {
         startDate: batch.startDate,
         endDate: batch.endDate,
         day: batch.batchDay,
         time: batch.startTime,
-        duration: '1.5 hours', // You might want to make this configurable
-      },
-      levels: {
-        start: batch.startLevel,
-        current: batch.currentLevel,
-        currentClass: batch.currentClass,
       },
       enrollment: {
         ...studentStatus,
         total: batch._count.students,
         capacity: batch.studentCapacity,
-        warning: batch.warningCutoff,
       },
-      capacityStatus: getCapacityStatus(
-        batch._count.students,
-        batch.studentCapacity,
-        batch.warningCutoff
-      ),
     };
   });
 
@@ -143,7 +123,9 @@ const getBatchesSnapshotHandler = async (filters = {}) => {
 
 const getBatchSummaryHandler = async (batchId) => {
   const batchSummary = await db.batch.findUnique({
-    where: { id: batchId },
+    where: {
+      id: batchId,
+    },
     include: {
       students: {
         select: {

@@ -104,10 +104,10 @@ router.post('/stripe/student', async (req, res) => {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
-      const { programId, userEmail } = session.metadata;
+      const { programId, signupId } = session.metadata;
 
       const signup = await db.userSignup.findFirst({
-        where: { email: userEmail },
+        where: { email: signupId },
         include: {
           interestedBatch: true,
         },

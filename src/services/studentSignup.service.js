@@ -1,6 +1,6 @@
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
-const ApiError = require('../utils/apiError')
+const ApiError = require('../utils/apiError');
 const { generateOTP } = require('../utils/generateOTP');
 const hashPassword = require('../utils/hashPassword');
 const {
@@ -100,11 +100,11 @@ const validateBatchCapacity = async (batchId) => {
   return batch;
 };
 
-const sendSignupEmail = async (signup,otp) => {
+const sendSignupEmail = async (signup, otp) => {
   const token = await createToken(
     {
       id: signup.id,
-      email: signup.email
+      email: signup.email,
     },
     config.jwt.invitationSecret,
     '3d'
@@ -155,7 +155,7 @@ const sendSignupEmail = async (signup,otp) => {
       'Start Date': new Date(
         signup.interestedBatch.startDate
       ).toLocaleDateString(),
-      'otp':otp
+      otp: otp,
     };
   }
 
@@ -275,7 +275,7 @@ const createSignupHandler = async (data, academyId) => {
     },
   });
 
-  await sendSignupEmail(signup,otp);
+  await sendSignupEmail(signup, otp);
 
   return signup;
 };
@@ -652,6 +652,7 @@ const studentSignupService = {
   getActiveSubscriptionsHandler,
   addProgramPurchaseHandler,
   handleExpiredSignups,
+  sendSignupEmail,
 };
 
 module.exports = studentSignupService;

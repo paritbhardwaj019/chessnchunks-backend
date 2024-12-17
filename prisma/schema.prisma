@@ -129,8 +129,8 @@ model User {
 model Profile {
   id           String    @id @default(uuid())
   firstName    String
-  middleName   String?
   lastName     String
+  middleName   String?
   dateOfBirth  DateTime? @default(now())
   phoneNumber  String?
   addressLine1 String?
@@ -862,24 +862,22 @@ enum AUTH_TYPE {
 }
 
 model UserSignup {
-  id           String             @id @default(uuid())
+ id           String             @id @default(uuid())
   email        String             @unique
+  firstName    String
+  lastName     String
+  phoneNumber  String
+  userRole     ROLE
   signupStage  REGISTRATION_STAGE @default(INQUIRY)
   signupStatus SIGNUP_STATUS      @default(INQUIRY)
 
   signupId String @unique
-
-  firstName   String
   middleName  String?
-  lastName    String
-  userRole    ROLE
   coachType   COACH_ROLE?
-  dateOfBirth DateTime
+  dateOfBirth DateTime?
   parentName  String?
   parentEmail String?
-
-  phoneNumber  String
-  addressLine1 String
+  addressLine1 String?
   addressLine2 String?
   city         String
   state        String
@@ -887,10 +885,14 @@ model UserSignup {
   zipCode      String
   password     String?
  
+  city         String?
+  state        String?
+  country      String?
+  zipCode      String?
+  chessComId   String? @unique
+  lichessId    String?
+  uscfId       String?
 
-  chessComId String? @unique
-  lichessId  String?
-  uscfId     String?
   cicId      String? @unique
 
   invitation Invitation?

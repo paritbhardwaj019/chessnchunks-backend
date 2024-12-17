@@ -1,5 +1,180 @@
 const defaultPages = [
   {
+    title: 'Home',
+    slug: 'home',
+    status: 'PUBLISHED',
+    isHome: true,
+    components: {
+      create: [
+        {
+          type: 'HERO_SECTION',
+          props: {
+            title: 'Welcome to Excellence in Chess',
+            subtitle: 'Develop your chess skills with expert guidance',
+            image: '/hero-chess.jpg',
+            className: {
+              container: 'relative h-[600px] flex items-center justify-center',
+              content: 'text-center space-y-6 z-10 relative',
+              title: 'text-5xl font-bold text-white mb-4',
+              subtitle: 'text-xl text-gray-200',
+              overlay: 'absolute inset-0 bg-black bg-opacity-50',
+            },
+          },
+          order: 1,
+        },
+        {
+          type: 'PROGRAM_LIST',
+          props: {
+            title: 'Our Programs',
+            programs: [
+              {
+                title: 'Beginner Classes',
+                description: 'Perfect for those starting their chess journey',
+                icon: '♟️',
+              },
+              {
+                title: 'Advanced Training',
+                description: 'For competitive players looking to excel',
+                icon: '♔',
+              },
+              {
+                title: 'Tournament Prep',
+                description: 'Specialized training for tournament players',
+                icon: '🏆',
+              },
+            ],
+            className: {
+              container: 'py-16 bg-gray-900',
+              title: 'text-3xl font-bold text-center text-white mb-12',
+              grid: 'grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4',
+              card: 'bg-gray-800 p-6 rounded-lg shadow-lg text-center',
+              icon: 'text-4xl mb-4',
+              programTitle: 'text-xl font-bold text-white mb-2',
+              description: 'text-gray-400',
+            },
+          },
+          order: 2,
+        },
+        {
+          type: 'COACH_PROFILE',
+          props: {
+            title: 'Meet Our Coaches',
+            coaches: [
+              {
+                name: 'Master John Doe',
+                title: 'FIDE Master',
+                rating: '2300+',
+                image: '/coach1.jpg',
+              },
+              {
+                name: 'Sarah Smith',
+                title: 'International Master',
+                rating: '2400+',
+                image: '/coach2.jpg',
+              },
+            ],
+            className: {
+              container: 'py-16 bg-gray-800',
+              title: 'text-3xl font-bold text-center text-white mb-12',
+              grid: 'grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto px-4',
+              card: 'bg-gray-900 p-6 rounded-lg shadow-lg',
+              image: 'w-32 h-32 rounded-full mx-auto mb-4',
+              name: 'text-xl font-bold text-white text-center',
+              title: 'text-gray-400 text-center',
+              rating: 'text-red-500 font-bold text-center mt-2',
+            },
+          },
+          order: 3,
+        },
+      ],
+    },
+  },
+  {
+    title: 'About Us',
+    slug: 'about-us',
+    status: 'PUBLISHED',
+    components: {
+      create: [
+        {
+          type: 'PAGE_HEADER',
+          props: {
+            title: 'About Our Academy',
+            subtitle: 'Building Chess Champions Since 2020',
+            className: 'text-center py-12 space-y-4',
+          },
+          order: 1,
+        },
+        {
+          type: 'TEXT_BLOCK',
+          props: {
+            content: [
+              {
+                paragraph:
+                  'We are dedicated to nurturing chess talent and promoting the royal game through structured, comprehensive training programs. Our academy combines traditional chess wisdom with modern teaching methods to create an engaging learning experience.',
+              },
+              {
+                paragraph:
+                  'With a team of experienced coaches and a proven curriculum, we help players of all levels achieve their chess goals.',
+              },
+            ],
+            className: {
+              container: 'max-w-3xl mx-auto px-4 py-6',
+              paragraph: 'text-gray-300 mb-4 leading-relaxed',
+            },
+          },
+          order: 2,
+        },
+        {
+          type: 'ACHIEVEMENT_SHOWCASE',
+          props: {
+            title: 'Our Achievements',
+            achievements: [
+              { number: '500+', text: 'Students Trained' },
+              { number: '50+', text: 'Tournament Winners' },
+              { number: '15+', text: 'National Champions' },
+              { number: '100%', text: 'Rating Improvement' },
+            ],
+            className: {
+              container: 'py-16 bg-gray-800',
+              title: 'text-3xl font-bold text-center text-white mb-12',
+              grid: 'grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto px-4',
+              item: 'text-center',
+              number: 'text-4xl font-bold text-red-500 mb-2',
+              text: 'text-gray-300',
+            },
+          },
+          order: 3,
+        },
+        {
+          type: 'TESTIMONIAL',
+          props: {
+            testimonials: [
+              {
+                text: 'The structured approach to learning chess here has completely transformed my game.',
+                author: 'Alex Johnson',
+                rating: 'Rating improved by 300 points',
+              },
+              {
+                text: "Best chess coaching experience I've had. The coaches are incredibly knowledgeable and supportive.",
+                author: 'Maria Garcia',
+                rating: 'National Junior Champion',
+              },
+            ],
+            className: {
+              container: 'py-16 bg-gray-900',
+              grid: 'grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto px-4',
+              card: 'bg-gray-800 p-6 rounded-lg shadow-lg',
+              text: 'text-gray-300 italic mb-4',
+              author: 'text-white font-bold',
+              rating: 'text-red-500',
+            },
+          },
+          order: 4,
+        },
+      ],
+    },
+  },
+  {
     title: 'Chess Coaching',
     slug: 'chess-coaching',
     status: 'PUBLISHED',
