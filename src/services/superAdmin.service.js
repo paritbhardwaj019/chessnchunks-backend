@@ -442,6 +442,7 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
       take: numberLimit,
       where: {
         name: { contains: query },
+        isDefault: false,
       },
       select: {
         id: true,
@@ -477,6 +478,7 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
       where: {
         id: { in: academyIDs },
         name: { contains: query },
+        isDefault: false,
       },
       select: {
         id: true,

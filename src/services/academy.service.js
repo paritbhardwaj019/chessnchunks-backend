@@ -291,14 +291,21 @@ const getAcademyByDomain = async (domain) => {
   return response;
 };
 
+const parseSlug = (slug) => {
+  const cleanedSlug = slug.replace(/^\/+|\/+$/g, '');
+  return `/${cleanedSlug}`;
+};
+
 const getPublicPageBySlug = async (domain, slug) => {
+  const parsedSlug = parseSlug(slug);
+
   const academy = await db.academy.findUnique({
     where: { domain },
     select: {
       id: true,
       pages: {
         where: {
-          slug,
+          slug: parsedSlug,
           status: 'PUBLISHED',
         },
         select: {

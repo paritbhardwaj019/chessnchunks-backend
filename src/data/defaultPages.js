@@ -1,7 +1,7 @@
 const defaultPages = [
   {
     title: 'Home',
-    slug: 'home',
+    slug: '/home',
     status: 'PUBLISHED',
     isHome: true,
     components: {
@@ -91,7 +91,7 @@ const defaultPages = [
   },
   {
     title: 'About Us',
-    slug: 'about-us',
+    slug: '/about',
     status: 'PUBLISHED',
     components: {
       create: [
@@ -176,7 +176,7 @@ const defaultPages = [
   },
   {
     title: 'Chess Coaching',
-    slug: 'chess-coaching',
+    slug: '/chess-coaching',
     status: 'PUBLISHED',
     components: {
       create: [
@@ -300,6 +300,123 @@ const defaultPages = [
             },
           },
           order: 7,
+        },
+      ],
+    },
+  },
+  {
+    title: 'Upcoming Events',
+    slug: '/events',
+    status: 'PUBLISHED',
+    components: {
+      create: [
+        {
+          type: 'PAGE_HEADER',
+          props: {
+            title: 'Upcoming Chess Events',
+            subtitle: 'Tournaments, Workshops, and Special Programs',
+            className: 'text-center py-12 space-y-4',
+          },
+          order: 1,
+        },
+        {
+          type: 'SEPARATOR',
+          props: {
+            color: 'red-800',
+            width: 'full',
+            marginY: 8,
+            className:
+              'border-b-2 border-red-800 w-full my-8 mx-auto max-w-4xl',
+          },
+          order: 2,
+        },
+        {
+          type: 'TEXT_BLOCK',
+          props: {
+            title: 'Upcoming Chess Tournaments and Events',
+            content: [
+              {
+                paragraph:
+                  'Stay informed about our exciting lineup of chess tournaments, workshops, and special events designed to challenge and inspire players of all levels.',
+              },
+              {
+                paragraph:
+                  'From local competitions to national championships, we provide opportunities for growth and competition.',
+              },
+            ],
+            className: {
+              container: 'max-w-3xl mx-auto px-4 py-6',
+              title: 'text-2xl font-bold mb-6 text-gray-100',
+              paragraph: 'text-gray-300 mb-4 leading-relaxed',
+            },
+          },
+          order: 3,
+        },
+        {
+          type: 'CHESS_BATCH',
+          props: {
+            title: 'Regional Chess Tournament',
+            details: {
+              startDate: 'SAT, OCT 15th 2024',
+              totalClasses: 'One-Day Tournament',
+              time: '9:00 AM to 5:00 PM CST',
+              fees: '$50 Entry Fee',
+            },
+            className: {
+              container:
+                'bg-gray-800 border-gray-700 text-gray-100 rounded-lg shadow-lg overflow-hidden mb-8',
+              header: 'text-center p-4',
+              title: 'text-xl font-bold',
+              content: 'p-4 space-y-4',
+              detailRow:
+                'flex justify-between items-center border-b border-gray-700 py-2 last:border-0',
+              label: 'text-gray-400',
+              value: 'text-gray-100',
+              contact:
+                'w-full py-2 px-4 bg-red-800 hover:bg-red-700 text-white rounded-md transition-colors text-center',
+            },
+          },
+          order: 4,
+        },
+        {
+          type: 'CHESS_BATCH',
+          props: {
+            title: 'Winter Chess Workshop',
+            details: {
+              startDate: 'DEC 20-22, 2024',
+              totalClasses: '3-Day Intensive Workshop',
+              time: '10:00 AM to 4:00 PM CST',
+              fees: '$200 (Limited Seats)',
+            },
+            className: {
+              container:
+                'bg-gray-800 border-gray-700 text-gray-100 rounded-lg shadow-lg overflow-hidden mb-8',
+              header: 'text-center p-4',
+              title: 'text-xl font-bold',
+              content: 'p-4 space-y-4',
+              detailRow:
+                'flex justify-between items-center border-b border-gray-700 py-2 last:border-0',
+              label: 'text-gray-400',
+              value: 'text-gray-100',
+              contact:
+                'w-full py-2 px-4 bg-red-800 hover:bg-red-700 text-white rounded-md transition-colors text-center',
+            },
+          },
+          order: 5,
+        },
+        {
+          type: 'CONTACT_SECTION',
+          props: {
+            text: 'Interested in our events? Register now or contact us for more information!',
+            buttonText: 'Contact Events Team',
+            className: {
+              container: 'text-center py-12 px-4',
+              text: 'text-gray-400 mb-4',
+              button:
+                'py-2 px-6 bg-red-800 hover:bg-red-700 text-white rounded-md transition-colors',
+            },
+          },
+          order: 6,
         },
       ],
     },

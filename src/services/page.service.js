@@ -44,8 +44,6 @@ const updatePage = async (pageId, pageData) => {
 };
 
 const getPageBySlug = async (academyId, slug) => {
-  console.log('SLUG', slug);
-
   const page = await db.page.findFirst({
     where: {
       academyId,

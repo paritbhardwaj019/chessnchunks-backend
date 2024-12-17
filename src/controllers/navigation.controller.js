@@ -4,6 +4,7 @@ const academyService = require('../services/academy.service');
 const ApiError = require('../utils/apiError');
 const pick = require('../utils/pick');
 const catchAsync = require('../utils/catchAsync');
+const { resolveAcademyDomain } = require('../utils/domainResolution');
 
 const getAndValidateAcademy = async (loggedInUser) => {
   const academy = await academyService.getSingleAcademyForUser(loggedInUser);
@@ -106,6 +107,21 @@ const toggleNavigationStatus = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(updatedItem);
 });
 
+const getAllActiveNavigationByDomain = catchAsync(async (req, res) => {
+  const { domain } = req.params;
+
+  if (!domain) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Domain is required');
+  }
+
+  const resolvedDomain = await resolveAcademyDomain(domain);
+
+  const activeNavigation =
+    await navigationService.getAllActiveNavigationByDomain(resolvedDomain);
+
+  res.status(httpStatus.OK).send(activeNavigation);
+});
+
 module.exports = {
   getNavigationItems,
   createNavigationItem,
@@ -113,4 +129,5 @@ module.exports = {
   deleteNavigationItem,
   reorderNavigationItems,
   toggleNavigationStatus,
+  getAllActiveNavigationByDomain,
 };

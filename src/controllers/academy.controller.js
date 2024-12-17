@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const _ = require('lodash');
 const academyService = require('../services/academy.service');
+const { resolveAcademyDomain } = require('../utils/domainResolution');
 
 const updateAcademyByIdHandler = catchAsync(async (req, res) => {
   const { id } = _.pick(req.params, ['id']);
@@ -31,8 +32,11 @@ const getAcademyByDomain = catchAsync(async (req, res) => {
 
 const getPublicPageBySlug = catchAsync(async (req, res) => {
   const { domain, slug } = req.params;
+
+  const resolvedDomain = await resolveAcademyDomain(domain);
+
   const pageData = await academyService.getPublicPageBySlug(
-    `http://${domain}.localhost:3001`,
+    resolvedDomain,
     slug
   );
   res.status(httpStatus.OK).send(pageData);

@@ -20,4 +20,8 @@ router
 
 router.route('/reorder').post(navigationController.reorderNavigationItems);
 
+router
+  .route('/domain/:domain')
+  .get(navigationController.getAllActiveNavigationByDomain);
+
 module.exports = router;

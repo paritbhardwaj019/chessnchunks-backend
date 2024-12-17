@@ -211,6 +211,47 @@ const toggleNavigationStatus = async (id, isActive) => {
   });
 };
 
+/**
+ * Get all active navigation items for an academy by domain
+ * @param {string} domain
+ * @returns {Promise<Array>}
+ */
+const getAllActiveNavigationByDomain = async (domain) => {
+  const academy = await prisma.academy.findFirst({
+    where: { domain },
+  });
+
+  if (!academy) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      'Academy not found for this domain'
+    );
+  }
+
+  const navigationItems = await prisma.academyNavigation.findMany({
+    where: {
+      academyId: academy.id,
+      isActive: true,
+      parentId: null,
+    },
+    orderBy: {
+      order: 'asc',
+    },
+    include: {
+      children: {
+        where: {
+          isActive: true,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+      },
+    },
+  });
+
+  return navigationItems;
+};
+
 module.exports = {
   listNavigationItems,
   createNavigationItem,
@@ -219,4 +260,5 @@ module.exports = {
   getNavigationItemBySlug,
   reorderNavigationItems,
   toggleNavigationStatus,
+  getAllActiveNavigationByDomain,
 };

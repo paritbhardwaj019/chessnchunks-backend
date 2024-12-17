@@ -29,6 +29,7 @@ const pageRouter = require('./page.route');
 const batchReportRouter = require('./batchReport.route');
 const enrollmentReportRouter = require('./enrollmentReport.route');
 const studentReportRouter = require('./studentReport.route');
+const portalSubscriberRouter = require('./portalSubscriber.route');
 
 const router = express.Router();
 
@@ -61,5 +62,6 @@ router.use('/reports/batches', batchReportRouter);
 router.use('/reports/enrollments', enrollmentReportRouter);
 router.use('/reports/students', studentReportRouter);
 router.use('/admins', adminRouter);
+router.use('/portal-subscribers', portalSubscriberRouter);
 
 module.exports = router;

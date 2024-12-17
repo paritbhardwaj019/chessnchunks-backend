@@ -1,7 +1,7 @@
 const defaultNavigation = [
   {
     title: 'Home',
-    slug: '/',
+    slug: '/home',
     order: 1,
     subItems: [
       {
