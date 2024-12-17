@@ -71,4 +71,11 @@ userRouter.post(
   userController.verifyEmailChange
 );
 
+userRouter.get(
+  '/profile-completion/:id',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  userController.getProfileCompletionHandler
+);
+
 module.exports = userRouter;

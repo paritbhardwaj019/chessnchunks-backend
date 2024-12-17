@@ -802,6 +802,77 @@ const verifyEmailChangeHandler = async (userId, token) => {
   return { message: 'Email updated successfully.' };
 };
 
+const getProfileCompletionHandler = async (userId) => {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    include: {
+      profile: true,
+      role: true,
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
+  }
+
+  // Define required fields for different roles
+  const commonFields = [
+    'email',
+    'profile.firstName',
+    'profile.lastName',
+    'profile.phoneNumber',
+    'profile.addressLine1',
+    'profile.city',
+    'profile.state',
+    'profile.country',
+  ];
+
+  const studentFields = [
+    ...commonFields,
+    'profile.dateOfBirth',
+    'profile.parentName',
+    'profile.parentEmail',
+    'profile.chessComId',
+  ];
+
+  const coachFields = [
+    ...commonFields,
+    'profile.dateOfBirth',
+    'subRole',
+    'profile.qualification',
+    'profile.experience',
+  ];
+
+  // Select fields based on user role
+  let requiredFields = commonFields;
+  if (user.role.name === 'STUDENT') {
+    requiredFields = studentFields;
+  } else if (user.role.name === 'COACH') {
+    requiredFields = coachFields;
+  }
+
+  // Count filled fields
+  let filledFields = 0;
+  for (const field of requiredFields) {
+    const [parent, child] = field.includes('.') ? field.split('.') : [field, null];
+    const value = child ? user[parent]?.[child] : user[parent];
+    
+    if (value !== null && value !== undefined && value !== '') {
+      filledFields++;
+    }
+  }
+
+  // Calculate percentage
+  const completionPercentage = Math.round((filledFields / requiredFields.length) * 100);
+
+  return {
+    completionPercentage,
+    totalFields: requiredFields.length,
+    filledFields,
+    emptyFields: requiredFields.length - filledFields,
+  };
+};
+
 const userService = {
   fetchAllUsersHandler,
   signUpSubscriberHandler,
@@ -812,6 +883,7 @@ const userService = {
   updatePasswordHandler,
   requestEmailChangeHandler,
   verifyEmailChangeHandler,
+  getProfileCompletionHandler,
 };
 
 module.exports = userService;

@@ -88,6 +88,12 @@ const verifyEmailChange = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(result);
 });
 
+const getProfileCompletionHandler = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const profileCompletion = await userService.getProfileCompletionHandler(id);
+  res.status(httpStatus.OK).send(profileCompletion);
+});
+
 const userController = {
   fetchAllUsersHandler,
   signUpSubscriberHandler,
@@ -98,6 +104,7 @@ const userController = {
   updatePasswordHandler,
   requestEmailChange,
   verifyEmailChange,
+  getProfileCompletionHandler,
 };
 
 module.exports = userController;
