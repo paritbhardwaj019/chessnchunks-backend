@@ -50,12 +50,28 @@ const updateComponentById = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(updatedComponent);
 });
 
+const updateAcademySettings = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const settingsData = _.pick(req.body, ['signUpFee']);
+  const logoFile = req.file;
+
+  const result = await academyService.updateAcademySettings(
+    id,
+    settingsData,
+    logoFile,
+    req.user
+  );
+
+  res.status(httpStatus.OK).send(result);
+});
+
 const academyController = {
   updateAcademyByIdHandler,
   fetchAcademyByIdHandler,
   getAcademyByDomain,
   getPublicPageBySlug,
   updateComponentById,
+  updateAcademySettings,
 };
 
 module.exports = academyController;

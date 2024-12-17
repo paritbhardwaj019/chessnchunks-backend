@@ -1,6 +1,11 @@
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
+const {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} = require('../utils/cloudinary.utils');
+const fs = require('fs');
 
 const updateAcademyByIdHandler = async (data, id, loggedInUser) => {
   console.log(data, id, loggedInUser);
@@ -124,6 +129,8 @@ const fetchAcademyByIdHandler = async (id, loggedInUser) => {
         httpStatus.UNAUTHORIZED,
         "User isn't authorized to perform this action"
       );
+
+    console.log('academy', academy);
 
     return {
       academy,
@@ -353,7 +360,6 @@ const updateComponentById = async (pageId, componentId, componentData) => {
       );
     }
 
-    // Update the component
     const updatedComponent = await prisma.pageComponent.update({
       where: {
         id: componentId,
@@ -383,6 +389,92 @@ const updateComponentById = async (pageId, componentId, componentData) => {
   });
 };
 
+const updateAcademySettings = async (id, data, logoFile, loggedInUser) => {
+  const academy = await db.academy.findUnique({
+    where: { id },
+    include: {
+      admins: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  if (!academy) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Academy not found');
+  }
+
+  if (
+    loggedInUser.role !== 'SUPER_ADMIN' &&
+    !academy.admins.some((admin) => admin.id === loggedInUser.id)
+  ) {
+    throw new ApiError(
+      httpStatus.UNAUTHORIZED,
+      "User isn't authorized to perform this action"
+    );
+  }
+
+  const updateData = {};
+
+  console.log(logoFile);
+
+  if (logoFile) {
+    try {
+      const cloudinaryResponse = await uploadToCloudinary(logoFile.path, {
+        folder: 'academy-logos',
+        publicId: `academy-${id}-logo`,
+        allowedFormats: ['jpg', 'jpeg', 'png', 'gif'],
+        maxSize: 5 * 1024 * 1024,
+      });
+
+      if (academy.logo) {
+        const existingLogoPublicId = academy.logo
+          .split('/')
+          .slice(-1)[0]
+          .split('.')[0];
+        if (existingLogoPublicId) {
+          await deleteFromCloudinary(existingLogoPublicId);
+        }
+      }
+
+      updateData.logo = cloudinaryResponse.url;
+
+      await fs.unlinkSync(logoFile.path);
+    } catch (error) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `Logo upload failed - ${error.message}`
+      );
+    }
+  }
+
+  if (data.signUpFee !== undefined) {
+    const fee = parseFloat(data.signUpFee);
+    if (isNaN(fee) || fee < 0) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Sign up fee must be a valid non-negative number'
+      );
+    }
+    updateData.signUpFee = fee;
+  }
+
+  const updatedAcademy = await db.academy.update({
+    where: { id },
+    data: updateData,
+    select: {
+      id: true,
+      name: true,
+      logo: true,
+      signUpFee: true,
+      updatedAt: true,
+    },
+  });
+
+  return { updatedAcademy };
+};
+
 const academyService = {
   updateAcademyByIdHandler,
   fetchAcademyByIdHandler,
@@ -390,6 +482,7 @@ const academyService = {
   getAcademyByDomain,
   getPublicPageBySlug,
   updateComponentById,
+  updateAcademySettings,
 };
 
 module.exports = academyService;

@@ -14,6 +14,10 @@ router
   .put(navigationController.updateNavigationItem)
   .delete(navigationController.deleteNavigationItem);
 
+router
+  .route('/:id/toggle')
+  .patch(checkJWT, navigationController.toggleNavigationStatus);
+
 router.route('/reorder').post(navigationController.reorderNavigationItems);
 
 module.exports = router;

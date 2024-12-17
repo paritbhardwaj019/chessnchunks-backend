@@ -458,6 +458,7 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
           },
         },
         createdAt: true,
+        logo: true,
         status: true,
         admins: {
           take: 1,

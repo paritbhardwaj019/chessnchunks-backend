@@ -184,6 +184,33 @@ const reorderNavigationItems = async (academyId, items) => {
   await prisma.$transaction(updates);
 };
 
+/**
+ * Toggle navigation item status
+ * @param {string} id
+ * @param {string} academyId
+ * @param {boolean} isActive
+ * @returns {Promise<Object>}
+ */
+
+const toggleNavigationStatus = async (id, isActive) => {
+  console.log('ID', id);
+
+  const navItem = await prisma.academyNavigation.findFirst({
+    where: {
+      id,
+    },
+  });
+
+  if (!navItem) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Navigation item not found');
+  }
+
+  return prisma.academyNavigation.update({
+    where: { id },
+    data: { isActive },
+  });
+};
+
 module.exports = {
   listNavigationItems,
   createNavigationItem,
@@ -191,4 +218,5 @@ module.exports = {
   deleteNavigationItem,
   getNavigationItemBySlug,
   reorderNavigationItems,
+  toggleNavigationStatus,
 };

@@ -24,7 +24,7 @@ userRouter.post(
 userRouter.post(
   '/xlsx-upload',
   checkJWT,
-  checkPermission('add', '/dashboard/users'),
+  // checkPermission('add', '/dashboard/users'),
   uploadFile.single('file'),
   userController.xlsxUploadHandler
 );

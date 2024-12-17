@@ -94,10 +94,23 @@ const reorderNavigationItems = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send({ success: true });
 });
 
+const toggleNavigationStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { isActive } = req.body;
+
+  const updatedItem = await navigationService.toggleNavigationStatus(
+    id,
+    isActive
+  );
+
+  res.status(httpStatus.OK).send(updatedItem);
+});
+
 module.exports = {
   getNavigationItems,
   createNavigationItem,
   updateNavigationItem,
   deleteNavigationItem,
   reorderNavigationItems,
+  toggleNavigationStatus,
 };

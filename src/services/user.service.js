@@ -7,6 +7,14 @@ const fs = require('fs');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 const comparePassword = require('../utils/comparePassword');
 const { getSingleAcademyForUser } = require('./academy.service');
+const crypto = require('crypto');
+const { ROLE } = require('@prisma/client');
+const createToken = require('../utils/createToken');
+const Mailgen = require('mailgen');
+const sendMail = require('../utils/sendEmail');
+const generateSystemCode = require('../utils/generateSystemCode');
+const { sendSignupEmail } = require('./studentSignup.service');
+const config = require('../config');
 
 const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const numberPage = Number(page) || 1;
@@ -203,7 +211,8 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
     where: { id: loggedInUser.id },
     include: {
       adminOfAcademies: true,
-      coachOfBatches: true,
+      assignedToAcademy: true,
+      role: true,
     },
   });
 
@@ -213,7 +222,7 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
 
   let academyId = null;
 
-  if (user.role === 'ADMIN') {
+  if (user.role.name === 'ADMIN') {
     if (user.adminOfAcademies.length === 0) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
@@ -221,24 +230,6 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
       );
     }
     academyId = user.adminOfAcademies[0].id;
-  } else if (user.role === 'COACH') {
-    if (user.coachOfBatches.length === 0) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        'Coach is not associated with any batches.'
-      );
-    }
-    academyId = user.coachOfBatches[0].academyId;
-
-    const uniqueAcademies = new Set(
-      user.coachOfBatches.map((batch) => batch.academyId)
-    );
-    if (uniqueAcademies.size > 1) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        'Coach is associated with multiple academies.'
-      );
-    }
   } else {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
@@ -249,14 +240,6 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
   const ROLE_MAPPING = {
     1: 'COACH',
     2: 'STUDENT',
-  };
-
-  const COACH_ROLE_MAPPING = {
-    1: 'HEAD_COACH',
-    2: 'SENIOR_COACH',
-    3: 'JUNIOR_COACH',
-    4: 'PUZZLE_MASTER',
-    5: 'PUZZLE_MASTER_SCHOLAR',
   };
 
   const workbook = xlsx.readFile(file.path);
@@ -274,41 +257,25 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
       const firstName = row['FIRST NAME'];
       const lastName = row['LAST NAME'];
       const email = row['EMAIL'];
-      const roleNumber = row['ROLE'];
-      const subRoleNumber = row['SUB_ROLE'];
-      const batchCode = row['BATCH CODE'];
-      const dateOfBirth = row['DATE OF BIRTH'];
-      const parentName = row['PARENT NAME'];
-      const parentEmail = row['PARENT EMAIL'];
       const phoneNumber = row['PHONE NUMBER'];
-      const chessComId = row['CHESS.COM ID'];
+      const roleNumber = row['ROLE'];
 
       try {
         if (
           !email ||
           !firstName ||
           !lastName ||
-          roleNumber === undefined ||
-          !batchCode
+          !phoneNumber ||
+          roleNumber === undefined
         ) {
-          throw new Error('Missing required fields');
+          throw new ApiError(httpStatus.BAD_REQUEST, 'Missing required fields');
         }
 
         const role = ROLE_MAPPING[roleNumber];
         if (!role || !['COACH', 'STUDENT'].includes(role)) {
-          throw new Error(`Invalid role number: ${roleNumber}`);
-        }
-
-        const batch = await db.batch.findFirst({
-          where: {
-            batchCode: batchCode,
-            academyId: academyId,
-          },
-        });
-
-        if (!batch) {
-          throw new Error(
-            `Batch with code ${batchCode} not found for your academy.`
+          throw new ApiError(
+            httpStatus.BAD_REQUEST,
+            `Invalid role number: ${roleNumber}`
           );
         }
 
@@ -321,15 +288,6 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
         }
 
         if (role === 'COACH') {
-          if (subRoleNumber === undefined) {
-            throw new Error('SubRole is required for coach');
-          }
-
-          const subRole = COACH_ROLE_MAPPING[subRoleNumber];
-          if (!subRole) {
-            throw new Error(`Invalid subRole number: ${subRoleNumber}`);
-          }
-
           const tempPassword = crypto.randomBytes(8).toString('hex');
           const hashedPassword = await hashPassword(tempPassword, 10);
 
@@ -339,9 +297,8 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
                 firstName,
                 lastName,
                 email,
+                phoneNumber,
                 academyId,
-                batchId: batch.id,
-                subRole,
                 password: hashedPassword,
               },
               email,
@@ -370,17 +327,16 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
           const emailContent = {
             body: {
               name: `${firstName} ${lastName}`,
-              intro: `You are invited to join as a coach in batch ${batchCode}!`,
+              intro: 'You are invited to join as a coach!',
               table: {
                 data: [
                   { label: 'Email', value: email },
                   { label: 'Temporary Password', value: tempPassword },
-                  { label: 'Role', value: subRole },
                 ],
               },
               action: {
                 instructions:
-                  'To accept this invitation, please click the button below:',
+                  'To accept this invitation and complete your profile, please click the button below:',
                 button: {
                   color: '#22BC66',
                   text: 'Accept Invitation',
@@ -388,9 +344,13 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
                 },
               },
               outro:
-                'If you have any questions, feel free to reply to this email.',
+                'After logging in, you will be prompted to complete your profile with additional information.',
             },
           };
+
+          console.log(
+            `${config.frontendUrl}/accept-invite?type=BATCH_COACH&token=${token}`
+          );
 
           await sendMail(
             email,
@@ -404,14 +364,8 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
             firstName,
             lastName,
             role: 'COACH',
-            subRole,
-            batchCode,
           });
         } else if (role === 'STUDENT') {
-          if (!dateOfBirth || !parentName || !parentEmail) {
-            throw new Error('Missing required student fields');
-          }
-
           const signupId = await generateSystemCode(SYSTEM_CODE_MODULE.STUDENT);
           const expiryDate = new Date();
           expiryDate.setHours(expiryDate.getHours() + 72);
@@ -422,17 +376,10 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
               signupId,
               firstName,
               lastName,
-              userRole: ROLE.STUDENT,
-              dateOfBirth: new Date(dateOfBirth),
-              parentName,
-              parentEmail,
               phoneNumber,
-              chessComId,
+              userRole: ROLE.STUDENT,
               signupStage: REGISTRATION_STAGE.INQUIRY,
               signupStatus: SIGNUP_STATUS.INQUIRY,
-              interestedBatch: {
-                connect: { id: batch.id },
-              },
               academy: {
                 connect: { id: academyId },
               },
@@ -460,19 +407,15 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
             firstName,
             lastName,
             role: 'STUDENT',
-            batchCode,
             signupId: signup.signupId,
           });
         }
       } catch (error) {
-        console.error(error);
         errors.push({
           email,
           firstName,
           lastName,
           roleNumber,
-          subRoleNumber,
-          batchCode,
           error: error.message,
         });
       }
