@@ -6,7 +6,6 @@ const prisma = new PrismaClient();
 const academyData = {
   name: 'Chess In Chunks Academy',
   logo: 'https://placeholder.com/logo.png',
-  isDefault: true,
   domain: 'http://chess-in-chunks.localhost:3001',
 };
 
@@ -23,6 +22,7 @@ const adminData = {
   state: 'Chess State',
   country: 'USA',
   adminRole: 'MASTER_ADMIN',
+  cicId: 'CIC-ADMIN-001',
 };
 
 const students = [
@@ -31,6 +31,7 @@ const students = [
     firstName: 'Kitten',
     lastName: 'Puff',
     chessComId: 'supercutekittenpuff',
+    cicId: 'CIC-STU-KP001',
     dateOfBirth: new Date('2015-01-01'),
     phoneNumber: '+1234567890',
     addressLine1: '123 Chess Street',
@@ -43,6 +44,7 @@ const students = [
     firstName: 'Sashwin',
     lastName: 'G',
     chessComId: 'SashwinG',
+    cicId: 'CIC-STU-SG001',
     dateOfBirth: new Date('2014-05-15'),
     phoneNumber: '+1234567891',
     addressLine1: '456 Chess Avenue',
@@ -55,6 +57,7 @@ const students = [
     firstName: 'Ranjhana',
     lastName: 'R',
     chessComId: 'Ranjhannaa',
+    cicId: 'CIC-STU-RR001',
     dateOfBirth: new Date('2014-08-20'),
     phoneNumber: '+1234567892',
     addressLine1: '789 Chess Boulevard',
@@ -67,6 +70,7 @@ const students = [
     firstName: 'Nive',
     lastName: 'Chitti',
     chessComId: 'nive_chitti',
+    cicId: 'CIC-STU-NC001',
     dateOfBirth: new Date('2015-03-10'),
     phoneNumber: '+1234567893',
     addressLine1: '321 Chess Lane',
@@ -79,6 +83,7 @@ const students = [
     firstName: 'Rishaan',
     lastName: 'RJ',
     chessComId: 'Rishaan-RJ',
+    cicId: 'CIC-STU-RJ001',
     dateOfBirth: new Date('2015-06-25'),
     phoneNumber: '+1234567894',
     addressLine1: '654 Chess Road',
@@ -93,6 +98,7 @@ const coaches = [
     email: 'head.coach@example.com',
     firstName: 'John',
     lastName: 'Master',
+    cicId: 'CIC-COACH-JM001',
     dateOfBirth: new Date('1990-01-01'),
     phoneNumber: '+1234567895',
     addressLine1: '789 Coach Avenue',
@@ -105,6 +111,7 @@ const coaches = [
     email: 'senior.coach@example.com',
     firstName: 'Sarah',
     lastName: 'Expert',
+    cicId: 'CIC-COACH-SE001',
     dateOfBirth: new Date('1992-05-15'),
     phoneNumber: '+1234567896',
     addressLine1: '456 Coach Street',
@@ -198,6 +205,7 @@ async function main() {
             city: adminData.city,
             state: adminData.state,
             country: adminData.country,
+            cicId: adminData.cicId,
           },
         },
         adminOfAcademies: {
@@ -210,7 +218,9 @@ async function main() {
       },
     });
 
-    logger.info(`Admin created: ${admin.email}`);
+    logger.info(
+      `Admin created: ${admin.email} (CIC ID: ${admin.profile.cicId})`
+    );
 
     const createdCoaches = [];
     for (const coachData of coaches) {
@@ -237,6 +247,7 @@ async function main() {
                 city: coachData.city,
                 state: coachData.state,
                 country: coachData.country,
+                cicId: coachData.cicId,
               },
             },
           },
@@ -245,7 +256,9 @@ async function main() {
           },
         });
         createdCoaches.push(coach);
-        logger.info(`Coach created: ${coach.email} (${coachData.subRole})`);
+        logger.info(
+          `Coach created: ${coach.email} (CIC ID: ${coach.profile.cicId}, Role: ${coachData.subRole})`
+        );
       } catch (coachError) {
         logger.error(`Error creating coach ${coachData.email}:`, coachError);
         throw coachError;
@@ -294,6 +307,7 @@ async function main() {
                 state: studentData.state,
                 country: studentData.country,
                 chessComId: studentData.chessComId,
+                cicId: studentData.cicId,
               },
             },
           },
@@ -304,7 +318,7 @@ async function main() {
 
         createdStudents.push(student);
         logger.info(
-          `Student created and added to batch: ${student.email} (ChessComId: ${student.profile.chessComId})`
+          `Student created: ${student.email} (CIC ID: ${student.profile.cicId}, ChessComId: ${student.profile.chessComId})`
         );
       } catch (studentError) {
         logger.error(
@@ -330,17 +344,44 @@ async function main() {
     const finalBatch = await prisma.batch.findUnique({
       where: { id: batch.id },
       include: {
-        coaches: true,
-        students: true,
+        coaches: {
+          include: {
+            profile: true,
+          },
+        },
+        students: {
+          include: {
+            profile: true,
+          },
+        },
       },
     });
 
-    logger.info('Final batch status:');
-    logger.info(`- Batch Code: ${finalBatch.batchCode}`);
-    logger.info(`- Number of coaches: ${finalBatch.coaches.length}`);
-    logger.info(`- Number of students: ${finalBatch.students.length}`);
+    logger.info('\n=== Final Batch Status ===');
+    logger.info(`Batch Code: ${finalBatch.batchCode}`);
+    logger.info(`Number of coaches: ${finalBatch.coaches.length}`);
+    logger.info(`Number of students: ${finalBatch.students.length}`);
 
-    logger.info('Seeding completed successfully');
+    logger.info('\n=== Summary of Created Users and Their CIC IDs ===');
+    logger.info('\nAdmin:');
+    logger.info(`- ${admin.email}: ${admin.profile.cicId}`);
+
+    logger.info('\nCoaches:');
+    finalBatch.coaches.forEach((coach) => {
+      logger.info(
+        `- ${coach.email}: ${coach.profile.cicId} (${coach.subRole})`
+      );
+    });
+
+    logger.info('\nStudents:');
+    finalBatch.students.forEach((student) => {
+      logger.info(
+        `- ${student.email}: ${student.profile.cicId} (ChessComId: ${student.profile.chessComId})`
+      );
+    });
+
+    logger.info('\n=== End of Summary ===');
+    logger.info('\nSeeding completed successfully');
     logger.info(`All users created with password: ${DEFAULT_PASSWORD}`);
   } catch (error) {
     logger.error('Error during seeding:', error);

@@ -15,7 +15,11 @@ async function getSuperAdminDashboardData(loggedInUser) {
     );
   }
 
-  const totalAcademies = await db.academy.count();
+  const totalAcademies = await db.academy.count({
+    where: {
+      isDefault: false,
+    },
+  });
   const totalBatches = await db.batch.count();
   const totalStudents = await db.user.count({
     where: {

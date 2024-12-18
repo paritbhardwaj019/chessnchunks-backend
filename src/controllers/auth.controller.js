@@ -53,6 +53,17 @@ const updatePasswordHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(updatedUser);
 });
 
+const loginWithCicIdHandler = catchAsync(async (req, res) => {
+  const origin = 'http://' + req.headers['x-origin-host'];
+
+  const loggedInUser = await authService.loginWithCicIdHandler(
+    req.body,
+    origin
+  );
+
+  res.status(httpStatus.OK).send(loggedInUser);
+});
+
 const authController = {
   loginWithPasswordHandler,
   loginWithoutPasswordHandler,
@@ -60,6 +71,7 @@ const authController = {
   resetPasswordHandler,
   verifyResetPasswordHandler,
   updatePasswordHandler,
+  loginWithCicIdHandler,
 };
 
 module.exports = authController;

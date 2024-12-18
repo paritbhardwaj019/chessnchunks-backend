@@ -104,6 +104,7 @@ const loginWithPasswordHandler = async (data, host) => {
         select: {
           firstName: true,
           lastName: true,
+          chessComId: true,
         },
       },
       createdAt: true,
@@ -471,6 +472,88 @@ const updatePasswordHandler = async (data, loggedInUser) => {
   };
 };
 
+const loginWithCicIdHandler = async (data, host) => {
+  const { cicId, password } = data;
+
+  const profile = await db.profile.findUnique({
+    where: {
+      cicId: cicId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          password: true,
+          role: {
+            select: {
+              name: true,
+            },
+          },
+          subRole: true,
+          status: true,
+          createdAt: true,
+        },
+      },
+    },
+  });
+
+  if (!profile || !profile.user || !profile.user.password) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
+  }
+
+  const user = profile.user;
+
+  if (user.status === 'INACTIVE') {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Your account is INACTIVE');
+  }
+
+  const isPasswordValid = await comparePassword(password, user.password);
+
+  if (!isPasswordValid) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
+  }
+
+  let academy = await checkAcademyAccess(user, host);
+
+  const token = await createToken(
+    {
+      id: user.id,
+      role: user.role.name,
+      subRole: user.subRole,
+      ...(user.role.name !== 'SUPER_ADMIN' && {
+        academyDomain: host,
+      }),
+    },
+    config.jwt.secret,
+    '7d'
+  );
+
+  await db.user.update({
+    where: { id: user.id },
+    data: {
+      lastLoginAt: new Date(),
+    },
+  });
+
+  return {
+    token,
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role.name,
+      subRole: user.subRole,
+      profile: {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        chessComId: profile.chessComId,
+      },
+      createdAt: user.createdAt,
+    },
+    academy,
+  };
+};
+
 const authService = {
   loginWithPasswordHandler,
   loginWithoutPasswordHandler,
@@ -478,6 +561,7 @@ const authService = {
   resetPasswordHandler,
   verifyResetPasswordHandler,
   updatePasswordHandler,
+  loginWithCicIdHandler,
 };
 
 module.exports = authService;

@@ -50,6 +50,11 @@ function createSuperAdmin() {
         required: true,
         message: 'Date of birth required (YYYY-MM-DD)',
       },
+      cicId: {
+        type: 'string',
+        required: true,
+        message: 'Chess in Chunks ID required',
+      },
       password: {
         type: 'string',
         hidden: true,
@@ -70,7 +75,10 @@ function createSuperAdmin() {
 
   prompt.get(
     schema,
-    async (err, { firstName, lastName, password, email, dateOfBirth }) => {
+    async (
+      err,
+      { firstName, lastName, password, email, dateOfBirth, cicId }
+    ) => {
       const academyName = 'Chess in Chunks';
 
       if (err) {
@@ -89,6 +97,16 @@ function createSuperAdmin() {
           throw new Error('Email is already taken.');
         }
 
+        const isCicIdExistsInProfile = await db.profile.findUnique({
+          where: {
+            cicId,
+          },
+        });
+
+        if (isCicIdExistsInProfile) {
+          throw new Error('Chess in Chunks ID is already taken.');
+        }
+
         const userCount = await db.user.count();
         const newCode = formatNumberWithPrefix('U', userCount);
 
@@ -99,6 +117,7 @@ function createSuperAdmin() {
             firstName,
             lastName,
             dateOfBirth: new Date(dateOfBirth),
+            cicId,
           },
           select: {
             id: true,

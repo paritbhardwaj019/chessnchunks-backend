@@ -297,7 +297,14 @@ const parseSlug = (slug) => {
 };
 
 const getPublicPageBySlug = async (domain, slug) => {
+  console.log('DOMAIN', domain);
+  console.log('SLUG', slug);
+
   const parsedSlug = parseSlug(slug);
+
+  console.log('parsedSlug', parsedSlug);
+
+  console.log(await db.academy.findMany());
 
   const academy = await db.academy.findUnique({
     where: { domain },
