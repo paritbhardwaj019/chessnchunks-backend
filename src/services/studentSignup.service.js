@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const { generateOTP } = require('../utils/generateOTP');
+const hashPassword = require('../utils/hashPassword');
 const {
   REGISTRATION_STAGE,
   SIGNUP_STATUS,
@@ -18,6 +19,44 @@ const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
 const ChessWebAPI = require('chess-web-api');
 
 const chessAPI = new ChessWebAPI();
+
+const updatePasswordHandler = async (id, newPassword) => {
+  if (!id) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'User ID is required'
+    );
+  }
+
+  if (!newPassword || newPassword.length < 6) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Password must be at least 6 characters long'
+    );
+  }
+
+  const existingUser = await db.userSignup.findUnique({
+    where: { id }
+  });
+
+  if (!existingUser) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      'User not found'
+    );
+  }
+
+  const hashedNewPassword = await hashPassword(newPassword, 10);
+
+  const updatedUser = await db.userSignup.update({
+    where: { id },
+    data: { password: hashedNewPassword },
+    select: { id: true, email: true },
+  });
+
+  return updatedUser;
+};
+
 
 const validateChessComUsername = async (username) => {
   try {
@@ -250,12 +289,20 @@ const updateSignupHandler = async (id, data) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Signup not found');
   }
 
+  // Filter out undefined or null fields
+  const filteredData = Object.fromEntries(
+    Object.entries(data).filter(([_, value]) => value !== undefined && value !== null)
+  );
+
+  // Handle specific fields like dateOfBirth that require special formatting
+  if (filteredData.dateOfBirth) {
+    filteredData.dateOfBirth = new Date(filteredData.dateOfBirth);
+  }
+
+  // Perform the update with filtered data
   const updatedSignup = await db.userSignup.update({
     where: { id },
-    data: {
-      ...data,
-      ...(data.dateOfBirth && { dateOfBirth: new Date(data.dateOfBirth) }),
-    },
+    data: filteredData,
     include: {
       interestedBatch: true,
       academy: true,
@@ -264,6 +311,7 @@ const updateSignupHandler = async (id, data) => {
 
   return updatedSignup;
 };
+
 
 const verifyEmailHandler = async (id) => {
   const signup = await db.userSignup.update({
@@ -591,6 +639,7 @@ const handleExpiredSignups = async () => {
 
 const studentSignupService = {
   createSignupHandler,
+  updatePasswordHandler,
   updateSignupHandler,
   verifyEmailHandler,
   setReservationHandler,

@@ -886,6 +886,7 @@ model UserSignup {
   chessComId   String? @unique
   lichessId    String?
   uscfId       String?
+  password     String?
 
   cicId      String? @unique
 
@@ -959,7 +960,7 @@ model Quiz {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("quizzes")
+  @@map("quizs")
 }
 
 model QuizQuestion {
