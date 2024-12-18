@@ -40,13 +40,13 @@ const sendVerificationEmail = async (signup, otp) => {
     '72h'
   );
 
-  const ACTIVATION_URL = `${config.frontendUrl}/accept-invite?type=PORTAL_SUBSCRIBER&token=${token}&id=${signup.id}`;
+  const ACTIVATION_URL = `${config.chessinChunksUrl}/complete-signup?type=PORTAL_SUBSCRIBER&token=${token}&id=${signup.id}`;
 
   const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
       name: 'Chess in Chunks',
-      link: config.frontendUrl,
+      link: config.chessinChunksUrl,
     },
   });
 
