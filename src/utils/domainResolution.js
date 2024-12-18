@@ -5,15 +5,12 @@ const db = require('../database/prisma');
  * @param {string} inputDomain - The input domain to resolve
  * @returns {Promise<string>} Resolved academy domain
  */
-
 const resolveAcademyDomain = async (inputDomain) => {
   let domain = inputDomain.replace(/^https?:\/\//, '');
 
   const parts = domain.split(':');
 
-  const localhostMatch = parts[0].match(/^(.+)\.localhost$/);
-
-  if (localhostMatch || parts[0] === 'localhost') {
+  if (domain === 'localhost:3000') {
     const defaultAcademy = await db.academy.findFirst({
       where: {
         isDefault: true,
@@ -30,7 +27,7 @@ const resolveAcademyDomain = async (inputDomain) => {
     return defaultAcademy.domain;
   }
 
-  return inputDomain;
+  return `http://${domain.split(':')[0]}.localhost:3001`;
 };
 
 module.exports = { resolveAcademyDomain };

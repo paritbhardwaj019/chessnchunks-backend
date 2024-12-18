@@ -42,7 +42,7 @@ router
 
 router
   .route('/subscription/checkout')
-  .post(checkJWT, portalSubscriberController.createCheckoutSession);
+  .post(portalSubscriberController.createCheckoutSession);
 
 router
   .route('/subscriptions')

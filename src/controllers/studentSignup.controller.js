@@ -23,19 +23,22 @@ const updateSignupHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(updatedSignup);
 });
 
-
 const updatePasswordHandler = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const { password } = req.body;
+  const { password, cicId } = req.body;
 
   if (!password) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'New password is required');
   }
 
-  const updatedUser = await studentSignupService.updatePasswordHandler(id, password);
+  const updatedUser = await studentSignupService.updatePasswordHandler(
+    id,
+    password,
+    cicId
+  );
   res.status(httpStatus.OK).send({
     success: true,
-    message: 'Password updated successfully'
+    message: 'Password updated successfully',
   });
 });
 const verifyEmailHandler = catchAsync(async (req, res) => {
@@ -140,7 +143,7 @@ const studentSignupController = {
   getProgramCredits,
   getActiveSubscriptions,
   handleWaitlistHandler,
-  updatePasswordHandler
+  updatePasswordHandler,
 };
 
 module.exports = studentSignupController;

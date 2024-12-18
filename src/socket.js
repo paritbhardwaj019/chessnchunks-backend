@@ -25,18 +25,23 @@ const initializeSocket = (server) => {
   io.on(SOCKET_EVENTS.CONNECTION, (socket) => {
     logger.info(`New socket connected - ${socket.id}`);
 
-    socket.on(SOCKET_EVENTS.NEW_MESSAGE, async (data) => {
+    socket.on('newMessage', async (data) => {
       try {
-        const { receiverId, content, senderId } = data;
+        const { receiverId, senderId, content } = data;
 
-        io.to(`user-${receiverId}`).emit(SOCKET_EVENTS.NEW_MESSAGE, {
-          senderId,
-          receiverId,
-          content,
-          timestamp: new Date(),
-        });
+        io.to(`user-${receiverId}`)
+          .to(`user-${senderId}`)
+          .emit('receiveMessage', {
+            senderId,
+            receiverId,
+            content,
+            createdAt: new Date(),
+          });
+
+        logger.info(`Message emitted from ${senderId} to ${receiverId}`);
       } catch (error) {
-        socket.emit(SOCKET_EVENTS.ERROR, {
+        logger.error('Error handling new message:', error);
+        socket.emit('error', {
           message: 'Failed to process message',
         });
       }

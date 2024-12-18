@@ -9,6 +9,7 @@ const createToken = require('../utils/createToken');
 const sendMail = require('../utils/sendEmail');
 const { uploadToCloudinary } = require('../utils/cloudinary.utils');
 const ChessWebAPI = require('chess-web-api');
+const stripe = require('../config/stripe');
 
 const chessAPI = new ChessWebAPI();
 
@@ -590,19 +591,16 @@ const addSubscriptionPurchaseHandler = async (userId, subscriptionData) => {
   return subscription;
 };
 
-const createCheckoutSessionHandler = async (planId, userId) => {
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    include: {
-      profile: true,
-    },
+const createCheckoutSessionHandler = async (planId, userEmail) => {
+  const signup = await db.userSignup.findUnique({
+    where: { email: userEmail },
   });
 
-  if (!user) {
+  if (!signup) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
 
-  const plan = await db.academyProgram.findUnique({
+  const plan = await db.plan.findUnique({
     where: { id: planId },
   });
 
@@ -611,7 +609,7 @@ const createCheckoutSessionHandler = async (planId, userId) => {
   }
 
   const session = await stripe.checkout.sessions.create({
-    customer_email: user.email,
+    customer_email: signup.email,
     payment_method_types: ['card'],
     line_items: [
       {
@@ -621,13 +619,13 @@ const createCheckoutSessionHandler = async (planId, userId) => {
             name: plan.name,
             description: plan.description,
           },
-          unit_amount: plan.price * 100,
+          unit_amount: plan.subscriberPrice * 100,
         },
         quantity: 1,
       },
     ],
     metadata: {
-      userId,
+      signupId: signup.id,
       planId,
       type: 'PORTAL_SUBSCRIPTION',
     },

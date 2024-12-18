@@ -22,10 +22,7 @@ const chessAPI = new ChessWebAPI();
 
 const updatePasswordHandler = async (id, newPassword) => {
   if (!id) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      'User ID is required'
-    );
+    throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');
   }
 
   if (!newPassword || newPassword.length < 6) {
@@ -36,27 +33,21 @@ const updatePasswordHandler = async (id, newPassword) => {
   }
 
   const existingUser = await db.userSignup.findUnique({
-    where: { id }
+    where: { id },
   });
 
   if (!existingUser) {
-    throw new ApiError(
-      httpStatus.NOT_FOUND,
-      'User not found'
-    );
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
-
-  const hashedNewPassword = await hashPassword(newPassword, 10);
 
   const updatedUser = await db.userSignup.update({
     where: { id },
-    data: { password: hashedNewPassword },
+    data: { password: newPassword },
     select: { id: true, email: true },
   });
 
   return updatedUser;
 };
-
 
 const validateChessComUsername = async (username) => {
   try {
@@ -207,11 +198,10 @@ const createSignupHandler = async (data, academyId) => {
 
   await validateBatchCapacity(batchInterestId);
 
-  const otp = generateOTP(6); // 6-digit OTP
+  const otp = generateOTP(6);
   const otpExpiryTime = new Date();
   otpExpiryTime.setHours(otpExpiryTime.getHours() + 72);
 
-  // Save OTP in database
   await db.signupOTP.upsert({
     where: { email },
     update: {
@@ -291,7 +281,9 @@ const updateSignupHandler = async (id, data) => {
 
   // Filter out undefined or null fields
   const filteredData = Object.fromEntries(
-    Object.entries(data).filter(([_, value]) => value !== undefined && value !== null)
+    Object.entries(data).filter(
+      ([_, value]) => value !== undefined && value !== null
+    )
   );
 
   // Handle specific fields like dateOfBirth that require special formatting
@@ -311,7 +303,6 @@ const updateSignupHandler = async (id, data) => {
 
   return updatedSignup;
 };
-
 
 const verifyEmailHandler = async (id) => {
   const signup = await db.userSignup.update({
@@ -535,6 +526,7 @@ const checkoutSessionHandler = async (programId, userEmail) => {
     metadata: {
       programId: programId,
       userEmail,
+      type: 'STUDENT',
     },
     mode: 'payment',
     success_url: `${domain}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,

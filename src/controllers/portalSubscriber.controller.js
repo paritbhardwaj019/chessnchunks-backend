@@ -137,7 +137,7 @@ const addSubscriptionPurchase = catchAsync(async (req, res) => {
 });
 
 const createCheckoutSession = catchAsync(async (req, res) => {
-  const { planId } = req.body;
+  const { planId, userEmail } = req.body;
 
   if (!planId) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Plan ID is required');
@@ -145,7 +145,7 @@ const createCheckoutSession = catchAsync(async (req, res) => {
 
   const result = await portalSubscriberService.createCheckoutSessionHandler(
     planId,
-    req.user.id
+    userEmail
   );
   res.status(httpStatus.OK).send(result);
 });
