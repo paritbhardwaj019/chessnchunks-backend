@@ -105,9 +105,9 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const usersWithAcademies = allUsers.map((u) => {
     let academy = null;
 
-    if (u.role === 'ADMIN') {
+    if (u.role.name === 'ADMIN') {
       academy = u.adminOfAcademies[0];
-    } else if (u.role === 'COACH' || u.role === 'STUDENT') {
+    } else if (u.role.name === 'COACH' || u.role.name === 'STUDENT') {
       academy = u.assignedToAcademy;
     }
 
@@ -797,16 +797,20 @@ const getProfileCompletionHandler = async (userId) => {
   // Count filled fields
   let filledFields = 0;
   for (const field of requiredFields) {
-    const [parent, child] = field.includes('.') ? field.split('.') : [field, null];
+    const [parent, child] = field.includes('.')
+      ? field.split('.')
+      : [field, null];
     const value = child ? user[parent]?.[child] : user[parent];
-    
+
     if (value !== null && value !== undefined && value !== '') {
       filledFields++;
     }
   }
 
   // Calculate percentage
-  const completionPercentage = Math.round((filledFields / requiredFields.length) * 100);
+  const completionPercentage = Math.round(
+    (filledFields / requiredFields.length) * 100
+  );
 
   return {
     completionPercentage,

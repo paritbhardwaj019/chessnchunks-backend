@@ -488,7 +488,11 @@ const addProgramPurchaseHandler = async (userId, programData) => {
   return cartItem;
 };
 
-const checkoutSessionHandler = async (programId, userEmail) => {
+const checkoutSessionHandler = async (
+  programId,
+  userEmail,
+  billingPeriod = 'monthly'
+) => {
   const program = await db.academyProgram.findFirst({
     where: {
       id: programId,
@@ -508,6 +512,16 @@ const checkoutSessionHandler = async (programId, userEmail) => {
 
   const domain = getDomainFromAdmin(program.academy.domain);
 
+  const yearlyDiscount = 0.2;
+  let finalPrice = program.price;
+  let interval = 'month';
+
+  if (billingPeriod === 'yearly') {
+    const monthlyPrice = program.price;
+    finalPrice = monthlyPrice * 12 * (1 - yearlyDiscount);
+    interval = 'year';
+  }
+
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: [
@@ -515,10 +529,17 @@ const checkoutSessionHandler = async (programId, userEmail) => {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: program.name,
-            description: program.description,
+            name: `${program.name} - ${
+              billingPeriod.charAt(0).toUpperCase() + billingPeriod.slice(1)
+            } Plan`,
+            description: `${program.description}\n${
+              billingPeriod === 'yearly' ? 'Includes 20% yearly discount' : ''
+            }`,
           },
-          unit_amount: program.price * 100,
+          unit_amount: Math.round(finalPrice * 100), // Stripe expects amount in cents
+          recurring: {
+            interval: interval,
+          },
         },
         quantity: 1,
       },
@@ -527,8 +548,12 @@ const checkoutSessionHandler = async (programId, userEmail) => {
       programId: programId,
       userEmail,
       type: 'STUDENT',
+      billingPeriod,
+      originalPrice: program.price.toString(),
+      discountApplied:
+        billingPeriod === 'yearly' ? (yearlyDiscount * 100).toString() : '0',
     },
-    mode: 'payment',
+    mode: 'subscription', // Changed to subscription mode
     success_url: `${domain}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${domain}/checkout/cancel`,
   });

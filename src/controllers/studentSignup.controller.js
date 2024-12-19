@@ -112,7 +112,9 @@ const addProgramPurchase = catchAsync(async (req, res) => {
 
 const checkoutSession = catchAsync(async (req, res) => {
   const result = await studentSignupService.checkoutSessionHandler(
-    req.body.programId
+    req.body.programId,
+    req.body.userEmail,
+    req.body.billingPeriod
   );
   res.status(httpStatus.OK).send(result);
 });

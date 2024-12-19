@@ -458,6 +458,8 @@ const fetchBatchById = async (loggedInUser, id) => {
 };
 
 const addStudentToBatch = async (batchId, studentId) => {
+  console.log(batchId, studentId);
+
   const batch = await db.batch.findUnique({
     where: { id: batchId },
     include: { students: true },
@@ -467,13 +469,24 @@ const addStudentToBatch = async (batchId, studentId) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
   }
 
-  const student = await db.student.findUnique({
-    where: { id: studentId },
+  const student = await db.user.findFirst({
+    where: {
+      AND: [
+        { id: studentId },
+        {
+          role: {
+            name: 'STUDENT',
+          },
+        },
+      ],
+    },
   });
 
   if (!student) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Student not found!');
   }
+
+  console.log(batch, student);
 
   const isAlreadyInBatch = batch.students.some((s) => s.id === studentId);
   if (isAlreadyInBatch) {
