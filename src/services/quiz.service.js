@@ -2,9 +2,7 @@ const httpStatus = require('http-status');
 const ApiError = require('../utils/apiError');
 const db = require('../database/prisma');
 const generateSystemCode = require('../utils/generateSystemCode');
-const {
-  SYSTEM_CODE_MODULE,
-} = require('@prisma/client');
+const { SYSTEM_CODE_MODULE } = require('@prisma/client');
 
 const questionTypeMapping = {
   mcq: 'MULTIPLE_CHOICE',
@@ -17,10 +15,12 @@ const createQuiz = async (data, userId) => {
     data;
 
   const quizCode = await generateSystemCode(SYSTEM_CODE_MODULE.QUIZ);
-  console.log('Quiz Code====>...', quizCode)
+  console.log('Quiz Code====>...', quizCode);
   const mappedQuestions = await Promise.all(
     questions.map(async (q, index) => {
-      const questionCode = await generateSystemCode(SYSTEM_CODE_MODULE.QUIZ_QUESTION);
+      const questionCode = await generateSystemCode(
+        SYSTEM_CODE_MODULE.QUIZ_QUESTION
+      );
       return {
         questionText: q.questionText,
         type: questionTypeMapping[q.type] || q.type,

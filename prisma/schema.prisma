@@ -625,6 +625,7 @@ enum SYSTEM_CODE_MODULE {
   ACADEMY_PROGRAM
   QUIZ
   QUIZ_QUESTION
+  TASK
 }
 
 model SystemCode {

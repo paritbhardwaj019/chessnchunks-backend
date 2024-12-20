@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, SYSTEM_CODE_MODULE } = require('@prisma/client');
 const logger = require('../utils/logger');
 const prisma = new PrismaClient();
 
@@ -103,37 +103,58 @@ async function assignAdminPermissions() {
 async function seedSystemCodes() {
   const systemCodes = [
     {
-      module: 'BATCH',
+      module: SYSTEM_CODE_MODULE.BATCH,
       prefix: 'BAT',
       description: 'Batch number prefix',
       lastNumber: 0,
       isActive: true,
     },
     {
-      module: 'PLAN',
+      module: SYSTEM_CODE_MODULE.PLAN,
       prefix: 'PLN',
       description: 'Plan number prefix',
       lastNumber: 0,
       isActive: true,
     },
     {
-      module: 'USER_SIGNUP',
+      module: SYSTEM_CODE_MODULE.USER_SIGNUP,
       prefix: 'USP',
       description: 'User signup number prefix',
       lastNumber: 0,
       isActive: true,
     },
     {
-      module: 'USER',
+      module: SYSTEM_CODE_MODULE.USER,
       prefix: 'USR',
       description: 'User number prefix',
       lastNumber: 0,
       isActive: true,
     },
     {
-      module: 'ACADEMY_PROGRAM',
+      module: SYSTEM_CODE_MODULE.ACADEMY_PROGRAM,
       prefix: 'ACP',
       description: 'Academy program number prefix',
+      lastNumber: 0,
+      isActive: true,
+    },
+    {
+      module: SYSTEM_CODE_MODULE.QUIZ,
+      prefix: 'QZ',
+      description: 'Quiz number prefix',
+      lastNumber: 0,
+      isActive: true,
+    },
+    {
+      module: SYSTEM_CODE_MODULE.QUIZ_QUESTION,
+      prefix: 'QQ',
+      description: 'Quiz question number prefix',
+      lastNumber: 0,
+      isActive: true,
+    },
+    {
+      module: SYSTEM_CODE_MODULE.TASK,
+      prefix: 'TSK',
+      description: 'Task number prefix',
       lastNumber: 0,
       isActive: true,
     },
