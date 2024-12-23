@@ -66,8 +66,11 @@ const addCoachToBatchHandler = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { coachId } = req.body;
 
+  console.log('REQ-BODY', req.body);
+  console.log('REQ-PARAMS', req.params);
+
   if (!coachId) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'coachId is required.');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'coach Id is required.');
   }
 
   const updatedBatch = await batchService.addCoachToBatch(id, coachId);

@@ -710,6 +710,7 @@ model AcademyProgram {
   studentProgramCredits StudentProgramCredit[]
 
   stripeProgramId String? @unique
+  stripePriceId   String? @unique 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -809,6 +810,7 @@ enum SUBSCRIPTION_STATUS {
   ACTIVE
   CANCELLED
   EXPIRED
+  PENDING
 }
 
 model StudentSubscription {

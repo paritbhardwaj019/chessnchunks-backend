@@ -207,23 +207,13 @@ const createStripeProduct = async (programData) => {
     },
   });
 
-  console.log('----PROGRAM-DATA----', programData);
-
-  console.log('asda', {
-    product: product.id,
-    currency: 'usd',
-    unit_amount: Math.round(programData.price * 100),
-    interval:
-      programData.duration === PROGRAM_DURATION.MONTHLY ? 'month' : undefined,
-  });
-
   const price = await stripe.prices.create({
     product: product.id,
     currency: 'usd',
     unit_amount: Math.round(programData.price * 100),
   });
 
-  return price.id;
+  return { productId: product.id, priceId: price.id };
 };
 
 /**
@@ -272,14 +262,14 @@ const createProgramHandler = async (data, academyId, loggedInUser) => {
     },
   });
 
-  const stripeProgramId = await createStripeProduct({
+  const { productId, priceId } = await createStripeProduct({
     ...program,
     id: program.id,
   });
 
   const updatedProgram = await db.academyProgram.update({
     where: { id: program.id },
-    data: { stripeProgramId },
+    data: { stripeProgramId: productId, stripePriceId: priceId },
   });
 
   return updatedProgram;
@@ -424,32 +414,36 @@ const updateAcademyProgramById = async (programId, academyId, updateData) => {
   return updatedProgram;
 };
 
-/**
- * Delete program by ID with student enrollment handling
- */
-const deleteProgramById = async (programId, academyId) => {
+const deleteProgramById = async (programId) => {
+  if (!programId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Program ID is required');
+  }
+
   const program = await db.academyProgram.findFirst({
     where: {
       id: programId,
-      academyId,
       isActive: true,
     },
     include: {
       studentSubscriptions: {
         where: {
           status: {
-            in: ['ACTIVE', 'PENDING'],
+            in: ['ACTIVE'],
           },
         },
         select: {
           id: true,
           status: true,
-          student: {
+          user: {
             select: {
               id: true,
               email: true,
-              firstName: true,
-              lastName: true,
+              profile: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
+              },
             },
           },
         },
@@ -469,7 +463,7 @@ const deleteProgramById = async (programId, academyId) => {
   if (program.studentSubscriptions.length > 0) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      'Cannot delete program with active students. Please transfer or graduate all students first.'
+      'Cannot delete program with active student subscriptions. Please resolve all subscriptions before deletion.'
     );
   }
 

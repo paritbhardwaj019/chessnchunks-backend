@@ -15,9 +15,11 @@ const stripe = require('../config/stripe');
 const { uploadToCloudinary } = require('../utils/cloudinary.utils');
 const { defaultNavigation } = require('../data/defaultNavigation');
 const createDefaultPagesForAcademy = require('../utils/createDefaultPages');
+const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 
-const inviteAcademyAdminHandler = async (data, loggedInUser) => {
-  const { firstName, lastName, email, academyName, logo, contactNumber } = data;
+const inviteAcademyAdminHandler = async (data, loggedInUser, logoFile) => {
+  const { firstName, lastName, email, academyName, contactNumber } = data;
 
   const existingUser = await db.user.findUnique({
     where: { email },
@@ -25,13 +27,25 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
 
   let logoUrl = null;
 
-  if (logo) {
-    const uploadResult = await uploadToCloudinary(logo, {
-      folder: 'academy-logos',
-      publicId: `academy-${Date.now()}`,
-      allowedFormats: ['jpg', 'jpeg', 'png'],
-    });
-    logoUrl = uploadResult.url;
+  const newInvitationId = uuidv4();
+
+  if (logoFile) {
+    try {
+      const uploadResult = await uploadToCloudinary(logoFile.path, {
+        folder: 'academy-logos',
+        publicId: `academy-${newInvitationId}-logo`,
+        allowedFormats: ['jpg', 'jpeg', 'png', 'gif'],
+        maxSize: 5 * 1024 * 1024,
+      });
+      logoUrl = uploadResult.url;
+    } catch (error) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `Logo upload failed - ${error.message}`
+      );
+    } finally {
+      fs.unlinkSync(logoFile.path);
+    }
   }
 
   if (existingUser) {
@@ -52,7 +66,7 @@ const inviteAcademyAdminHandler = async (data, loggedInUser) => {
       contactName: `${firstName} ${lastName}`,
       email,
       phoneNumber: contactNumber || '',
-      logoUrl: logo,
+      logoUrl,
       status: 'INQUIRY',
     },
   });
