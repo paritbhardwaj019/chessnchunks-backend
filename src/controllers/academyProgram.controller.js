@@ -102,10 +102,7 @@ const updateProgram = catchAsync(async (req, res) => {
 const deleteProgram = catchAsync(async (req, res) => {
   const academyId = await getAndValidateAcademy(req.user);
 
-  await academyProgramService.deleteProgramById(
-    req.params.programId,
-    academyId
-  );
+  await academyProgramService.deleteProgramById(req.params.id);
 
   res.status(httpStatus.NO_CONTENT).send();
 });

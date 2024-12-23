@@ -9,6 +9,7 @@ const comparePassword = require('../utils/comparePassword');
 const { getSingleAcademyForUser } = require('./academy.service');
 const crypto = require('crypto');
 const { ROLE } = require('@prisma/client');
+
 const createToken = require('../utils/createToken');
 const Mailgen = require('mailgen');
 const sendMail = require('../utils/sendEmail');
@@ -242,6 +243,14 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
     2: 'STUDENT',
   };
 
+  const COACH_SUB_ROLE_MAPPING = {
+    1: 'HEAD_COACH',
+    2: 'SENIOR_COACH',
+    3: 'JUNIOR_COACH',
+    4: 'PUZZLE_MASTER',
+    5: 'PUZZLE_MASTER_SCHOLAR',
+  };
+
   const workbook = xlsx.readFile(file.path);
   const sheetNames = workbook.SheetNames;
 
@@ -259,15 +268,10 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
       const email = row['EMAIL'];
       const phoneNumber = row['PHONE NUMBER'];
       const roleNumber = row['ROLE'];
+      const subRole = row['SUB_ROLE'];
 
       try {
-        if (
-          !email ||
-          !firstName ||
-          !lastName ||
-          !phoneNumber ||
-          roleNumber === undefined
-        ) {
+        if (!email || !firstName || !lastName || !phoneNumber || !roleNumber) {
           throw new ApiError(httpStatus.BAD_REQUEST, 'Missing required fields');
         }
 
@@ -275,7 +279,7 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
         if (!role || !['COACH', 'STUDENT'].includes(role)) {
           throw new ApiError(
             httpStatus.BAD_REQUEST,
-            `Invalid role number: ${roleNumber}`
+            `Invalid role number - ${roleNumber}`
           );
         }
 
@@ -300,6 +304,7 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
                 phoneNumber,
                 academyId,
                 password: hashedPassword,
+                subRole: COACH_SUB_ROLE_MAPPING[subRole],
               },
               email,
               type: 'BATCH_COACH',
@@ -347,10 +352,6 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
                 'After logging in, you will be prompted to complete your profile with additional information.',
             },
           };
-
-          console.log(
-            `${config.frontendUrl}/accept-invite?type=BATCH_COACH&token=${token}`
-          );
 
           await sendMail(
             email,
@@ -411,6 +412,7 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
           });
         }
       } catch (error) {
+        console.log(error);
         errors.push({
           email,
           firstName,
@@ -455,7 +457,6 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required.');
   }
 
-  // Fetch the user to be updated
   const user = await db.user.findUnique({
     where: { id },
     include: { profile: true, coachOfBatches: true, studentOfBatches: true },
@@ -465,10 +466,8 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
   }
 
-  // Authorization: Only SUPER_ADMIN or ADMIN can update users
   if (loggedInUser.role !== 'SUPER_ADMIN') {
     if (loggedInUser.role === 'ADMIN') {
-      // Check if the user belongs to any academy managed by the ADMIN
       const adminAcademyIds = loggedInUser.adminOfAcademies.map(
         (academy) => academy.id
       );
@@ -507,7 +506,17 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
   }
 
   if (role) {
-    updateData.role = role;
+    const existingRole = await db.role.findUnique({
+      where: { name: role.name },
+    });
+
+    if (!existingRole) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid role name.');
+    }
+
+    updateData.role = {
+      connect: { name: role.name },
+    };
   }
 
   if (subRole) {
@@ -541,7 +550,8 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
     }
   }
 
-  // Perform the update
+  console.log('---UPDATE-DATA---', updateData);
+
   const updatedUser = await db.user.update({
     where: { id },
     data: updateData,

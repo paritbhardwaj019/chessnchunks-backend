@@ -217,7 +217,7 @@ const createSignupHandler = async (data, academyId) => {
     },
   });
 
-  const signupId = await generateSystemCode(SYSTEM_CODE_MODULE.STUDENT);
+  const signupId = await generateSystemCode(SYSTEM_CODE_MODULE.USER_SIGNUP);
 
   const expiryDate = new Date();
   expiryDate.setHours(expiryDate.getHours() + 72);

@@ -7,8 +7,9 @@ const ApiError = require('../utils/apiError');
 const inviteAcademyAdminHandler = catchAsync(async (req, res) => {
   const academyAdminInvitation =
     await superAdminService.inviteAcademyAdminHandler(
-      { logo: req.file.path, ...req.body },
-      req.user
+      req.body,
+      req.user,
+      req.file
     );
 
   res.status(httpStatus.CREATED).send(academyAdminInvitation);

@@ -336,7 +336,10 @@ async function main() {
   });
 
   for (const permission of allPermissions) {
-    if (permission.resource.startsWith('/dashboard/calendar')) {
+    if (
+      permission.resource.startsWith('/dashboard/calendar') ||
+      permission.resource.startsWith('/dashboard/batches')
+    ) {
       continue;
     }
 

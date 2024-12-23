@@ -15,7 +15,7 @@ const createQuiz = async (data, userId) => {
     data;
 
   const quizCode = await generateSystemCode(SYSTEM_CODE_MODULE.QUIZ);
-  console.log('Quiz Code====>...', quizCode);
+
   const mappedQuestions = await Promise.all(
     questions.map(async (q, index) => {
       const questionCode = await generateSystemCode(

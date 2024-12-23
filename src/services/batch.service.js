@@ -520,13 +520,20 @@ const addCoachToBatch = async (batchId, coachId) => {
     include: { coaches: true },
   });
 
+  console.log('BATCH', batch);
+
   if (!batch) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
   }
 
   // Check if coach exists
-  const coach = await db.coach.findUnique({
-    where: { id: coachId },
+  const coach = await db.user.findUnique({
+    where: {
+      id: coachId,
+      role: {
+        name: 'COACH',
+      },
+    },
   });
 
   if (!coach) {
