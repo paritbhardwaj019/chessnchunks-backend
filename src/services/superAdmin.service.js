@@ -246,7 +246,7 @@ const verifyAcademyAdminHandler = async (token, domain) => {
   });
 
   const userCount = await db.user.count();
-  const newCode = formatNumberWithPrefix('U', userCount);
+  const newCode = formatNumberWithPrefix('U', userCount + 1);
 
   const hashedPassword = await hashPassword(password, 10);
 
