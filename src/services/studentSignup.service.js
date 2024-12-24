@@ -2,7 +2,6 @@ const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const { generateOTP } = require('../utils/generateOTP');
-const hashPassword = require('../utils/hashPassword');
 const {
   REGISTRATION_STAGE,
   SIGNUP_STATUS,
@@ -17,8 +16,74 @@ const sendMail = require('../utils/sendEmail');
 const stripe = require('../config/stripe');
 const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
 const ChessWebAPI = require('chess-web-api');
+const speakeasy = require('speakeasy');
+const QRCode = require('qrcode');
 
 const chessAPI = new ChessWebAPI();
+
+const setupMFAHandler = async (signupId) => {
+  const signup = await db.userSignup.findUnique({
+    where: { id: signupId },
+    include: {
+      user: true,
+    },
+  });
+
+  if (!signup) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Signup not found');
+  }
+
+  const secret = speakeasy.generateSecret({
+    name: `ChessInChunks:${signup.email}`,
+  });
+
+  const qrCode = await QRCode.toDataURL(secret.otpauth_url);
+
+  await db.userSignup.update({
+    where: { id: signupId },
+    data: {
+      mfaSecret: secret.base32,
+      mfaEnabled: true,
+    },
+  });
+
+  return {
+    secret: secret.base32,
+    qrCode,
+  };
+};
+
+const verifyMFAHandler = async (signupId, token) => {
+  const signup = await db.userSignup.findUnique({
+    where: { id: signupId },
+  });
+
+  if (!signup || !signup.mfaEnabled) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'MFA not enabled for this signup'
+    );
+  }
+
+  const verified = speakeasy.totp.verify({
+    secret: signup.mfaSecret,
+    encoding: 'base32',
+    token,
+  });
+
+  if (!verified) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid MFA token');
+  }
+
+  await db.userSignup.update({
+    where: { id: signupId },
+    data: {
+      mfaVerified: true,
+    },
+  });
+
+  return { verified: true };
+};
 
 const updatePasswordHandler = async (id, newPassword) => {
   if (!id) {
@@ -279,19 +344,31 @@ const updateSignupHandler = async (id, data) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Signup not found');
   }
 
-  // Filter out undefined or null fields
+  if (data.mfaEnabled !== undefined) {
+    if (data.mfaEnabled && !signup.mfaSecret) {
+      const mfaSetup = await setupMFAHandler(id);
+      return {
+        ...signup,
+        mfaEnabled: true,
+        mfaQrCode: mfaSetup.qrCode,
+        mfaSecret: mfaSetup.secret,
+      };
+    } else if (!data.mfaEnabled) {
+      data.mfaSecret = null;
+      data.mfaVerified = false;
+    }
+  }
+
   const filteredData = Object.fromEntries(
     Object.entries(data).filter(
       ([_, value]) => value !== undefined && value !== null
     )
   );
 
-  // Handle specific fields like dateOfBirth that require special formatting
   if (filteredData.dateOfBirth) {
     filteredData.dateOfBirth = new Date(filteredData.dateOfBirth);
   }
 
-  // Perform the update with filtered data
   const updatedSignup = await db.userSignup.update({
     where: { id },
     data: filteredData,
@@ -670,6 +747,8 @@ const studentSignupService = {
   addProgramPurchaseHandler,
   handleExpiredSignups,
   sendSignupEmail,
+  verifyMFAHandler,
+  setupMFAHandler,
 };
 
 module.exports = studentSignupService;
