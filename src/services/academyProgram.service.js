@@ -623,6 +623,139 @@ const getAcademyPrograms = async (academyId) => {
   return allPrograms;
 };
 
+const updateProgramCredits = async (programId, academyId, creditData) => {
+  const program = await db.academyProgram.findFirst({
+    where: {
+      id: programId,
+      academyId,
+      isActive: true,
+    },
+  });
+
+  if (!program) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Program not found');
+  }
+
+  if (creditData.creditPoints < 0) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Credit points cannot be negative'
+    );
+  }
+
+  if (creditData.latePaymentFees < 0) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Late payment fees cannot be negative'
+    );
+  }
+
+  if (creditData.discountAmount < 0) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Discount amount cannot be negative'
+    );
+  }
+
+  if (creditData.dueDate && new Date(creditData.dueDate) < new Date()) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Due date cannot be in the past'
+    );
+  }
+
+  const formattedCreditData = {
+    creditPoints: parseInt(creditData.creditPoints),
+    condition: creditData.condition,
+    discountRules: creditData.discountRules || {},
+    discountAmount: parseFloat(creditData.discountAmount) || 0,
+    latePaymentFees: parseFloat(creditData.latePaymentFees) || 0,
+    dueDate: creditData.dueDate ? new Date(creditData.dueDate) : null,
+  };
+
+  const updatedProgram = await db.academyProgram.update({
+    where: { id: programId },
+    data: {
+      ...formattedCreditData,
+      updatedAt: new Date(),
+    },
+    include: {
+      studentSubscriptions: {
+        select: {
+          id: true,
+          status: true,
+          student: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (updatedProgram.studentSubscriptions.length > 0) {
+    await Promise.all(
+      updatedProgram.studentSubscriptions.map(async (subscription) => {
+        await db.notification.create({
+          data: {
+            type: 'PROGRAM_CREDIT_UPDATE',
+            userId: subscription.student.id,
+            title: 'Program Credits Updated',
+            message: `The credit points for program ${program.name} have been updated to ${formattedCreditData.creditPoints} points.`,
+            metadata: {
+              programId: program.id,
+              oldCreditPoints: program.creditPoints,
+              newCreditPoints: formattedCreditData.creditPoints,
+              condition: formattedCreditData.condition,
+            },
+          },
+        });
+      })
+    );
+  }
+
+  return updatedProgram;
+};
+
+const getProgramCreditHistory = async (programId, academyId) => {
+  const program = await db.academyProgram.findFirst({
+    where: {
+      id: programId,
+      academyId,
+      isActive: true,
+    },
+    include: {
+      studentProgramCredits: {
+        select: {
+          id: true,
+          creditAmount: true,
+          expiryDate: true,
+          createdAt: true,
+          student: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      },
+    },
+  });
+
+  if (!program) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Program not found');
+  }
+
+  return program.studentProgramCredits;
+};
+
 const academyProgramService = {
   createProgramHandler,
   listAllPrograms,
@@ -632,6 +765,8 @@ const academyProgramService = {
   getProgramOptions,
   getProgramSubscribers,
   getAcademyPrograms,
+  updateProgramCredits,
+  getProgramCreditHistory,
 };
 
 module.exports = academyProgramService;

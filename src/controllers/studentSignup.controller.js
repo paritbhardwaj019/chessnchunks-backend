@@ -132,6 +132,20 @@ const getActiveSubscriptions = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(subscriptions);
 });
 
+const setupMFAHandler = catchAsync(async (req, res) => {
+  const result = await studentSignupService.setupMFAHandler(req.params.id);
+  res.status(httpStatus.OK).send(result);
+});
+
+const verifyMFAHandler = catchAsync(async (req, res) => {
+  const { token } = req.body;
+  const result = await studentSignupService.verifyMFAHandler(
+    req.params.id,
+    token
+  );
+  res.status(httpStatus.OK).send(result);
+});
+
 const studentSignupController = {
   createSignupHandler,
   updateSignupHandler,
@@ -146,6 +160,8 @@ const studentSignupController = {
   getActiveSubscriptions,
   handleWaitlistHandler,
   updatePasswordHandler,
+  setupMFAHandler,
+  verifyMFAHandler,
 };
 
 module.exports = studentSignupController;

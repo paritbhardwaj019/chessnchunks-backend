@@ -903,7 +903,10 @@ model UserSignup {
   reservationExpiry DateTime?
   emailVerified     Boolean   @default(false)
   emailVerifiedAt   DateTime?
-  mfaEnabled        Boolean   @default(false)
+ 
+  mfaEnabled   Boolean  @default(false)
+  mfaSecret    String?
+  mfaVerified  Boolean  @default(false)
 
   paymentStatus PAYMENT_STATUS @default(PENDING)
   paymentAmount Float?
