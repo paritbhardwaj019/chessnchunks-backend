@@ -121,6 +121,28 @@ const getQuizOptionsHandler = catchAsync(async (req, res) => {
   });
 });
 
+/**
+ * Assign Quiz Handler
+ * Creates a task for quiz assignment
+ */
+const assignQuizHandler = catchAsync(async (req, res) => {
+  const assignmentData = {
+    quizId: req.body.quizId,
+    description: req.body.description,
+    startDate: req.body.startDate,
+    endDate: req.body.endDate,
+    status: req.body.status || 'NOT_STARTED',
+    assignmentType: req.body.assignedToType,
+    assigneeId: req.body.assignedToId,
+  };
+
+  const assignment = await quizService.assignQuizWithTask(
+    assignmentData,
+    req.user
+  );
+  res.status(httpStatus.CREATED).send(assignment);
+});
+
 const quizController = {
   createQuizHandler,
   getQuizByTaskIdHandler,
@@ -133,6 +155,7 @@ const quizController = {
   updateQuizHandler,
   deleteQuizHandler,
   getQuizOptionsHandler,
+  assignQuizHandler,
 };
 
 module.exports = quizController;
