@@ -17,6 +17,7 @@ const sendMail = require('../utils/sendEmail');
 const generateSystemCode = require('../utils/generateSystemCode');
 const { sendSignupEmail } = require('./studentSignup.service');
 const config = require('../config');
+const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
 
 const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const numberPage = Number(page) || 1;
@@ -205,21 +206,13 @@ const signUpSubscriberHandler = async (data) => {
 };
 
 const createUsersFromXlsx = async (file, loggedInUser) => {
-  if (!file?.path)
+  if (!file?.path) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'File is missing!');
+  }
 
-  const user = await db.user.findUnique({
-    where: { id: loggedInUser.id },
-    include: { adminOfAcademies: true, role: true },
-  });
-
-  if (!user) throw new ApiError(httpStatus.BAD_REQUEST, 'User not found.');
-  if (user.role.name !== 'ADMIN')
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Insufficient permissions');
-  if (!user.adminOfAcademies.length)
-    throw new ApiError(httpStatus.BAD_REQUEST, 'No associated academy');
-
+  const user = await validateUser(loggedInUser);
   const academyId = user.adminOfAcademies[0].id;
+
   const ROLE_MAPPING = { 1: 'COACH', 2: 'STUDENT' };
   const COACH_SUB_ROLE_MAPPING = {
     1: 'HEAD_COACH',
@@ -237,131 +230,23 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
   const coachesCreated = [];
   const studentsCreated = [];
   const errors = [];
-  const batchSize = 10;
-  const batches = _.chunk(jsonData, batchSize);
+  const batches = _.chunk(jsonData, 10);
 
   for (const batch of batches) {
     await Promise.all(
       batch.map(async (row) => {
-        const {
-          'FIRST NAME': firstName,
-          'LAST NAME': lastName,
-          EMAIL: email,
-          'PHONE NUMBER': phoneNumber,
-          ROLE: roleNumber,
-          SUB_ROLE: subRole,
-        } = row;
-
         try {
-          if (
-            !email ||
-            !firstName ||
-            !lastName ||
-            !phoneNumber ||
-            !roleNumber
-          ) {
-            throw new ApiError(
-              httpStatus.BAD_REQUEST,
-              'Missing required fields'
-            );
-          }
-
-          const role = ROLE_MAPPING[roleNumber];
-          if (!role)
-            throw new ApiError(
-              httpStatus.BAD_REQUEST,
-              `Invalid role: ${roleNumber}`
-            );
-
-          const existingUser = await db.user.findUnique({ where: { email } });
-          if (existingUser)
-            throw new ApiError(httpStatus.CONFLICT, 'Email exists');
-
-          if (role === 'COACH') {
-            const tempPassword = crypto.randomBytes(8).toString('hex');
-            const hashedPassword = await hashPassword(tempPassword, 10);
-
-            const coachInvitation = await db.invitation.create({
-              data: {
-                data: {
-                  firstName,
-                  lastName,
-                  email,
-                  phoneNumber,
-                  academyId,
-                  password: hashedPassword,
-                  subRole: COACH_SUB_ROLE_MAPPING[subRole],
-                },
-                email,
-                type: 'BATCH_COACH',
-                expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
-                createdById: loggedInUser.id,
-              },
-            });
-
-            const token = await createToken(
-              { id: coachInvitation.id, version: coachInvitation.version },
-              config.jwt.invitationSecret,
-              '3d'
-            );
-
-            sendCoachInvitationEmail(
-              firstName,
-              lastName,
-              email,
-              tempPassword,
-              token
-            );
-            coachesCreated.push({ email, firstName, lastName, role: 'COACH' });
-          } else {
-            const signupId = await generateSystemCode(
-              SYSTEM_CODE_MODULE.STUDENT
-            );
-            const expiryDate = new Date(Date.now() + 72 * 60 * 60 * 1000);
-            const otp = generateOTP(6);
-
-            const [signup] = await Promise.all([
-              db.userSignup.create({
-                data: {
-                  email,
-                  signupId,
-                  firstName,
-                  lastName,
-                  phoneNumber,
-                  userRole: ROLE.STUDENT,
-                  signupStage: REGISTRATION_STAGE.INQUIRY,
-                  signupStatus: SIGNUP_STATUS.INQUIRY,
-                  academyId,
-                  reservationExpiry: expiryDate,
-                },
-              }),
-              db.signupOTP.create({
-                data: {
-                  email,
-                  otp,
-                  expiresAt: expiryDate,
-                  verified: false,
-                },
-              }),
-            ]);
-
-            sendSignupEmail(signup, otp);
-            studentsCreated.push({
-              email,
-              firstName,
-              lastName,
-              role: 'STUDENT',
-              signupId: signup.signupId,
-            });
-          }
+          await processRow(
+            row,
+            academyId,
+            loggedInUser,
+            coachesCreated,
+            studentsCreated,
+            ROLE_MAPPING,
+            COACH_SUB_ROLE_MAPPING
+          );
         } catch (error) {
-          errors.push({
-            email,
-            firstName,
-            lastName,
-            roleNumber,
-            error: error.message,
-          });
+          errors.push(createErrorEntry(row, error));
         }
       })
     );
@@ -371,12 +256,267 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
   return { coachesCreated, studentsCreated, errors };
 };
 
+const validateUser = async (loggedInUser) => {
+  const user = await db.user.findUnique({
+    where: { id: loggedInUser.id },
+    include: { adminOfAcademies: true, role: true },
+  });
+
+  if (!user) throw new ApiError(httpStatus.BAD_REQUEST, 'User not found.');
+  if (user.role.name !== 'ADMIN')
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Insufficient permissions');
+  if (!user.adminOfAcademies.length)
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No associated academy');
+
+  return user;
+};
+
+const validateRowData = (row) => {
+  const {
+    'FIRST NAME': firstName,
+    'LAST NAME': lastName,
+    EMAIL: email,
+    'PHONE NUMBER': phoneNumber,
+    ROLE: roleNumber,
+  } = row;
+  if (!email || !firstName || !lastName || !phoneNumber || !roleNumber) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Missing required fields');
+  }
+  return { firstName, lastName, email, phoneNumber, roleNumber };
+};
+
+const processRow = async (
+  row,
+  academyId,
+  loggedInUser,
+  coachesCreated,
+  studentsCreated,
+  ROLE_MAPPING,
+  COACH_SUB_ROLE_MAPPING
+) => {
+  const { firstName, lastName, email, phoneNumber, roleNumber } =
+    validateRowData(row);
+  const role = ROLE_MAPPING[roleNumber];
+
+  if (!role)
+    throw new ApiError(httpStatus.BAD_REQUEST, `Invalid role: ${roleNumber}`);
+
+  const existingUser = await db.user.findUnique({ where: { email } });
+  if (existingUser) throw new ApiError(httpStatus.CONFLICT, 'Email exists');
+
+  const academy = await db.academy.findUnique({
+    where: { id: academyId },
+    select: { name: true, domain: true },
+  });
+
+  if (role === 'COACH') {
+    await processCoach(
+      row,
+      academy,
+      academyId,
+      loggedInUser,
+      COACH_SUB_ROLE_MAPPING,
+      coachesCreated
+    );
+  } else {
+    await processStudent(
+      row,
+      academy,
+      academyId,
+      loggedInUser,
+      studentsCreated
+    );
+  }
+};
+
+const processCoach = async (
+  row,
+  academy,
+  academyId,
+  loggedInUser,
+  COACH_SUB_ROLE_MAPPING,
+  coachesCreated
+) => {
+  const {
+    'FIRST NAME': firstName,
+    'LAST NAME': lastName,
+    EMAIL: email,
+    'PHONE NUMBER': phoneNumber,
+    SUB_ROLE: subRole,
+  } = row;
+
+  console.log('ROW', row);
+
+  const tempPassword = crypto.randomBytes(8).toString('hex');
+  const hashedPassword = await hashPassword(tempPassword, 10);
+
+  const coachInvitation = await createCoachInvitation(
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    academyId,
+    hashedPassword,
+    COACH_SUB_ROLE_MAPPING[subRole],
+    loggedInUser.id
+  );
+
+  console.log('COACH_INVITATION', coachInvitation);
+
+  const token = await createToken(
+    { id: coachInvitation.id, version: coachInvitation.version },
+    config.jwt.invitationSecret,
+    '3d'
+  );
+
+  const baseUrl =
+    COACH_SUB_ROLE_MAPPING[subRole] === 'HEAD_COACH'
+      ? academy.domain
+      : getDomainFromAdmin(academy.domain);
+
+  console.log('BASE_URL', baseUrl);
+
+  const ACTIVATION_URL = `${baseUrl}/invitation?type=BATCH_COACH&name=${encodeURIComponent(
+    `${firstName} ${lastName} from ${academy.name}`
+  )}&token=${token}`;
+
+  console.log('ACTIVATION_URL', ACTIVATION_URL);
+
+  await sendCoachInvitationEmail(
+    firstName,
+    lastName,
+    email,
+    tempPassword,
+    ACTIVATION_URL
+  );
+  coachesCreated.push({ email, firstName, lastName, role: 'COACH' });
+};
+
+const processStudent = async (
+  row,
+  academy,
+  academyId,
+  loggedInUser,
+  studentsCreated
+) => {
+  const {
+    'FIRST NAME': firstName,
+    'LAST NAME': lastName,
+    EMAIL: email,
+    'PHONE NUMBER': phoneNumber,
+  } = row;
+
+  const signupId = await generateSystemCode(SYSTEM_CODE_MODULE.STUDENT);
+  const expiryDate = new Date(Date.now() + 72 * 60 * 60 * 1000);
+  const otp = generateOTP(6);
+
+  const [signup] = await Promise.all([
+    createStudentSignup(
+      email,
+      signupId,
+      firstName,
+      lastName,
+      phoneNumber,
+      academyId,
+      expiryDate
+    ),
+    createSignupOTP(email, otp, expiryDate),
+  ]);
+
+  const baseUrl = getDomainFromAdmin(academy.domain);
+  const ACTIVATION_URL = `${baseUrl}/invitation?type=USER_INVITATION&name=${encodeURIComponent(
+    `${firstName} ${lastName} from ${academy.name}`
+  )}&token=${signupId}`;
+
+  await sendSignupEmail(signup, otp, ACTIVATION_URL);
+  studentsCreated.push({
+    email,
+    firstName,
+    lastName,
+    role: 'STUDENT',
+    signupId: signup.signupId,
+  });
+};
+
+const createCoachInvitation = async (
+  firstName,
+  lastName,
+  email,
+  phoneNumber,
+  academyId,
+  hashedPassword,
+  subRole,
+  creatorId
+) => {
+  return await db.invitation.create({
+    data: {
+      data: {
+        firstName,
+        lastName,
+        email,
+        phoneNumber,
+        academyId,
+        password: hashedPassword,
+        subRole,
+      },
+      email,
+      type: 'BATCH_COACH',
+      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
+      createdById: creatorId,
+    },
+  });
+};
+
+const createStudentSignup = async (
+  email,
+  signupId,
+  firstName,
+  lastName,
+  phoneNumber,
+  academyId,
+  expiryDate
+) => {
+  return await db.userSignup.create({
+    data: {
+      email,
+      signupId,
+      firstName,
+      lastName,
+      phoneNumber,
+      userRole: ROLE.STUDENT,
+      signupStage: REGISTRATION_STAGE.INQUIRY,
+      signupStatus: SIGNUP_STATUS.INQUIRY,
+      academyId,
+      reservationExpiry: expiryDate,
+    },
+  });
+};
+
+const createSignupOTP = async (email, otp, expiryDate) => {
+  return await db.signupOTP.create({
+    data: {
+      email,
+      otp,
+      expiresAt: expiryDate,
+      verified: false,
+    },
+  });
+};
+
+const createErrorEntry = (row, error) => ({
+  email: row.EMAIL,
+  firstName: row['FIRST NAME'],
+  lastName: row['LAST NAME'],
+  roleNumber: row.ROLE,
+  error: error.message,
+});
+
 const sendCoachInvitationEmail = async (
   firstName,
   lastName,
   email,
   tempPassword,
-  token
+  url
 ) => {
   const mailGenerator = new Mailgen({
     theme: 'default',
@@ -399,7 +539,7 @@ const sendCoachInvitationEmail = async (
         button: {
           color: '#22BC66',
           text: 'Accept Invitation',
-          link: `${config.frontendUrl}/accept-invite?type=BATCH_COACH&token=${token}`,
+          link: url,
         },
       },
       outro:
