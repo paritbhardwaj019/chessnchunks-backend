@@ -391,6 +391,130 @@ const getQuizOptions = async () => {
   }));
 };
 
+const assignQuizWithTask = async (data, loggedInUser) => {
+  console.log('DATA', data);
+
+  const {
+    quizId,
+    description,
+    startDate,
+    endDate,
+    status,
+    assignmentType,
+    assigneeId,
+  } = data;
+
+  // First fetch the quiz with all its questions
+  const quiz = await db.quiz.findUnique({
+    where: { id: quizId },
+    include: {
+      questions: {
+        orderBy: {
+          orderIndex: 'asc',
+        },
+      },
+    },
+  });
+
+  if (!quiz) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Quiz not found');
+  }
+
+  const taskId = await generateSystemCode(SYSTEM_CODE_MODULE.TASK);
+
+  let taskData = {
+    description: description || `Quiz Assignment: ${quiz.title}`,
+    taskId,
+    startDate: new Date(startDate),
+    endDate: new Date(endDate),
+    status,
+    createdById: loggedInUser.id,
+    quizzes: {
+      connect: { id: quizId },
+    },
+  };
+
+  console.log('ASSIGNMENT TYPE', assignmentType);
+
+  switch (assignmentType) {
+    case 'student':
+      if (!assigneeId) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Student ID is required');
+      }
+      const user = await db.user.findUnique({
+        where: { id: assigneeId },
+        include: {
+          profile: true,
+        },
+      });
+      if (!user) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Student not found');
+      }
+      taskData.assignedToUserId = assigneeId;
+      break;
+
+    case 'batch':
+      if (!assigneeId) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Batch ID is required');
+      }
+      const batch = await db.batch.findFirst({
+        where: {
+          id: assigneeId,
+        },
+      });
+      if (!batch) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
+      }
+      taskData.assignedToBatchId = assigneeId;
+      break;
+
+    case 'academy':
+      if (!assigneeId) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Academy ID is required');
+      }
+      const academy = await db.academy.findUnique({
+        where: { id: assigneeId },
+      });
+      if (!academy) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Academy not found');
+      }
+      taskData.assignedToAcademyId = assigneeId;
+      break;
+
+    default:
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid assignment type');
+  }
+
+  try {
+    // Create the task with all necessary relationships
+    const task = await db.task.create({
+      data: taskData,
+      include: {
+        quizzes: true,
+        assignedToUser: true,
+        assignedToBatch: true,
+        assignedToAcademy: true,
+        createdBy: true,
+      },
+    });
+
+    // Verify that the quiz was properly connected
+    if (!task.quizzes || task.quizzes.length === 0) {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        'Failed to connect quiz to task'
+      );
+    }
+
+    return task;
+  } catch (error) {
+    console.error('Error creating task:', error);
+    throw new ApiError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      'Failed to create quiz assignment'
+    );
+  }
+};
 const quizService = {
   createQuiz,
   getQuizByTaskId,
@@ -400,6 +524,8 @@ const quizService = {
   reviewQuizAttempt,
   listQuizzes,
   getQuizOptions,
+  assignQuizWithTask,
+  getQuizById,
 };
 
 module.exports = quizService;

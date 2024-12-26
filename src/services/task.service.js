@@ -88,7 +88,13 @@ const getAllTasks = async (loggedInUser) => {
     createdById: loggedInUser.id,
   };
 
-  if (loggedInUser.role === 'STUDENT') {
+  const studentRole = await db.role.findFirst({
+    where: {
+      name: 'STUDENT',
+    },
+  });
+
+  if (loggedInUser.roleId === studentRole.id) {
     const studentBatches = await db.batch.findMany({
       where: { students: { some: { id: loggedInUser.id } } },
       select: { id: true },
@@ -108,7 +114,6 @@ const getAllTasks = async (loggedInUser) => {
   const tasks = await db.task.findMany({
     where: whereCondition,
     include: {
-      taskCode: true,
       assignedToUser: {
         include: {
           profile: true,
@@ -121,6 +126,7 @@ const getAllTasks = async (loggedInUser) => {
           profile: true,
         },
       },
+      quizzes: true,
     },
   });
 

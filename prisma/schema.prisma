@@ -10,8 +10,8 @@ datasource db {
 model Task {
   id          String   @id @default(uuid())
   description String
-  taskCodeId  String
-  taskCode    TaskCode @relation(fields: [taskCodeId], references: [id])
+
+  taskId String @unique
 
   startDate DateTime
   endDate   DateTime
@@ -39,15 +39,6 @@ model Task {
   @@map("tasks")
 }
 
-model TaskCode {
-  id          String  @id @default(uuid())
-  code        String  @unique
-  description String?
-
-  tasks Task[]
-
-  @@map("task_codes")
-}
 
 enum TASK_STATUS {
   NOT_STARTED

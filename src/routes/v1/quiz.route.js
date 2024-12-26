@@ -6,6 +6,18 @@ const quizController = require('../../controllers/quiz.controller');
 const quizRouter = express.Router();
 
 /**
+ * @route   POST /api/quiz/assign
+ * @desc    Assign a quiz by creating a task
+ * @access  Protected (ADMIN, COACH)
+ */
+quizRouter.post(
+  '/assign',
+  checkJWT,
+  checkRole(['ADMIN', 'COACH']),
+  quizController.assignQuizHandler
+);
+
+/**
  * @route   GET /api/quiz/options
  * @desc    Get quiz options for dropdowns
  * @access  Protected (ADMIN, COACH)
@@ -34,6 +46,18 @@ quizRouter.post(
   checkJWT,
   checkRole(['ADMIN', 'COACH']),
   quizController.createQuizHandler
+);
+
+/**
+ * @route   GET /api/quiz/id/:quizId
+ * @desc    Get quiz details by Quiz ID
+ * @access  Protected (ADMIN, COACH, STUDENT)
+ */
+quizRouter.get(
+  '/id/:quizId',
+  checkJWT,
+  checkRole(['ADMIN', 'COACH', 'STUDENT']),
+  quizController.getQuizByIdHandler
 );
 
 /**
