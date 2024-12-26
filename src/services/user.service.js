@@ -9,6 +9,7 @@ const comparePassword = require('../utils/comparePassword');
 const { getSingleAcademyForUser } = require('./academy.service');
 const crypto = require('crypto');
 const { ROLE } = require('@prisma/client');
+const _ = require('lodash');
 
 const createToken = require('../utils/createToken');
 const Mailgen = require('mailgen');
@@ -204,45 +205,22 @@ const signUpSubscriberHandler = async (data) => {
 };
 
 const createUsersFromXlsx = async (file, loggedInUser) => {
-  if (!file || !file.path) {
+  if (!file?.path)
     throw new ApiError(httpStatus.BAD_REQUEST, 'File is missing!');
-  }
 
   const user = await db.user.findUnique({
     where: { id: loggedInUser.id },
-    include: {
-      adminOfAcademies: true,
-      assignedToAcademy: true,
-      role: true,
-    },
+    include: { adminOfAcademies: true, role: true },
   });
 
-  if (!user) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'User not found.');
-  }
+  if (!user) throw new ApiError(httpStatus.BAD_REQUEST, 'User not found.');
+  if (user.role.name !== 'ADMIN')
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Insufficient permissions');
+  if (!user.adminOfAcademies.length)
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No associated academy');
 
-  let academyId = null;
-
-  if (user.role.name === 'ADMIN') {
-    if (user.adminOfAcademies.length === 0) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        'User is not associated with any academy.'
-      );
-    }
-    academyId = user.adminOfAcademies[0].id;
-  } else {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      'User role does not have permission to create users.'
-    );
-  }
-
-  const ROLE_MAPPING = {
-    1: 'COACH',
-    2: 'STUDENT',
-  };
-
+  const academyId = user.adminOfAcademies[0].id;
+  const ROLE_MAPPING = { 1: 'COACH', 2: 'STUDENT' };
   const COACH_SUB_ROLE_MAPPING = {
     1: 'HEAD_COACH',
     2: 'SENIOR_COACH',
@@ -252,185 +230,189 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
   };
 
   const workbook = xlsx.readFile(file.path);
-  const sheetNames = workbook.SheetNames;
+  const jsonData = xlsx.utils.sheet_to_json(
+    workbook.Sheets[workbook.SheetNames[0]]
+  );
 
   const coachesCreated = [];
   const studentsCreated = [];
   const errors = [];
+  const batchSize = 10;
+  const batches = _.chunk(jsonData, batchSize);
 
-  for (const sheetName of sheetNames) {
-    const worksheet = workbook.Sheets[sheetName];
-    const jsonData = xlsx.utils.sheet_to_json(worksheet);
+  for (const batch of batches) {
+    await Promise.all(
+      batch.map(async (row) => {
+        const {
+          'FIRST NAME': firstName,
+          'LAST NAME': lastName,
+          EMAIL: email,
+          'PHONE NUMBER': phoneNumber,
+          ROLE: roleNumber,
+          SUB_ROLE: subRole,
+        } = row;
 
-    for (const row of jsonData) {
-      const firstName = row['FIRST NAME'];
-      const lastName = row['LAST NAME'];
-      const email = row['EMAIL'];
-      const phoneNumber = row['PHONE NUMBER'];
-      const roleNumber = row['ROLE'];
-      const subRole = row['SUB_ROLE'];
+        try {
+          if (
+            !email ||
+            !firstName ||
+            !lastName ||
+            !phoneNumber ||
+            !roleNumber
+          ) {
+            throw new ApiError(
+              httpStatus.BAD_REQUEST,
+              'Missing required fields'
+            );
+          }
 
-      try {
-        if (!email || !firstName || !lastName || !phoneNumber || !roleNumber) {
-          throw new ApiError(httpStatus.BAD_REQUEST, 'Missing required fields');
-        }
+          const role = ROLE_MAPPING[roleNumber];
+          if (!role)
+            throw new ApiError(
+              httpStatus.BAD_REQUEST,
+              `Invalid role: ${roleNumber}`
+            );
 
-        const role = ROLE_MAPPING[roleNumber];
-        if (!role || !['COACH', 'STUDENT'].includes(role)) {
-          throw new ApiError(
-            httpStatus.BAD_REQUEST,
-            `Invalid role number - ${roleNumber}`
-          );
-        }
+          const existingUser = await db.user.findUnique({ where: { email } });
+          if (existingUser)
+            throw new ApiError(httpStatus.CONFLICT, 'Email exists');
 
-        const isEmailExists = await db.user.findUnique({
-          where: { email },
-        });
+          if (role === 'COACH') {
+            const tempPassword = crypto.randomBytes(8).toString('hex');
+            const hashedPassword = await hashPassword(tempPassword, 10);
 
-        if (isEmailExists) {
-          throw new ApiError(httpStatus.CONFLICT, 'Email is already taken.');
-        }
-
-        if (role === 'COACH') {
-          const tempPassword = crypto.randomBytes(8).toString('hex');
-          const hashedPassword = await hashPassword(tempPassword, 10);
-
-          const coachInvitation = await db.invitation.create({
-            data: {
+            const coachInvitation = await db.invitation.create({
               data: {
-                firstName,
-                lastName,
-                email,
-                phoneNumber,
-                academyId,
-                password: hashedPassword,
-                subRole: COACH_SUB_ROLE_MAPPING[subRole],
-              },
-              email,
-              type: 'BATCH_COACH',
-              expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
-              createdBy: {
-                connect: { id: loggedInUser.id },
-              },
-            },
-          });
-
-          const token = await createToken(
-            { id: coachInvitation.id, version: coachInvitation.version },
-            config.jwt.invitationSecret,
-            '3d'
-          );
-
-          const mailGenerator = new Mailgen({
-            theme: 'default',
-            product: {
-              name: 'Chess in Chunks',
-              link: config.frontendUrl,
-            },
-          });
-
-          const emailContent = {
-            body: {
-              name: `${firstName} ${lastName}`,
-              intro: 'You are invited to join as a coach!',
-              table: {
-                data: [
-                  { label: 'Email', value: email },
-                  { label: 'Temporary Password', value: tempPassword },
-                ],
-              },
-              action: {
-                instructions:
-                  'To accept this invitation and complete your profile, please click the button below:',
-                button: {
-                  color: '#22BC66',
-                  text: 'Accept Invitation',
-                  link: `${config.frontendUrl}/accept-invite?type=BATCH_COACH&token=${token}`,
+                data: {
+                  firstName,
+                  lastName,
+                  email,
+                  phoneNumber,
+                  academyId,
+                  password: hashedPassword,
+                  subRole: COACH_SUB_ROLE_MAPPING[subRole],
                 },
+                email,
+                type: 'BATCH_COACH',
+                expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
+                createdById: loggedInUser.id,
               },
-              outro:
-                'After logging in, you will be prompted to complete your profile with additional information.',
-            },
-          };
+            });
 
-          await sendMail(
-            email,
-            'Coach Invitation',
-            mailGenerator.generatePlaintext(emailContent),
-            mailGenerator.generate(emailContent)
-          );
+            const token = await createToken(
+              { id: coachInvitation.id, version: coachInvitation.version },
+              config.jwt.invitationSecret,
+              '3d'
+            );
 
-          coachesCreated.push({
-            email,
-            firstName,
-            lastName,
-            role: 'COACH',
-          });
-        } else if (role === 'STUDENT') {
-          const signupId = await generateSystemCode(SYSTEM_CODE_MODULE.STUDENT);
-          const expiryDate = new Date();
-          expiryDate.setHours(expiryDate.getHours() + 72);
-
-          const signup = await db.userSignup.create({
-            data: {
-              email,
-              signupId,
+            sendCoachInvitationEmail(
               firstName,
               lastName,
-              phoneNumber,
-              userRole: ROLE.STUDENT,
-              signupStage: REGISTRATION_STAGE.INQUIRY,
-              signupStatus: SIGNUP_STATUS.INQUIRY,
-              academy: {
-                connect: { id: academyId },
-              },
-              reservationExpiry: expiryDate,
-            },
-          });
-
-          const otp = generateOTP(6);
-          const otpExpiryTime = new Date();
-          otpExpiryTime.setHours(otpExpiryTime.getHours() + 72);
-
-          await db.signupOTP.create({
-            data: {
               email,
-              otp,
-              expiresAt: otpExpiryTime,
-              verified: false,
-            },
-          });
+              tempPassword,
+              token
+            );
+            coachesCreated.push({ email, firstName, lastName, role: 'COACH' });
+          } else {
+            const signupId = await generateSystemCode(
+              SYSTEM_CODE_MODULE.STUDENT
+            );
+            const expiryDate = new Date(Date.now() + 72 * 60 * 60 * 1000);
+            const otp = generateOTP(6);
 
-          await sendSignupEmail(signup, otp);
+            const [signup] = await Promise.all([
+              db.userSignup.create({
+                data: {
+                  email,
+                  signupId,
+                  firstName,
+                  lastName,
+                  phoneNumber,
+                  userRole: ROLE.STUDENT,
+                  signupStage: REGISTRATION_STAGE.INQUIRY,
+                  signupStatus: SIGNUP_STATUS.INQUIRY,
+                  academyId,
+                  reservationExpiry: expiryDate,
+                },
+              }),
+              db.signupOTP.create({
+                data: {
+                  email,
+                  otp,
+                  expiresAt: expiryDate,
+                  verified: false,
+                },
+              }),
+            ]);
 
-          studentsCreated.push({
+            sendSignupEmail(signup, otp);
+            studentsCreated.push({
+              email,
+              firstName,
+              lastName,
+              role: 'STUDENT',
+              signupId: signup.signupId,
+            });
+          }
+        } catch (error) {
+          errors.push({
             email,
             firstName,
             lastName,
-            role: 'STUDENT',
-            signupId: signup.signupId,
+            roleNumber,
+            error: error.message,
           });
         }
-      } catch (error) {
-        console.log(error);
-        errors.push({
-          email,
-          firstName,
-          lastName,
-          roleNumber,
-          error: error.message,
-        });
-      }
-    }
+      })
+    );
   }
 
   fs.unlinkSync(file.path);
+  return { coachesCreated, studentsCreated, errors };
+};
 
-  return {
-    coachesCreated,
-    studentsCreated,
-    errors,
+const sendCoachInvitationEmail = async (
+  firstName,
+  lastName,
+  email,
+  tempPassword,
+  token
+) => {
+  const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: { name: 'Chess in Chunks', link: config.frontendUrl },
+  });
+
+  const emailContent = {
+    body: {
+      name: `${firstName} ${lastName}`,
+      intro: 'You are invited to join as a coach!',
+      table: {
+        data: [
+          { label: 'Email', value: email },
+          { label: 'Temporary Password', value: tempPassword },
+        ],
+      },
+      action: {
+        instructions:
+          'To accept this invitation and complete your profile, please click the button below:',
+        button: {
+          color: '#22BC66',
+          text: 'Accept Invitation',
+          link: `${config.frontendUrl}/accept-invite?type=BATCH_COACH&token=${token}`,
+        },
+      },
+      outro:
+        'After logging in, you will be prompted to complete your profile with additional information.',
+    },
   };
+
+  await sendMail(
+    email,
+    'Coach Invitation',
+    mailGenerator.generatePlaintext(emailContent),
+    mailGenerator.generate(emailContent)
+  );
 };
 
 const updateUserStatus = async (userId, status) => {

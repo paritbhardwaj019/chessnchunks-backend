@@ -59,4 +59,11 @@ superAdminRouter.post(
   superAdminController.createCheckoutSession
 );
 
+superAdminRouter.delete(
+  '/plans/:planId',
+  checkJWT,
+  checkRole(['SUPER_ADMIN']),
+  superAdminController.deletePlanHandler
+);
+
 module.exports = superAdminRouter;
