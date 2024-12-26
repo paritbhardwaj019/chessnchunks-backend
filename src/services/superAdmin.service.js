@@ -836,15 +836,33 @@ const fetchAllPlansHandler = async (filters = {}, page = 1, limit = 10) => {
 const updatePlanHandler = async (planId, planData) => {
   const existingPlan = await db.plan.findUnique({
     where: { id: planId },
+    include: {
+      academies: true,
+    },
   });
 
   if (!existingPlan) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Plan not found');
   }
 
+  if (existingPlan.academies.length > 0) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Cannot update plan that has associated academies'
+    );
+  }
+
+  const academyPrice = await stripe.prices.retrieve(
+    existingPlan.academyStripePlanId
+  );
+  const subscriberPrice = await stripe.prices.retrieve(
+    existingPlan.subscriberStripePlanId
+  );
+  const productId = academyPrice.product;
+
   if (planData.academyPrice !== existingPlan.academyPrice) {
     const newAcademyPrice = await stripe.prices.create({
-      product: existingPlan.stripePlanId,
+      product: productId,
       unit_amount: Math.round(planData.academyPrice * 100),
       currency: 'usd',
       nickname: 'Academy Price',
@@ -854,7 +872,7 @@ const updatePlanHandler = async (planId, planData) => {
 
   if (planData.subscriberPrice !== existingPlan.subscriberPrice) {
     const newSubscriberPrice = await stripe.prices.create({
-      product: existingPlan.stripePlanId,
+      product: productId,
       unit_amount: Math.round(planData.subscriberPrice * 100),
       currency: 'usd',
       nickname: 'Subscriber Price',
@@ -925,6 +943,39 @@ const createCheckoutSessionHandler = async (
   return session;
 };
 
+const deletePlanHandler = async (planId) => {
+  const plan = await db.plan.findUnique({
+    where: { id: planId },
+    include: {
+      academies: true,
+    },
+  });
+
+  if (!plan) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Plan not found');
+  }
+
+  if (plan.academies.length > 0) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Cannot delete plan that has associated academies'
+    );
+  }
+
+  if (plan.academyStripePlanId) {
+    await stripe.prices.update(plan.academyStripePlanId, { active: false });
+  }
+  if (plan.subscriberStripePlanId) {
+    await stripe.prices.update(plan.subscriberStripePlanId, { active: false });
+  }
+
+  const deletedPlan = await db.plan.delete({
+    where: { id: planId },
+  });
+
+  return deletedPlan;
+};
+
 const superAdminService = {
   inviteAcademyAdminHandler,
   verifyAcademyAdminHandler,
@@ -937,6 +988,7 @@ const superAdminService = {
   checkDomainAvailabilityHandler,
   updatePlanHandler,
   createCheckoutSessionHandler,
+  deletePlanHandler,
 };
 
 module.exports = superAdminService;

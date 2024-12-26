@@ -244,6 +244,8 @@ const createSignupHandler = async (data, academyId) => {
     zipCode,
     batchInterestId,
     chessComId,
+    lichessId,
+    uscfId,
   } = data;
 
   const existingSignup = await db.userSignup.findUnique({
@@ -323,6 +325,8 @@ const createSignupHandler = async (data, academyId) => {
           }
         : undefined,
       reservationExpiry: expiryDate,
+      lichessId,
+      uscfId,
     },
     include: {
       interestedBatch: true,

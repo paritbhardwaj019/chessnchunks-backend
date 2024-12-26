@@ -10,96 +10,114 @@ const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 const crypto = require('crypto');
 const hashPassword = require('../utils/hashPassword');
 const { getSingleAcademyForUser } = require('./academy.service');
+const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
 
 const inviteStudentHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyId: providedAcademyId } = data;
 
-  let academyId;
+  let academyId =
+    loggedInUser.role === 'SUPER_ADMIN'
+      ? await validateAcademyId(providedAcademyId)
+      : (await getSingleAcademyForUser(loggedInUser)).id;
 
-  if (loggedInUser.role === 'SUPER_ADMIN') {
-    if (!providedAcademyId) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        'academyId is required for SUPER_ADMIN users.'
-      );
-    }
-
-    const academyExists = await db.academy.findUnique({
-      where: { id: providedAcademyId },
-      select: { id: true },
-    });
-
-    if (!academyExists) {
-      throw new ApiError(
-        httpStatus.NOT_FOUND,
-        'Provided academyId does not exist.'
-      );
-    }
-
-    academyId = providedAcademyId;
-  } else {
-    const academy = await getSingleAcademyForUser(loggedInUser);
-    academyId = academy.id;
-  }
-
-  const existingInvitation = await db.invitation.findFirst({
-    where: {
-      email,
-      expiresAt: {
-        gt: new Date(),
-      },
-    },
-  });
-
-  if (existingInvitation) {
-    throw new ApiError(
-      httpStatus.CONFLICT,
-      'An invitation has already been sent to this email.'
-    );
-  }
-
-  const existingUser = await db.user.findUnique({
-    where: { email },
-  });
-
-  if (existingUser) {
-    throw new ApiError(
-      httpStatus.CONFLICT,
-      'A user with this email already exists.'
-    );
-  }
+  await validateInvitation(email);
 
   const tempPassword = crypto.randomBytes(8).toString('hex');
   const hashedPassword = await hashPassword(tempPassword, 10);
 
   const academy = await db.academy.findUnique({
     where: { id: academyId },
-    select: { name: true },
+    select: { name: true, domain: true },
   });
 
+  if (!academy) throw new ApiError(httpStatus.NOT_FOUND, 'Academy not found.');
+
+  const studentInvitation = await createStudentInvitation(
+    data,
+    academyId,
+    hashedPassword,
+    loggedInUser.id
+  );
+
+  const token = await createToken(
+    { id: studentInvitation.id },
+    config.jwt.invitationSecret,
+    '3d'
+  );
+
+  const baseUrl = getDomainFromAdmin(academy.domain);
+  const ACTIVATION_URL = `${baseUrl}/invitation?type=USER_INVITATION&name=${encodeURIComponent(
+    `${firstName} ${lastName} from ${academy.name}`
+  )}&token=${token}`;
+
+  await sendInvitationEmail(
+    email,
+    firstName,
+    lastName,
+    academy.name,
+    tempPassword,
+    ACTIVATION_URL
+  );
+
+  return { studentInvitation };
+};
+
+const validateAcademyId = async (academyId) => {
+  if (!academyId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'academyId is required for SUPER_ADMIN users.'
+    );
+  }
+  const academy = await db.academy.findUnique({
+    where: { id: academyId },
+    select: { id: true },
+  });
   if (!academy) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Academy not found.');
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      'Provided academyId does not exist.'
+    );
+  }
+  return academyId;
+};
+
+const validateInvitation = async (email) => {
+  const existingInvitation = await db.invitation.findFirst({
+    where: { email, expiresAt: { gt: new Date() } },
+  });
+  if (existingInvitation) {
+    throw new ApiError(
+      httpStatus.CONFLICT,
+      'An invitation has already been sent.'
+    );
   }
 
-  const academyName = academy.name;
+  const existingUser = await db.user.findUnique({ where: { email } });
+  if (existingUser) {
+    throw new ApiError(httpStatus.CONFLICT, 'Email already exists.');
+  }
+};
 
-  const studentInvitation = await db.invitation.create({
+const createStudentInvitation = async (
+  data,
+  academyId,
+  hashedPassword,
+  creatorId
+) => {
+  return await db.invitation.create({
     data: {
       data: {
-        firstName,
-        lastName,
-        email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
         academyId,
         password: hashedPassword,
       },
-      email,
+      email: data.email,
       type: 'BATCH_STUDENT',
       expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
-      createdBy: {
-        connect: {
-          id: loggedInUser.id,
-        },
-      },
+      createdBy: { connect: { id: creatorId } },
     },
     select: {
       id: true,
@@ -110,27 +128,19 @@ const inviteStudentHandler = async (data, loggedInUser) => {
       createdBy: true,
     },
   });
+};
 
-  const token = await createToken(
-    {
-      id: studentInvitation.id,
-    },
-    config.jwt.invitationSecret,
-    '3d'
-  );
-
-  const ACTIVATION_URL = `${
-    config.chessinChunksUrl
-  }/invitation?type=USER_INVITATION&name=${encodeURIComponent(
-    `${firstName} ${lastName} from ${academyName}`
-  )}&token=${token}`;
-
+const sendInvitationEmail = async (
+  email,
+  firstName,
+  lastName,
+  academyName,
+  tempPassword,
+  activationUrl
+) => {
   const mailGenerator = new Mailgen({
     theme: 'default',
-    product: {
-      name: 'Chess in Chunks',
-      link: config.frontendUrl,
-    },
+    product: { name: 'Chess in Chunks', link: config.frontendUrl },
   });
 
   const emailContent = {
@@ -139,14 +149,8 @@ const inviteStudentHandler = async (data, loggedInUser) => {
       intro: `You are invited to join the academy "${academyName}" as a student!`,
       table: {
         data: [
-          {
-            label: 'Email',
-            value: email,
-          },
-          {
-            label: 'Temporary Password',
-            value: tempPassword,
-          },
+          { label: 'Email', value: email },
+          { label: 'Temporary Password', value: tempPassword },
         ],
       },
       action: {
@@ -155,7 +159,7 @@ const inviteStudentHandler = async (data, loggedInUser) => {
         button: {
           color: '#22BC66',
           text: 'Accept Invitation',
-          link: ACTIVATION_URL,
+          link: activationUrl,
         },
       },
       outro: 'If you have any questions, feel free to reply to this email.',
@@ -173,8 +177,6 @@ const inviteStudentHandler = async (data, loggedInUser) => {
       'Failed to send invitation email'
     );
   }
-
-  return { studentInvitation };
 };
 
 const verifyStudentHandler = async (token) => {

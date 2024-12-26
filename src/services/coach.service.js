@@ -10,7 +10,6 @@ const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 const hashPassword = require('../utils/hashPassword');
 const crypto = require('crypto');
 const { getSingleAcademyForUser } = require('./academy.service');
-const logger = require('../utils/logger');
 const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
 
 const inviteCoachHandler = async (data, loggedInUser) => {
@@ -128,6 +127,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
   );
 
   let baseUrl;
+
   if (data.subRole === 'HEAD_COACH') {
     if (!academy.domain) {
       throw new ApiError(
@@ -143,7 +143,6 @@ const inviteCoachHandler = async (data, loggedInUser) => {
         'Invalid academy domain configuration'
       );
     }
-    baseUrl = domainUrl;
   } else {
     const domain = getDomainFromAdmin(academy.domain);
     baseUrl = domain;

@@ -157,6 +157,13 @@ const createCheckoutSession = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send({ url: session.url });
 });
 
+const deletePlanHandler = catchAsync(async (req, res) => {
+  const { planId } = req.params;
+
+  const deletedPlan = await superAdminService.deletePlanHandler(planId);
+  res.status(httpStatus.OK).send(deletedPlan);
+});
+
 const superAdminController = {
   inviteAcademyAdminHandler,
   verifyAcademyAdminHandler,
@@ -168,6 +175,7 @@ const superAdminController = {
   selectAcademyPlan,
   updatePlanHandler,
   createCheckoutSession,
+  deletePlanHandler,
 };
 
 module.exports = superAdminController;
