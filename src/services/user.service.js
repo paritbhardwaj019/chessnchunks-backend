@@ -18,6 +18,10 @@ const generateSystemCode = require('../utils/generateSystemCode');
 const { sendSignupEmail } = require('./studentSignup.service');
 const config = require('../config');
 const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
+const {
+  sendInvitationEmail,
+  createStudentInvitation,
+} = require('./student.service');
 
 const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const numberPage = Number(page) || 1;
@@ -309,6 +313,8 @@ const processRow = async (
     select: { name: true, domain: true },
   });
 
+  console.log('ROLE', role);
+
   if (role === 'COACH') {
     await processCoach(
       row,
@@ -406,35 +412,51 @@ const processStudent = async (
     'PHONE NUMBER': phoneNumber,
   } = row;
 
-  const signupId = await generateSystemCode(SYSTEM_CODE_MODULE.STUDENT);
-  const expiryDate = new Date(Date.now() + 72 * 60 * 60 * 1000);
-  const otp = generateOTP(6);
+  const tempPassword = crypto.randomBytes(8).toString('hex');
+  const hashedPassword = await hashPassword(tempPassword, 10);
 
-  const [signup] = await Promise.all([
-    createStudentSignup(
-      email,
-      signupId,
-      firstName,
-      lastName,
-      phoneNumber,
+  console.log('Creating student invitation for:', email);
+
+  try {
+    studentInvitation = await createStudentInvitation(
+      { firstName, lastName, email, phoneNumber },
       academyId,
-      expiryDate
-    ),
-    createSignupOTP(email, otp, expiryDate),
-  ]);
+      hashedPassword,
+      loggedInUser.id
+    );
+    console.log('Student invitation created:', studentInvitation.id);
+  } catch (error) {
+    console.error('Failed to create student invitation for:', email, error);
+    throw error;
+  }
+
+  const token = await createToken(
+    { id: studentInvitation.id },
+    config.jwt.invitationSecret,
+    '3d'
+  );
 
   const baseUrl = getDomainFromAdmin(academy.domain);
+
   const ACTIVATION_URL = `${baseUrl}/invitation?type=USER_INVITATION&name=${encodeURIComponent(
     `${firstName} ${lastName} from ${academy.name}`
-  )}&token=${signupId}`;
+  )}&token=${token}`;
 
-  await sendSignupEmail(signup, otp, ACTIVATION_URL);
+  await sendInvitationEmail(
+    email,
+    firstName,
+    lastName,
+    academy.name,
+    tempPassword,
+    ACTIVATION_URL
+  );
+
   studentsCreated.push({
     email,
     firstName,
     lastName,
     role: 'STUDENT',
-    signupId: signup.signupId,
+    invitationId: studentInvitation.id,
   });
 };
 

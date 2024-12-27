@@ -736,6 +736,8 @@ const studentService = {
   fetchAllStudentsHandler,
   fetchAllStudentsByBatchId,
   moveStudentToBatchHandler,
+  createStudentInvitation,
+  sendInvitationEmail,
 };
 
 module.exports = studentService;
