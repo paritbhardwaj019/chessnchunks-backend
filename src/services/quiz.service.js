@@ -228,16 +228,53 @@ const listQuizzes = async (
 
   if (search) {
     where.OR = [
-      { title: { contains: search, mode: 'insensitive' } },
-      { description: { contains: search, mode: 'insensitive' } },
+      { title: { contains: search } },
+      { description: { contains: search } },
     ];
   }
 
   const quizzes = await db.quiz.findMany({
     where,
     include: {
-      task: true,
-      createdBy: { select: { id: true, email: true, profile: true } },
+      task: {
+        include: {
+          assignedToAcademy: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          assignedToUser: {
+            select: {
+              id: true,
+              profile: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+          assignedToBatch: {
+            select: {
+              id: true,
+              batchCode: true,
+              academy: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      createdBy: {
+        select: {
+          id: true,
+          email: true,
+          profile: true,
+        },
+      },
       questions: true,
     },
     skip,
@@ -245,7 +282,41 @@ const listQuizzes = async (
     orderBy: { createdAt: 'desc' },
   });
 
-  return quizzes;
+  const formattedQuizzes = quizzes.map((quiz) => {
+    const { task, ...quizData } = quiz;
+
+    let assignmentInfo = {
+      assignedType: 'Not Assigned',
+      assignedTo: '-',
+    };
+
+    if (task) {
+      if (task.assignedToUserId && task.assignedToUser) {
+        assignmentInfo = {
+          assignedType: 'Student',
+          assignedTo: `${task.assignedToUser.profile.firstName} ${task.assignedToUser.profile.lastName}`,
+        };
+      } else if (task.assignedToBatchId && task.assignedToBatch) {
+        assignmentInfo = {
+          assignedType: 'Batch',
+          assignedTo: `${task.assignedToBatch.batchCode}`,
+        };
+      } else if (task.assignedToAcademyId && task.assignedToAcademy) {
+        assignmentInfo = {
+          assignedType: 'Academy',
+          assignedTo: task.assignedToAcademy.name,
+        };
+      }
+    }
+
+    return {
+      ...quizData,
+      task,
+      assignmentInfo,
+    };
+  });
+
+  return formattedQuizzes;
 };
 
 const getQuizById = async (quizId) => {
@@ -515,6 +586,60 @@ const assignQuizWithTask = async (data, loggedInUser) => {
     );
   }
 };
+
+const getQuizWithResults = async (quizId) => {
+  const quiz = await db.quiz.findUnique({
+    where: { id: quizId },
+    include: {
+      task: {
+        include: {
+          studentQuizAttempts: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  profile: {
+                    select: {
+                      firstName: true,
+                      lastName: true,
+                    },
+                  },
+                },
+              },
+              answers: {
+                include: {
+                  question: true,
+                },
+              },
+            },
+            orderBy: {
+              startTime: 'desc',
+            },
+          },
+        },
+      },
+      questions: {
+        orderBy: {
+          orderIndex: 'asc',
+        },
+      },
+      createdBy: {
+        select: {
+          id: true,
+          email: true,
+          profile: true,
+        },
+      },
+    },
+  });
+
+  if (!quiz) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Quiz not found');
+  }
+
+  return quiz;
+};
+
 const quizService = {
   createQuiz,
   getQuizByTaskId,
@@ -526,6 +651,7 @@ const quizService = {
   getQuizOptions,
   assignQuizWithTask,
   getQuizById,
+  getQuizWithResults,
 };
 
 module.exports = quizService;

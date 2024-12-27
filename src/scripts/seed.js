@@ -338,11 +338,14 @@ async function main() {
   for (const permission of allPermissions) {
     if (
       permission.resource.startsWith('/dashboard/calendar') ||
-      permission.resource.startsWith('/dashboard/batches')
+      permission.resource.startsWith('/dashboard/batches') ||
+      permission.resource.startsWith('/dashboard/tasks') ||
+      permission.resource.startsWith('/dashboard/communication') ||
+      (permission.resource.startsWith('/dashboard/users') &&
+        permission.action !== 'view')
     ) {
       continue;
     }
-
     const rolePermissionExists = await prisma.rolePermission.findUnique({
       where: {
         roleId_permissionId: {

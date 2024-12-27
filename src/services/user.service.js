@@ -22,6 +22,7 @@ const {
   sendInvitationEmail,
   createStudentInvitation,
 } = require('./student.service');
+const sendEmail = require('../utils/sendEmail');
 
 const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const numberPage = Number(page) || 1;
@@ -694,8 +695,6 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
     }
   }
 
-  console.log('---UPDATE-DATA---', updateData);
-
   const updatedUser = await db.user.update({
     where: { id },
     data: updateData,
@@ -853,12 +852,12 @@ const requestEmailChangeHandler = async (userId, newEmail, academyDomain) => {
   const emailBody = mailGenerator.generate(mailgenBody);
   const emailText = mailGenerator.generatePlaintext(mailgenBody);
 
-  await sendEmail({
-    to: newEmail,
-    subject: 'Verify Your New Email Address - Chess in Chunks',
-    text: emailText,
-    html: emailBody,
-  });
+  await sendEmail(
+    newEmail,
+    'Verify Your New Email Address - Chess in Chunks',
+    emailText,
+    emailBody
+  );
 
   return { message: 'OTP has been sent to your new email address.' };
 };
