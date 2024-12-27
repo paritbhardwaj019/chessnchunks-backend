@@ -202,36 +202,62 @@ const createStripeProduct = async (programData) => {
     } Program`,
     metadata: {
       type: programData.type,
-      duration: programData.duration,
       programId: programData.id,
+      seasonPrice: programData.seasonPrice.toString(),
+      monthlyPrice: programData.monthlyPrice.toString(),
+      yearlyDiscountPercentage: programData.yearlyDiscountPercentage.toString(),
     },
   });
 
-  const price = await stripe.prices.create({
+  const monthlyPrice = await stripe.prices.create({
     product: product.id,
     currency: 'usd',
-    unit_amount: Math.round(programData.price * 100),
+    unit_amount: Math.round(programData.monthlyPrice * 100),
+    recurring: {
+      interval: 'month',
+    },
+    nickname: 'Monthly',
   });
 
-  return { productId: product.id, priceId: price.id };
-};
+  const seasonalPrice = await stripe.prices.create({
+    product: product.id,
+    currency: 'usd',
+    unit_amount: Math.round(programData.seasonPrice * 100),
+    recurring: {
+      interval: 'month',
+      interval_count: 4,
+    },
+    nickname: 'Seasonal',
+  });
 
+  const yearlyAmount = Math.round(
+    programData.monthlyPrice *
+      12 *
+      (1 - programData.yearlyDiscountPercentage / 100) *
+      100
+  );
+  const yearlyPrice = await stripe.prices.create({
+    product: product.id,
+    currency: 'usd',
+    unit_amount: yearlyAmount,
+    recurring: {
+      interval: 'year',
+    },
+    nickname: 'Yearly',
+  });
+
+  return {
+    productId: product.id,
+    monthlyPriceId: monthlyPrice.id,
+    seasonalPriceId: seasonalPrice.id,
+    yearlyPriceId: yearlyPrice.id,
+  };
+};
 /**
  * Create a new academy program with signup fee handling
  */
 
-const createProgramHandler = async (data, academyId, loggedInUser) => {
-  if (
-    !data.name ||
-    !data.type ||
-    !data.duration ||
-    !data.price ||
-    !data.startDate ||
-    !data.endDate
-  ) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Missing required fields');
-  }
-
+const createProgramHandler = async (data, academyId) => {
   const programId = await generateSystemCode(
     SYSTEM_CODE_MODULE.ACADEMY_PROGRAM
   );
@@ -248,28 +274,32 @@ const createProgramHandler = async (data, academyId, loggedInUser) => {
       isSignUpFee: data.isSignUpFee || false,
       name: data.name,
       type: data.type,
-      duration: data.duration,
-      price: data.price,
-      condition: data.condition,
+      seasonPrice: data.seasonPrice,
+      monthlyPrice: data.monthlyPrice,
+      yearlyDiscountPercentage: data.yearlyDiscountPercentage,
       description: data.description || null,
       discountRules: data.discountRules || null,
       discountAmount: data.discountAmount || null,
       latePaymentFees: data.latePaymentFees || null,
       dueDate: data.dueDate || null,
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
       programId,
     },
   });
 
-  const { productId, priceId } = await createStripeProduct({
-    ...program,
-    id: program.id,
-  });
+  const { productId, monthlyPriceId, seasonalPriceId, yearlyPriceId } =
+    await createStripeProduct({
+      ...program,
+      id: program.id,
+    });
 
   const updatedProgram = await db.academyProgram.update({
     where: { id: program.id },
-    data: { stripeProgramId: productId, stripePriceId: priceId },
+    data: {
+      stripeProgramId: productId,
+      stripeMonthlyPriceId: monthlyPriceId,
+      stripeSeasonalPriceId: seasonalPriceId,
+      stripeYearlyPriceId: yearlyPriceId,
+    },
   });
 
   return updatedProgram;
@@ -279,29 +309,10 @@ const updateAcademyProgramById = async (programId, academyId, updateData) => {
   const program = await db.academyProgram.findFirst({
     where: {
       id: programId,
-      academyId,
       isActive: true,
     },
     include: {
-      studentSubscriptions: {
-        where: {
-          status: {
-            in: ['ACTIVE', 'PENDING'],
-          },
-        },
-        select: {
-          id: true,
-          status: true,
-          student: {
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
-            },
-          },
-        },
-      },
+      studentSubscriptions: true,
     },
   });
 
@@ -309,42 +320,22 @@ const updateAcademyProgramById = async (programId, academyId, updateData) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Program not found');
   }
 
-  if (program.studentSubscriptions.length > 0) {
-    const criticalFields = ['type', 'duration'];
-    const hasChangesToCriticalFields = criticalFields.some(
-      (field) => updateData[field] && updateData[field] !== program[field]
+  if (
+    program.studentSubscriptions.length > 0 &&
+    updateData.type !== program.type
+  ) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Cannot modify program type while students are enrolled'
     );
-
-    if (hasChangesToCriticalFields) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        'Cannot modify program type or duration while students are enrolled'
-      );
-    }
-
-    if (updateData.price && updateData.price > program.price) {
-      await Promise.all(
-        program.studentSubscriptions.map(async (subscription) => {
-          await db.notification.create({
-            data: {
-              type: 'PROGRAM_PRICE_CHANGE',
-              userId: subscription.student.id,
-              title: 'Program Price Change',
-              message: `The price for program ${program.name} will change from $${program.price} to $${updateData.price}`,
-              metadata: {
-                programId: program.id,
-                oldPrice: program.price,
-                newPrice: updateData.price,
-                effectiveDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-              },
-            },
-          });
-        })
-      );
-    }
   }
 
-  if (updateData.price || updateData.name) {
+  if (
+    updateData.seasonPrice ||
+    updateData.monthlyPrice ||
+    updateData.yearlyDiscountPercentage ||
+    updateData.name
+  ) {
     const stripeProduct = await stripe.products.retrieve(
       program.stripeProgramId
     );
@@ -354,36 +345,71 @@ const updateAcademyProgramById = async (programId, academyId, updateData) => {
       metadata: {
         ...stripeProduct.metadata,
         type: updateData.type || program.type,
-        duration: updateData.duration || program.duration,
+        seasonPrice:
+          updateData.seasonPrice?.toString() || program.seasonPrice.toString(),
+        monthlyPrice:
+          updateData.monthlyPrice?.toString() ||
+          program.monthlyPrice.toString(),
+        yearlyDiscountPercentage:
+          updateData.yearlyDiscountPercentage?.toString() ||
+          program.yearlyDiscountPercentage.toString(),
       },
     });
 
-    if (updateData.price) {
-      const newPrice = await stripe.prices.create({
+    const stripeUpdates = {};
+
+    if (updateData.monthlyPrice) {
+      const monthlyPrice = await stripe.prices.create({
         product: stripeProduct.id,
         currency: 'usd',
-        unit_amount: Math.round(updateData.price * 100),
-        interval:
-          (updateData.duration || program.duration) === PROGRAM_DURATION.MONTHLY
-            ? 'month'
-            : undefined,
-        interval_count:
-          (updateData.duration || program.duration) ===
-          PROGRAM_DURATION.SEASONAL
-            ? 4
-            : 1,
+        unit_amount: Math.round(updateData.monthlyPrice * 100),
+        recurring: {
+          interval: 'month',
+        },
+        nickname: 'Monthly',
       });
-
-      updateData.stripePriceId = newPrice.id;
+      stripeUpdates.stripeMonthlyPriceId = monthlyPrice.id;
     }
+
+    if (updateData.seasonPrice) {
+      const seasonalPrice = await stripe.prices.create({
+        product: stripeProduct.id,
+        currency: 'usd',
+        unit_amount: Math.round(updateData.seasonPrice * 100),
+        recurring: {
+          interval: 'month',
+          interval_count: 4,
+        },
+        nickname: 'Seasonal',
+      });
+      stripeUpdates.stripeSeasonalPriceId = seasonalPrice.id;
+    }
+
+    if (updateData.monthlyPrice || updateData.yearlyDiscountPercentage) {
+      const yearlyAmount = Math.round(
+        (updateData.monthlyPrice || program.monthlyPrice) *
+          12 *
+          (1 -
+            (updateData.yearlyDiscountPercentage ||
+              program.yearlyDiscountPercentage) /
+              100) *
+          100
+      );
+      const yearlyPrice = await stripe.prices.create({
+        product: stripeProduct.id,
+        currency: 'usd',
+        unit_amount: yearlyAmount,
+        recurring: {
+          interval: 'year',
+        },
+        nickname: 'Yearly',
+      });
+      stripeUpdates.stripeYearlyPriceId = yearlyPrice.id;
+    }
+
+    Object.assign(updateData, stripeUpdates);
   }
 
-  if (updateData.startDate) {
-    updateData.startDate = new Date(updateData.startDate);
-  }
-  if (updateData.endDate) {
-    updateData.endDate = new Date(updateData.endDate);
-  }
   if (updateData.dueDate) {
     updateData.dueDate = new Date(updateData.dueDate);
   }
@@ -395,19 +421,7 @@ const updateAcademyProgramById = async (programId, academyId, updateData) => {
       updatedAt: new Date(),
     },
     include: {
-      studentSubscriptions: {
-        select: {
-          id: true,
-          status: true,
-          student: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-            },
-          },
-        },
-      },
+      studentSubscriptions: true,
     },
   });
 

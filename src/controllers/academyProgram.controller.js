@@ -88,7 +88,7 @@ const updateProgram = catchAsync(async (req, res) => {
   }
 
   const program = await academyProgramService.updateAcademyProgramById(
-    req.params.programId,
+    req.params.id,
     academyId,
     req.body
   );
@@ -130,25 +130,6 @@ const getProgramOptions = catchAsync(async (req, res) => {
 
 const createProgram = catchAsync(async (req, res) => {
   const academyId = await getAndValidateAcademy(req.user);
-
-  console.log('academyId', academyId);
-
-  const requiredFields = [
-    'name',
-    'type',
-    'duration',
-    'price',
-    'startDate',
-    'endDate',
-  ];
-  const missingFields = requiredFields.filter((field) => !req.body[field]);
-
-  if (missingFields.length > 0) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      `Missing required fields: ${missingFields.join(', ')}`
-    );
-  }
 
   const program = await academyProgramService.createProgramHandler(
     req.body,

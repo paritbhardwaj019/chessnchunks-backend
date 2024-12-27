@@ -3,13 +3,7 @@ const defaultNavigation = [
     title: 'Home',
     slug: '/home',
     order: 1,
-    subItems: [
-      {
-        title: 'Dashboard',
-        slug: '/dashboard',
-        order: 1,
-      },
-    ],
+    subItems: [],
   },
   {
     title: 'Chess coaching',

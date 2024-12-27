@@ -421,6 +421,108 @@ const defaultPages = [
       ],
     },
   },
+  {
+    title: 'History of the academy',
+    slug: '/about/history',
+    status: 'PUBLISHED',
+    components: {
+      create: [
+        {
+          type: 'PAGE_HEADER',
+          props: {
+            title: 'History of the academy',
+            subtitle: 'A journey through our legacy',
+            className: 'text-center py-12 space-y-4',
+          },
+          order: 1,
+        },
+        {
+          type: 'TEXT_BLOCK',
+          props: {
+            content: [
+              {
+                paragraph:
+                  'Add your content for the history of the academy here. You can reuse or modify existing paragraphs as needed.',
+              },
+            ],
+            className: {
+              container: 'max-w-3xl mx-auto px-4 py-6',
+              paragraph: 'text-gray-300 mb-4 leading-relaxed',
+            },
+          },
+          order: 2,
+        },
+      ],
+    },
+  },
+  {
+    title: 'Coaches directory',
+    slug: '/about/coaches',
+    status: 'PUBLISHED',
+    components: {
+      create: [
+        {
+          type: 'PAGE_HEADER',
+          props: {
+            title: 'Coaches directory',
+            subtitle: 'Meet our esteemed team of coaches',
+            className: 'text-center py-12 space-y-4',
+          },
+          order: 1,
+        },
+        {
+          type: 'TEXT_BLOCK',
+          props: {
+            content: [
+              {
+                paragraph:
+                  'Add your content for the coaches directory here. Feel free to reuse or adapt components like COACH_PROFILE, if desired.',
+              },
+            ],
+            className: {
+              container: 'max-w-3xl mx-auto px-4 py-6',
+              paragraph: 'text-gray-300 mb-4 leading-relaxed',
+            },
+          },
+          order: 2,
+        },
+      ],
+    },
+  },
+  {
+    title: 'Students Achievements',
+    slug: '/about/achievements',
+    status: 'PUBLISHED',
+    components: {
+      create: [
+        {
+          type: 'PAGE_HEADER',
+          props: {
+            title: 'Students Achievements',
+            subtitle: 'Celebrating our accomplished students',
+            className: 'text-center py-12 space-y-4',
+          },
+          order: 1,
+        },
+        {
+          type: 'TEXT_BLOCK',
+          props: {
+            content: [
+              {
+                paragraph:
+                  'Add your content for student achievements here. You can also reuse the ACHIEVEMENT_SHOWCASE component from /about if desired.',
+              },
+            ],
+            className: {
+              container: 'max-w-3xl mx-auto px-4 py-6',
+              paragraph: 'text-gray-300 mb-4 leading-relaxed',
+            },
+          },
+          order: 2,
+        },
+      ],
+    },
+  },
 ];
 
 module.exports = defaultPages;

@@ -989,6 +989,7 @@ const superAdminService = {
   updatePlanHandler,
   createCheckoutSessionHandler,
   deletePlanHandler,
+  createNavigationItems,
 };
 
 module.exports = superAdminService;
