@@ -593,14 +593,31 @@ const checkoutSessionHandler = async (
 
   const domain = getDomainFromAdmin(program.academy.domain);
 
-  const yearlyDiscount = 0.2;
-  let finalPrice = program.price;
-  let interval = 'month';
+  let finalPrice;
+  let interval;
+  let description = program.description || '';
 
-  if (billingPeriod === 'yearly') {
-    const monthlyPrice = program.price;
-    finalPrice = monthlyPrice * 12 * (1 - yearlyDiscount);
-    interval = 'year';
+  switch (billingPeriod) {
+    case 'seasonal':
+      finalPrice = program.seasonPrice;
+      interval = 'month';
+      description += '\nSeasonal pricing applied';
+      break;
+
+    case 'yearly':
+      const yearlyPrice = program.monthlyPrice * 12;
+      const discountAmount =
+        (yearlyPrice * program.yearlyDiscountPercentage) / 100;
+      finalPrice = yearlyPrice - discountAmount;
+      interval = 'year';
+      description += `\nIncludes ${program.yearlyDiscountPercentage}% yearly discount`;
+      break;
+
+    case 'monthly':
+    default:
+      finalPrice = program.monthlyPrice;
+      interval = 'month';
+      break;
   }
 
   const session = await stripe.checkout.sessions.create({
@@ -613,11 +630,9 @@ const checkoutSessionHandler = async (
             name: `${program.name} - ${
               billingPeriod.charAt(0).toUpperCase() + billingPeriod.slice(1)
             } Plan`,
-            description: `${program.description}\n${
-              billingPeriod === 'yearly' ? 'Includes 20% yearly discount' : ''
-            }`,
+            description: description,
           },
-          unit_amount: Math.round(finalPrice * 100), // Stripe expects amount in cents
+          unit_amount: Math.round(finalPrice * 100),
           recurring: {
             interval: interval,
           },
@@ -630,11 +645,12 @@ const checkoutSessionHandler = async (
       userEmail,
       type: 'STUDENT',
       billingPeriod,
-      originalPrice: program.price.toString(),
-      discountApplied:
-        billingPeriod === 'yearly' ? (yearlyDiscount * 100).toString() : '0',
+      seasonPrice: program.seasonPrice.toString(),
+      monthlyPrice: program.monthlyPrice.toString(),
+      yearlyDiscountPercentage: program.yearlyDiscountPercentage.toString(),
+      finalPrice: finalPrice.toString(),
     },
-    mode: 'subscription', // Changed to subscription mode
+    mode: 'subscription',
     success_url: `${domain}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${domain}/checkout/cancel`,
   });

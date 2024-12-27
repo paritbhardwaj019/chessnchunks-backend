@@ -673,18 +673,15 @@ model AcademyProgram {
   name        String
   description String?
   type        PROGRAM_TYPE
-  duration    PROGRAM_DURATION
-  price       Float
-
+  seasonPrice Float          
+  monthlyPrice Float          
+  yearlyDiscountPercentage Float  
   programId String @unique
 
   academyId String
   academy   Academy @relation(fields: [academyId], references: [id])
 
-  startDate DateTime
-  endDate   DateTime
   isActive  Boolean  @default(true)
-
   isSignUpFee Boolean @default(false)
 
   creditPoints Int?               @default(0)
@@ -700,14 +697,18 @@ model AcademyProgram {
   studentSubscriptions  StudentSubscription[]
   studentProgramCredits StudentProgramCredit[]
 
+  // Updated Stripe fields
   stripeProgramId String? @unique
-  stripePriceId   String? @unique 
+  stripeMonthlyPriceId String? @unique
+  stripeSeasonalPriceId String? @unique
+  stripeYearlyPriceId String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("academy_programs")
 }
+
 
 model StudentProgramCredit {
   id           String         @id @default(uuid())
