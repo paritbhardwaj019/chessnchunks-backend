@@ -138,7 +138,10 @@ const setupMFAHandler = catchAsync(async (req, res) => {
 });
 
 const verifyMFAHandler = catchAsync(async (req, res) => {
+  console.log('BODY', req.body);
+
   const { token } = req.body;
+
   const result = await studentSignupService.verifyMFAHandler(
     req.params.id,
     token
