@@ -4,6 +4,7 @@ const checkJWT = require('../../middlewares/checkJWT');
 
 const router = express.Router();
 
+router.post('/:id/verify-mfa', studentSignupController.verifyMFAHandler);
 router.route('/:id/setup-mfa').post(studentSignupController.setupMFAHandler);
 
 router

@@ -65,6 +65,8 @@ const verifyMFAHandler = async (signupId, token) => {
     );
   }
 
+  console.log('SIGNUP', signup);
+
   const verified = speakeasy.totp.verify({
     secret: signup.mfaSecret,
     encoding: 'base32',
