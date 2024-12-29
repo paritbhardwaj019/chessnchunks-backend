@@ -1,6 +1,7 @@
 const db = require('../database/prisma');
 const httpStatus = require('http-status');
 const ApiError = require('../utils/apiError');
+const { mysqlPool } = require('../config/db');
 
 /**
  * Service to fetch dashboard data for Super Admins.
@@ -196,10 +197,142 @@ async function getCoachDashboardData(loggedInUser) {
   };
 }
 
+const getBatchStudentsStatsHandler = async (loggedInUser) => {
+  try {
+    const studentWithBatch = await db.user.findUnique({
+      where: {
+        id: loggedInUser.id,
+      },
+      include: {
+        studentOfBatches: {
+          where: {
+            isActive: true,
+          },
+          include: {
+            students: {
+              include: {
+                profile: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    chessComId: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!studentWithBatch?.studentOfBatches?.length) {
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        'Student is not assigned to any active batch'
+      );
+    }
+
+    const batch = studentWithBatch.studentOfBatches[0];
+    const batchStudents = batch.students;
+
+    const studentIds = batchStudents.map((student) => student.id);
+
+    const chessStatsQuery = `
+      SELECT 
+        UserId,
+        RapidLastRating,
+        RapidBest,
+        RapidWin,
+        RapidLoss,
+        RapidDraw,
+        TacticsHighestRating,
+        RushBestScore,
+        RushTotalAttempts,
+        CreatedDate as lastUpdated
+      FROM user_chess_stats
+      WHERE UserId IN (?)
+      ORDER BY CreatedDate DESC
+    `;
+
+    const [chessStats] = await mysqlPool.query(chessStatsQuery, [studentIds]);
+
+    const latestStatsMap = chessStats.reduce((acc, stat) => {
+      if (
+        !acc[stat.UserId] ||
+        new Date(stat.lastUpdated) > new Date(acc[stat.UserId].lastUpdated)
+      ) {
+        acc[stat.UserId] = stat;
+      }
+      return acc;
+    }, {});
+
+    const chartData = {
+      games: [],
+      puzzles: [],
+      puzzleRun: [],
+      ratings: [],
+    };
+
+    batchStudents.forEach((student) => {
+      const stats = latestStatsMap[student.id] || {};
+      const studentName =
+        `${student.profile?.firstName || ''} ${
+          student.profile?.lastName || ''
+        }`.trim() || 'N/A';
+
+      // Games data
+      const totalGames =
+        (stats.RapidWin || 0) + (stats.RapidLoss || 0) + (stats.RapidDraw || 0);
+      chartData.games.push({
+        name: studentName,
+        value: totalGames,
+      });
+
+      // Puzzles/Tactics data
+      chartData.puzzles.push({
+        name: studentName,
+        value: stats.TacticsHighestRating || 0,
+      });
+
+      // Puzzle Run data
+      chartData.puzzleRun.push({
+        name: studentName,
+        value: stats.RushBestScore || 0,
+        attempts: stats.RushTotalAttempts || 0,
+      });
+
+      // Ratings data
+      chartData.ratings.push({
+        name: studentName,
+        current: stats.RapidLastRating || 0,
+        best: stats.RapidBest || 0,
+      });
+    });
+
+    return {
+      batchInfo: {
+        id: batch.id,
+        code: batch.batchCode,
+        class: batch.currentClass,
+        level: batch.currentLevel,
+      },
+      totalStudents: batchStudents.length,
+      chartData,
+      lastUpdated: Object.values(latestStatsMap)[0]?.lastUpdated || null,
+    };
+  } catch (error) {
+    throw new ApiError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      'Error fetching batch students statistics'
+    );
+  }
+};
+
 const dashboardService = {
   getSuperAdminDashboardData,
   getAdminDashboardData,
   getCoachDashboardData,
+  getBatchStudentsStatsHandler,
 };
 
 module.exports = dashboardService;
