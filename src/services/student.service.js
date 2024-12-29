@@ -379,7 +379,6 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
             id: true,
             name: true,
             type: true,
-            duration: true,
           },
         },
       },

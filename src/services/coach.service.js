@@ -135,14 +135,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
         'Academy domain not configured for HEAD_COACH invitation'
       );
     }
-    const domainUrl = academy.domain;
-
-    if (!domainUrl) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        'Invalid academy domain configuration'
-      );
-    }
+    baseUrl = academy.domain;
   } else {
     const domain = getDomainFromAdmin(academy.domain);
     baseUrl = domain;
