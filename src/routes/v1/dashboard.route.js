@@ -22,4 +22,8 @@ dashboardRouter
     dashboardController.getStudentBatchStats
   );
 
+dashboardRouter
+  .route('/coach-batch-stats')
+  .get(checkJWT, checkRole(['COACH']), dashboardController.getCoachBatchStats);
+
 module.exports = dashboardRouter;
