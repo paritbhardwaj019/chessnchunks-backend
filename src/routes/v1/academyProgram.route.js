@@ -21,6 +21,12 @@ academyProgramRouter.get(
   academyProgramController.getProgramSubscribers
 );
 
+academyProgramRouter.put(
+  '/:id/credits',
+  checkJWT,
+  academyProgramController.updateProgramCredits
+);
+
 academyProgramRouter
   .route('/')
   .post(checkJWT, academyProgramController.createProgram)

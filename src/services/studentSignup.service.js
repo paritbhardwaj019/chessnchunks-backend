@@ -33,29 +33,76 @@ const setupMFAHandler = async (signupId) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Signup not found');
   }
 
-  const secret = speakeasy.generateSecret({
-    name: `ChessInChunks:${signup.email}`,
+  const otp = generateOTP(6);
+  const otpExpiryTime = new Date();
+  otpExpiryTime.setMinutes(otpExpiryTime.getMinutes() + 10);
+
+  await db.signupOTP.upsert({
+    where: { email: signup.email },
+    update: {
+      otp,
+      expiresAt: otpExpiryTime,
+      verified: false,
+    },
+    create: {
+      email: signup.email,
+      otp,
+      expiresAt: otpExpiryTime,
+      verified: false,
+    },
   });
 
-  const qrCode = await QRCode.toDataURL(secret.otpauth_url);
+  const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: {
+      name: 'Chess in Chunks',
+      link: config.frontendUrl,
+    },
+  });
+
+  const emailContent = {
+    body: {
+      name: `${signup.firstName} ${signup.lastName}`,
+      intro: 'MFA Setup Verification',
+      dictionary: {
+        'Your verification code': otp,
+      },
+      outro: [
+        'This code will expire in 10 minutes.',
+        'If you did not request this code, please ignore this email.',
+      ],
+    },
+  };
+
+  const emailBody = mailGenerator.generate(emailContent);
+  const emailText = mailGenerator.generatePlaintext(emailContent);
+
+  await sendMail(
+    signup.email,
+    'MFA Setup Verification Code',
+    emailText,
+    emailBody
+  );
 
   await db.userSignup.update({
     where: { id: signupId },
     data: {
-      mfaSecret: secret.base32,
       mfaEnabled: true,
     },
   });
 
   return {
-    secret: secret.base32,
-    qrCode,
+    message:
+      'MFA setup initiated. Please check your email for the verification code.',
   };
 };
 
-const verifyMFAHandler = async (signupId, token) => {
+const verifyMFAHandler = async (signupId, otp) => {
   const signup = await db.userSignup.findUnique({
     where: { id: signupId },
+    include: {
+      user: true,
+    },
   });
 
   if (!signup || !signup.mfaEnabled) {
@@ -65,17 +112,32 @@ const verifyMFAHandler = async (signupId, token) => {
     );
   }
 
-  console.log('SIGNUP', signup);
-
-  const verified = speakeasy.totp.verify({
-    secret: signup.mfaSecret,
-    encoding: 'base32',
-    token,
+  const otpRecord = await db.signupOTP.findUnique({
+    where: { email: signup.email },
   });
 
-  if (!verified) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid MFA token');
+  if (!otpRecord) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'No OTP found for verification');
   }
+
+  if (otpRecord.verified) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP already verified');
+  }
+
+  if (otpRecord.expiresAt < new Date()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP has expired');
+  }
+
+  if (otpRecord.otp !== otp) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid OTP');
+  }
+
+  await db.signupOTP.update({
+    where: { email: signup.email },
+    data: {
+      verified: true,
+    },
+  });
 
   await db.userSignup.update({
     where: { id: signupId },
@@ -84,7 +146,61 @@ const verifyMFAHandler = async (signupId, token) => {
     },
   });
 
-  return { verified: true };
+  return {
+    verified: true,
+    message: 'MFA successfully enabled',
+  };
+};
+
+const generateMFALoginOTP = async (email) => {
+  const otp = generateOTP(6);
+  const otpExpiryTime = new Date();
+  otpExpiryTime.setMinutes(otpExpiryTime.getMinutes() + 10);
+
+  await db.signupOTP.upsert({
+    where: { email },
+    update: {
+      otp,
+      expiresAt: otpExpiryTime,
+      verified: false,
+    },
+    create: {
+      email,
+      otp,
+      expiresAt: otpExpiryTime,
+      verified: false,
+    },
+  });
+
+  const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: {
+      name: 'Chess in Chunks',
+      link: config.frontendUrl,
+    },
+  });
+
+  const emailContent = {
+    body: {
+      intro: 'Login Verification Code',
+      dictionary: {
+        'Your verification code': otp,
+      },
+      outro: [
+        'This code will expire in 10 minutes.',
+        'If you did not request this code, please secure your account immediately.',
+      ],
+    },
+  };
+
+  const emailBody = mailGenerator.generate(emailContent);
+  const emailText = mailGenerator.generatePlaintext(emailContent);
+
+  await sendMail(email, 'Login Verification Code', emailText, emailBody);
+
+  return {
+    message: 'MFA verification code sent to your email',
+  };
 };
 
 const updatePasswordHandler = async (id, newPassword) => {
@@ -260,6 +376,8 @@ const createSignupHandler = async (data, academyId) => {
       'Email already registered for signup'
     );
   }
+
+  console.log('CHESS COM ID', chessComId);
 
   if (chessComId) {
     await validateChessComUsername(chessComId);
@@ -769,8 +887,9 @@ const studentSignupService = {
   addProgramPurchaseHandler,
   handleExpiredSignups,
   sendSignupEmail,
-  verifyMFAHandler,
   setupMFAHandler,
+  verifyMFAHandler,
+  generateMFALoginOTP,
 };
 
 module.exports = studentSignupService;
