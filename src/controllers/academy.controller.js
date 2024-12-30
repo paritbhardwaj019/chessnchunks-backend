@@ -33,6 +33,9 @@ const getAcademyByDomain = catchAsync(async (req, res) => {
 const getPublicPageBySlug = catchAsync(async (req, res) => {
   const { domain, slug } = req.params;
 
+  console.log('DOMAIN', domain);
+  console.log('SLUG', slug);
+
   const resolvedDomain = await resolveAcademyDomain(domain);
 
   const pageData = await academyService.getPublicPageBySlug(

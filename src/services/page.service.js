@@ -43,11 +43,18 @@ const updatePage = async (pageId, pageData) => {
   });
 };
 
+const parseSlug = (slug) => {
+  const cleanedSlug = slug.replace(/^\/+|\/+$/g, '');
+  return `/${cleanedSlug}`;
+};
+
 const getPageBySlug = async (academyId, slug) => {
+  const parsedSlug = parseSlug(slug);
+
   const page = await db.page.findFirst({
     where: {
       academyId,
-      slug,
+      slug: parsedSlug,
       status: 'PUBLISHED',
     },
     include: {

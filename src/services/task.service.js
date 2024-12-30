@@ -2,56 +2,45 @@ const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const logger = require('../utils/logger');
+const generateSystemCode = require('../utils/generateSystemCode');
+const { SYSTEM_CODE_MODULE } = require('@prisma/client');
 
-const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
+/**
+ * Create a new task
+ * @param {Object} data Task data
+ * @param {Object} loggedInUser Current logged in user
+ * @returns {Promise<Object>} Created task
+ */
 const createTaskHandler = async (data, loggedInUser) => {
   const {
     description,
-    prefix,
     startDate,
     endDate,
     status,
     assignedToType,
     assignedToId,
   } = data;
+
   logger.info('Starting task creation process');
 
   try {
-    const taskCodeCount = await db.taskCode.count({
-      where: {
-        code: {
-          startsWith: prefix,
-        },
-      },
-    });
-    const taskCode = formatNumberWithPrefix(prefix, taskCodeCount);
+    const taskId = await generateSystemCode(SYSTEM_CODE_MODULE.TASK);
 
-    logger.info(`Generated task code: ${taskCode}`);
-
-    const createdTaskCode = await db.taskCode.create({
-      data: {
-        code: taskCode,
-      },
-    });
-    logger.info(`Created new task code record with ID: ${createdTaskCode.id}`);
-
-    // Prepare the task data
     let taskData = {
+      taskId,
       description,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       status,
-      createdBy: { connect: { id: loggedInUser.id } }, // Use 'createdBy' with 'connect'
-      taskCode: { connect: { id: createdTaskCode.id } }, // Connect the task code
+      createdById: loggedInUser.id,
     };
 
-    // Map 'assignedToType' to the correct relation field
     if (assignedToType === 'USER') {
-      taskData.assignedToUser = { connect: { id: assignedToId } };
+      taskData.assignedToUserId = assignedToId;
     } else if (assignedToType === 'BATCH') {
-      taskData.assignedToBatch = { connect: { id: assignedToId } };
+      taskData.assignedToBatchId = assignedToId;
     } else if (assignedToType === 'ACADEMY') {
-      taskData.assignedToAcademy = { connect: { id: assignedToId } };
+      taskData.assignedToAcademyId = assignedToId;
     } else {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid assignedToType');
     }
@@ -59,18 +48,50 @@ const createTaskHandler = async (data, loggedInUser) => {
     const task = await db.task.create({
       data: taskData,
       include: {
-        assignedToUser: true,
-        assignedToBatch: true,
-        assignedToAcademy: true,
-        createdBy: true,
-        taskCode: true,
+        assignedToUser: {
+          select: {
+            id: true,
+            email: true,
+            profile: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+        assignedToBatch: {
+          select: {
+            id: true,
+            batchCode: true,
+            description: true,
+          },
+        },
+        assignedToAcademy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            email: true,
+            profile: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
       },
     });
 
     logger.info(`Successfully created task with ID: ${task.id}`);
     return task;
   } catch (error) {
-    logger.error('Error during task creation', error);
+    logger.error('Error during task creation:', error);
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Task creation failed'

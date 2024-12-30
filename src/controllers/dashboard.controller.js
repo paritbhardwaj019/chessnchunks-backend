@@ -31,6 +31,28 @@ const fetchAllDashboard = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(dashboardData);
 });
 
-const dashboardController = { fetchAllDashboard };
+const getStudentBatchStats = catchAsync(async (req, res) => {
+  const statsData = await dashboardService.getBatchStudentsStatsHandler(
+    req.user
+  );
+
+  res.status(httpStatus.OK).send(statsData);
+});
+
+const getCoachBatchStats = catchAsync(async (req, res) => {
+  const performanceData = await dashboardService.getCoachBatchPerformance(
+    req.user
+  );
+
+  console.log('PERFORMANCE_DATA', performanceData);
+
+  res.status(httpStatus.OK).send(performanceData);
+});
+
+const dashboardController = {
+  fetchAllDashboard,
+  getStudentBatchStats,
+  getCoachBatchStats,
+};
 
 module.exports = dashboardController;

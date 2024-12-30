@@ -33,7 +33,7 @@ academyRouter
   .get(academyController.getAcademyByDomain);
 
 academyRouter
-  .route('/domain/:domain/pages/:slug')
+  .route('/domain/:domain/pages/:slug(*)')
   .get(academyController.getPublicPageBySlug);
 
 academyRouter

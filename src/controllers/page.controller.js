@@ -24,6 +24,8 @@ const getPage = catchAsync(async (req, res) => {
   const academyId = await getAndValidateAcademy(req.user);
   const { slug } = req.params;
 
+  console.log(slug);
+
   const page = await pageService.getPageBySlug(academyId, slug);
 
   res.status(httpStatus.OK).send(page);
