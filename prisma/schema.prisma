@@ -75,7 +75,7 @@ model User {
   code String @unique
 
   subRole COACH_ROLE?
-   emailVerificationTokens EmailVerificationToken[]
+  emailVerificationTokens EmailVerificationToken[]
 
   friends  User[] @relation("UserFriends")
   friendOf User[] @relation("UserFriends")
@@ -534,6 +534,7 @@ enum CODE_TYPE {
   FORGOT_PASSWORD
   LOGIN_WITHOUT_PASSWORD
   ADMIN_SETUP
+  MFA_LOGIN
 }
 
 enum INVITATION_TYPE {
@@ -897,7 +898,6 @@ model UserSignup {
   emailVerifiedAt   DateTime?
  
   mfaEnabled   Boolean  @default(false)
-  mfaSecret    String?
   mfaVerified  Boolean  @default(false)
 
   paymentStatus PAYMENT_STATUS @default(PENDING)

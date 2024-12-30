@@ -636,8 +636,9 @@ const getAcademyPrograms = async (academyId) => {
 
   return allPrograms;
 };
-
 const updateProgramCredits = async (programId, academyId, creditData) => {
+  console.log('CREDIT_DATA', creditData);
+
   const program = await db.academyProgram.findFirst({
     where: {
       id: programId,
@@ -679,7 +680,7 @@ const updateProgramCredits = async (programId, academyId, creditData) => {
   }
 
   const formattedCreditData = {
-    creditPoints: parseInt(creditData.creditPoints),
+    creditPoints: parseInt(creditData.creditPoints, 10),
     condition: creditData.condition,
     discountRules: creditData.discountRules || {},
     discountAmount: parseFloat(creditData.discountAmount) || 0,
@@ -698,38 +699,30 @@ const updateProgramCredits = async (programId, academyId, creditData) => {
         select: {
           id: true,
           status: true,
-          student: {
+          user: {
             select: {
               id: true,
-              firstName: true,
-              lastName: true,
+              profile: {
+                select: { firstName: true, lastName: true },
+              },
             },
           },
+          paymentStatus: true,
+          autoRenew: true,
+          lastBillingDate: true,
+          nextBillingDate: true,
+          userId: true,
+          academyPlanId: true,
+          stripeSubscriptionId: true,
+          startDate: true,
+          endDate: true,
+          createdAt: true,
+          updatedAt: true,
+          academyPlan: true,
         },
       },
     },
   });
-
-  if (updatedProgram.studentSubscriptions.length > 0) {
-    await Promise.all(
-      updatedProgram.studentSubscriptions.map(async (subscription) => {
-        await db.notification.create({
-          data: {
-            type: 'PROGRAM_CREDIT_UPDATE',
-            userId: subscription.student.id,
-            title: 'Program Credits Updated',
-            message: `The credit points for program ${program.name} have been updated to ${formattedCreditData.creditPoints} points.`,
-            metadata: {
-              programId: program.id,
-              oldCreditPoints: program.creditPoints,
-              newCreditPoints: formattedCreditData.creditPoints,
-              condition: formattedCreditData.condition,
-            },
-          },
-        });
-      })
-    );
-  }
 
   return updatedProgram;
 };

@@ -554,6 +554,96 @@ const loginWithCicIdHandler = async (data, host) => {
   };
 };
 
+const checkMfaStatusHandler = async (data) => {
+  const { email, password } = data;
+
+  const user = await db.user.findUnique({
+    where: {
+      email,
+    },
+    select: {
+      id: true,
+      email: true,
+      password: true,
+      mfaEnabled: true,
+      status: true,
+    },
+  });
+
+  if (!user || !user.password) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
+  }
+
+  if (user.status === 'INACTIVE') {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Your account is INACTIVE');
+  }
+
+  const isPasswordValid = await comparePassword(password, user.password);
+
+  if (!isPasswordValid) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
+  }
+
+  if (user.mfaEnabled) {
+    const otp = codeGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+      lowerCaseAlphabets: false,
+      digits: true,
+    });
+
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+
+    await db.code.create({
+      data: {
+        email: user.email,
+        code: otp,
+        expiresAt,
+        type: 'MFA_LOGIN',
+      },
+    });
+
+    const mailGenerator = new Mailgen({
+      theme: 'default',
+      product: {
+        name: 'Chess in Chunks',
+        link: config.frontendUrl,
+      },
+    });
+
+    const emailContent = {
+      body: {
+        name: user.email,
+        intro: 'Two-Factor Authentication Required',
+        dictionary: {
+          'Your verification code': otp,
+        },
+        outro: [
+          'This code will expire in 10 minutes.',
+          'If you did not try to login, please secure your account immediately.',
+        ],
+      },
+    };
+
+    const emailBody = mailGenerator.generate(emailContent);
+    const emailText = mailGenerator.generatePlaintext(emailContent);
+
+    await sendMail(user.email, 'Login Verification Code', emailText, emailBody);
+
+    return {
+      requireMfa: true,
+      message: 'Please check your email for the verification code',
+      email: user.email,
+    };
+  }
+
+  return {
+    requireMfa: false,
+    email: user.email,
+  };
+};
+
 const authService = {
   loginWithPasswordHandler,
   loginWithoutPasswordHandler,
@@ -562,6 +652,7 @@ const authService = {
   verifyResetPasswordHandler,
   updatePasswordHandler,
   loginWithCicIdHandler,
+  checkMfaStatusHandler,
 };
 
 module.exports = authService;

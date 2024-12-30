@@ -147,6 +147,57 @@ const getAcademyPrograms = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(result);
 });
 
+const updateProgramCredits = catchAsync(async (req, res) => {
+  const academyId = await getAndValidateAcademy(req.user);
+
+  const creditData = pick(req.body, [
+    'creditPoints',
+    'condition',
+    'discountRules',
+    'discountAmount',
+    'latePaymentFees',
+    'dueDate',
+  ]);
+
+  if (!creditData.creditPoints) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Credit points are required');
+  }
+
+  const creditPoints = Number(creditData.creditPoints);
+  if (isNaN(creditPoints) || creditPoints < 0) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid credit points value');
+  }
+
+  if (creditData.discountAmount) {
+    const discountAmount = Number(creditData.discountAmount);
+    if (isNaN(discountAmount) || discountAmount < 0) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid discount amount');
+    }
+  }
+
+  if (creditData.latePaymentFees) {
+    const latePaymentFees = Number(creditData.latePaymentFees);
+    if (isNaN(latePaymentFees) || latePaymentFees < 0) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid late payment fees');
+    }
+  }
+
+  if (creditData.dueDate) {
+    const dueDate = new Date(creditData.dueDate);
+    if (isNaN(dueDate.getTime())) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid due date format');
+    }
+  }
+
+  const updatedProgram = await academyProgramService.updateProgramCredits(
+    req.params.id,
+    academyId,
+    creditData
+  );
+
+  res.send(updatedProgram);
+});
+
 module.exports = {
   createProgram,
   getPrograms,
@@ -157,4 +208,5 @@ module.exports = {
   getProgramOptions,
   getAcademyPrograms,
   getAndValidateAcademy,
+  updateProgramCredits,
 };

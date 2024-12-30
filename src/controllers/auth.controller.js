@@ -2,6 +2,11 @@ const httpStatus = require('http-status');
 const authService = require('../services/auth.service');
 const catchAsync = require('../utils/catchAsync');
 
+const checkMfaStatusHandler = catchAsync(async (req, res) => {
+  const mfaStatus = await authService.checkMfaStatusHandler(req.body);
+  res.status(httpStatus.OK).send(mfaStatus);
+});
+
 const loginWithPasswordHandler = catchAsync(async (req, res) => {
   const origin = 'http://' + req.headers['x-origin-host'];
 
@@ -72,6 +77,7 @@ const authController = {
   verifyResetPasswordHandler,
   updatePasswordHandler,
   loginWithCicIdHandler,
+  checkMfaStatusHandler,
 };
 
 module.exports = authController;

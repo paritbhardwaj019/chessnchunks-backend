@@ -5,6 +5,8 @@ const checkRole = require('../../middlewares/checkRole');
 
 const authRouter = express.Router();
 
+authRouter.post('/check-mfa', authController.checkMfaStatusHandler);
+
 authRouter.post('/login-with-cicid', authController.loginWithCicIdHandler);
 
 authRouter.post(

@@ -173,6 +173,7 @@ router.post('/stripe/student', async (req, res) => {
                   connect: { id: profile.id },
                 },
                 assignedToAcademyId: academy.id,
+                mfaEnabled: signup.mfaEnabled,
               },
             });
 

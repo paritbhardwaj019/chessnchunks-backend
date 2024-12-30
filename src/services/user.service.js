@@ -93,6 +93,9 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
       take,
       where: baseFilter,
       select: selectFields,
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   } else if (user.role.name === 'ADMIN' || user.role.name === 'COACH') {
     const academy = await getSingleAcademyForUser(loggedInUser);
@@ -105,6 +108,9 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
         assignedToAcademyId: academy.id,
       },
       select: selectFields,
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   } else {
     allUsers = [];
