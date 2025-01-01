@@ -14,42 +14,46 @@ const createQuiz = async (data, userId) => {
   const { title, description, timeLimit, passingScore, taskId, questions } =
     data;
 
-  const quizCode = await generateSystemCode(SYSTEM_CODE_MODULE.QUIZ);
+  const quiz = await db.$transaction(async (prisma) => {
+    const quizCode = await generateSystemCode(SYSTEM_CODE_MODULE.QUIZ);
 
-  const mappedQuestions = await Promise.all(
-    questions.map(async (q, index) => {
-      const questionCode = await generateSystemCode(
-        SYSTEM_CODE_MODULE.QUIZ_QUESTION
-      );
-      return {
-        questionText: q.questionText,
-        type: questionTypeMapping[q.type] || q.type,
-        marks: q.marks,
-        orderIndex: index + 1,
-        questionCode,
-        options: q.options,
-        correctAnswer: q.correctAnswer,
-      };
-    })
-  );
+    const mappedQuestions = await Promise.all(
+      questions.map(async (q, index) => {
+        const questionCode = await generateSystemCode(
+          SYSTEM_CODE_MODULE.QUIZ_QUESTION
+        );
+        return {
+          questionText: q.questionText,
+          type: questionTypeMapping[q.type] || q.type,
+          marks: q.marks,
+          orderIndex: index + 1,
+          questionCode,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+        };
+      })
+    );
 
-  const quiz = await db.quiz.create({
-    data: {
-      title,
-      description,
-      timeLimit,
-      passingScore,
-      quizCode,
-      taskId,
-      createdById: userId,
-      questions: {
-        create: mappedQuestions,
+    const createdQuiz = await prisma.quiz.create({
+      data: {
+        title,
+        description,
+        timeLimit,
+        passingScore,
+        quizCode,
+        taskId,
+        createdById: userId,
+        questions: {
+          create: mappedQuestions,
+        },
       },
-    },
-    include: {
-      questions: true,
-      task: true,
-    },
+      include: {
+        questions: true,
+        task: true,
+      },
+    });
+
+    return createdQuiz;
   });
 
   return quiz;
@@ -463,8 +467,6 @@ const getQuizOptions = async () => {
 };
 
 const assignQuizWithTask = async (data, loggedInUser) => {
-  console.log('DATA', data);
-
   const {
     quizId,
     description,
@@ -475,7 +477,6 @@ const assignQuizWithTask = async (data, loggedInUser) => {
     assigneeId,
   } = data;
 
-  // First fetch the quiz with all its questions
   const quiz = await db.quiz.findUnique({
     where: { id: quizId },
     include: {
@@ -504,8 +505,6 @@ const assignQuizWithTask = async (data, loggedInUser) => {
       connect: { id: quizId },
     },
   };
-
-  console.log('ASSIGNMENT TYPE', assignmentType);
 
   switch (assignmentType) {
     case 'student':
@@ -557,7 +556,6 @@ const assignQuizWithTask = async (data, loggedInUser) => {
   }
 
   try {
-    // Create the task with all necessary relationships
     const task = await db.task.create({
       data: taskData,
       include: {
@@ -569,7 +567,6 @@ const assignQuizWithTask = async (data, loggedInUser) => {
       },
     });
 
-    // Verify that the quiz was properly connected
     if (!task.quizzes || task.quizzes.length === 0) {
       throw new ApiError(
         httpStatus.INTERNAL_SERVER_ERROR,

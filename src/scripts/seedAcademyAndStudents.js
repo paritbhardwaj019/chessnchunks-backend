@@ -136,7 +136,7 @@ const batchData = {
   batchDay: 'MONDAY',
   startTime: '16:00',
   startDate: new Date('2024-01-01'),
-  endDate: new Date('2024-12-31'),
+  endDate: new Date('2025-12-31'),
   isActive: true,
 };
 

@@ -18,7 +18,7 @@ const createSeasonalGoalHandler = async (data) => {
     },
   });
 
-  const seasonalCode = formatNumberWithPrefix('SG', seasonalGoalCount);
+  const seasonalCode = formatNumberWithPrefix('SG', seasonalGoalCount + 1);
 
   const createdSeasonalGoal = await db.seasonalGoal.create({
     data: {
@@ -50,7 +50,7 @@ const createMonthlyGoalHandler = async (data) => {
     },
   });
 
-  const monthlyGoalCode = formatNumberWithPrefix('MG', monthlyGoalCount);
+  const monthlyGoalCode = formatNumberWithPrefix('MG', monthlyGoalCount + 1);
 
   const createdMonthlyGoal = await db.monthlyGoal.create({
     data: {
@@ -123,7 +123,7 @@ const createWeeklyGoalHandler = async (data) => {
     },
   });
 
-  const weeklyGoalCode = formatNumberWithPrefix('WG', weeklyGoalCount);
+  const weeklyGoalCode = formatNumberWithPrefix('WG', weeklyGoalCount + 1);
 
   const createdWeeklyGoal = await db.weeklyGoal.create({
     data: {
