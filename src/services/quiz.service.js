@@ -17,22 +17,23 @@ const createQuiz = async (data, userId) => {
   const quiz = await db.$transaction(async (prisma) => {
     const quizCode = await generateSystemCode(SYSTEM_CODE_MODULE.QUIZ);
 
-    const mappedQuestions = await Promise.all(
-      questions.map(async (q, index) => {
-        const questionCode = await generateSystemCode(
-          SYSTEM_CODE_MODULE.QUIZ_QUESTION
-        );
-        return {
-          questionText: q.questionText,
-          type: questionTypeMapping[q.type] || q.type,
-          marks: q.marks,
-          orderIndex: index + 1,
-          questionCode,
-          options: q.options,
-          correctAnswer: q.correctAnswer,
-        };
-      })
-    );
+    const mappedQuestions = [];
+    for (let index = 0; index < questions.length; index++) {
+      const q = questions[index];
+      const questionCode = await generateSystemCode(
+        SYSTEM_CODE_MODULE.QUIZ_QUESTION
+      );
+
+      mappedQuestions.push({
+        questionText: q.questionText,
+        type: questionTypeMapping[q.type] || q.type,
+        marks: q.marks,
+        orderIndex: index + 1,
+        questionCode,
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+      });
+    }
 
     const createdQuiz = await prisma.quiz.create({
       data: {
