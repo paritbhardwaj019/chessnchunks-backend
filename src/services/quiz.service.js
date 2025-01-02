@@ -66,6 +66,11 @@ const getQuizByTaskId = async (taskId) => {
       questions: {
         orderBy: { orderIndex: 'asc' },
       },
+      task: {
+        include: {
+          studentQuizAttempts: true,
+        },
+      },
     },
   });
 
@@ -637,6 +642,34 @@ const getQuizWithResults = async (quizId) => {
   return quiz;
 };
 
+const getStudentQuizAttempts = async (userId) => {
+  const attempts = await db.studentQuizAttempt.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      task: {
+        include: {
+          quizzes: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              timeLimit: true,
+              passingScore: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      startTime: 'desc',
+    },
+  });
+
+  return attempts;
+};
+
 const quizService = {
   createQuiz,
   getQuizByTaskId,
@@ -649,6 +682,7 @@ const quizService = {
   assignQuizWithTask,
   getQuizById,
   getQuizWithResults,
+  getStudentQuizAttempts,
 };
 
 module.exports = quizService;

@@ -6,6 +6,18 @@ const quizController = require('../../controllers/quiz.controller');
 const quizRouter = express.Router();
 
 /**
+ * @route   GET /api/quiz/student-attempts
+ * @desc    Get all quiz attempts for the current student
+ * @access  Protected (STUDENT)
+ */
+quizRouter.get(
+  '/student-attempts',
+  checkJWT,
+  checkRole(['STUDENT']),
+  quizController.getStudentQuizAttemptsHandler
+);
+
+/**
  * @route   POST /api/quiz/assign
  * @desc    Assign a quiz by creating a task
  * @access  Protected (ADMIN, COACH)

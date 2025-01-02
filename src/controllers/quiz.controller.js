@@ -143,6 +143,11 @@ const assignQuizHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(assignment);
 });
 
+const getStudentQuizAttemptsHandler = catchAsync(async (req, res) => {
+  const attempts = await quizService.getStudentQuizAttempts(req.user.id);
+  res.status(httpStatus.OK).send(attempts);
+});
+
 const quizController = {
   createQuizHandler,
   getQuizByTaskIdHandler,
@@ -156,6 +161,7 @@ const quizController = {
   deleteQuizHandler,
   getQuizOptionsHandler,
   assignQuizHandler,
+  getStudentQuizAttemptsHandler,
 };
 
 module.exports = quizController;
