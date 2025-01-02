@@ -321,6 +321,7 @@ const getBatchStudentsStatsHandler = async (loggedInUser) => {
       lastUpdated: Object.values(latestStatsMap)[0]?.lastUpdated || null,
     };
   } catch (error) {
+    console.log(error);
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Error fetching batch students statistics'
