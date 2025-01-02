@@ -17,22 +17,23 @@ const createQuiz = async (data, userId) => {
   const quiz = await db.$transaction(async (prisma) => {
     const quizCode = await generateSystemCode(SYSTEM_CODE_MODULE.QUIZ);
 
-    const mappedQuestions = await Promise.all(
-      questions.map(async (q, index) => {
-        const questionCode = await generateSystemCode(
-          SYSTEM_CODE_MODULE.QUIZ_QUESTION
-        );
-        return {
-          questionText: q.questionText,
-          type: questionTypeMapping[q.type] || q.type,
-          marks: q.marks,
-          orderIndex: index + 1,
-          questionCode,
-          options: q.options,
-          correctAnswer: q.correctAnswer,
-        };
-      })
-    );
+    const mappedQuestions = [];
+    for (let index = 0; index < questions.length; index++) {
+      const q = questions[index];
+      const questionCode = await generateSystemCode(
+        SYSTEM_CODE_MODULE.QUIZ_QUESTION
+      );
+
+      mappedQuestions.push({
+        questionText: q.questionText,
+        type: questionTypeMapping[q.type] || q.type,
+        marks: q.marks,
+        orderIndex: index + 1,
+        questionCode,
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+      });
+    }
 
     const createdQuiz = await prisma.quiz.create({
       data: {
@@ -65,6 +66,11 @@ const getQuizByTaskId = async (taskId) => {
     include: {
       questions: {
         orderBy: { orderIndex: 'asc' },
+      },
+      task: {
+        include: {
+          studentQuizAttempts: true,
+        },
       },
     },
   });
@@ -637,6 +643,34 @@ const getQuizWithResults = async (quizId) => {
   return quiz;
 };
 
+const getStudentQuizAttempts = async (userId) => {
+  const attempts = await db.studentQuizAttempt.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      task: {
+        include: {
+          quizzes: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              timeLimit: true,
+              passingScore: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      startTime: 'desc',
+    },
+  });
+
+  return attempts;
+};
+
 const quizService = {
   createQuiz,
   getQuizByTaskId,
@@ -649,6 +683,7 @@ const quizService = {
   assignQuizWithTask,
   getQuizById,
   getQuizWithResults,
+  getStudentQuizAttempts,
 };
 
 module.exports = quizService;
