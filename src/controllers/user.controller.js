@@ -97,6 +97,23 @@ const getProfileCompletionHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(profileCompletion);
 });
 
+const updateProfileHandler = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const profileData = req.body;
+
+  const profileImage = req.file;
+  if (profileImage) {
+    profileData.profileImage = profileImage;
+  }
+
+  const updatedUser = await userService.updateProfileHandler(
+    id,
+    profileData,
+    req.user
+  );
+  res.status(httpStatus.OK).send(updatedUser);
+});
+
 const userController = {
   fetchAllUsersHandler,
   signUpSubscriberHandler,
@@ -108,6 +125,7 @@ const userController = {
   requestEmailChange,
   verifyEmailChange,
   getProfileCompletionHandler,
+  updateProfileHandler,
 };
 
 module.exports = userController;
