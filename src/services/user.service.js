@@ -23,6 +23,10 @@ const {
   createStudentInvitation,
 } = require('./student.service');
 const sendEmail = require('../utils/sendEmail');
+const {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} = require('../utils/cloudinary.utils');
 
 const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const numberPage = Number(page) || 1;
@@ -979,6 +983,178 @@ const getProfileCompletionHandler = async (userId) => {
   };
 };
 
+const updateProfileHandler = async (id, data, loggedInUser) => {
+  const user = await db.user.findUnique({
+    where: { id },
+    include: {
+      profile: true,
+      role: true,
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  // Only allow users to update their own profile unless they're a super admin
+  if (loggedInUser.id !== id && loggedInUser.role !== 'SUPER_ADMIN') {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'You do not have permission to update this profile'
+    );
+  }
+
+  // Handle file upload if there's a profile image
+  let imageUrl = null;
+  if (data.profileImage) {
+    try {
+      const uploadResult = await uploadToCloudinary(data.profileImage.path, {
+        folder: 'profile-images',
+        publicId: `profile-${id}-${Date.now()}`,
+        allowedFormats: ['jpg', 'jpeg', 'png', 'gif'],
+        maxSize: 5 * 1024 * 1024, // 5MB max size
+      });
+      imageUrl = uploadResult.url;
+
+      // Delete old profile image if it exists
+      if (user.profile?.imageUrl) {
+        const oldImagePublicId = user.profile.imageUrl
+          .split('/')
+          .slice(-1)[0]
+          .split('.')[0];
+        if (oldImagePublicId) {
+          await deleteFromCloudinary(oldImagePublicId);
+        }
+      }
+    } catch (error) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `Profile image upload failed - ${error.message}`
+      );
+    } finally {
+      // Clean up the temporary file
+      if (data.profileImage.path) {
+        fs.unlinkSync(data.profileImage.path);
+      }
+    }
+  }
+
+  // Extract profile-specific fields
+  const {
+    firstName,
+    lastName,
+    middleName,
+    dateOfBirth,
+    phoneNumber,
+    addressLine1,
+    addressLine2,
+    city,
+    state,
+    country,
+    zipcode,
+    parentName,
+    parentEmail,
+    chessComId,
+    lichessId,
+    uscfId,
+    status,
+  } = data;
+
+  // Validate chess.com ID if provided
+  if (chessComId) {
+    const existingUserWithChessComId = await db.profile.findFirst({
+      where: {
+        chessComId,
+        NOT: {
+          userId: id,
+        },
+      },
+    });
+
+    if (existingUserWithChessComId) {
+      throw new ApiError(
+        httpStatus.CONFLICT,
+        'Chess.com ID is already associated with another user'
+      );
+    }
+  }
+
+  // Prepare profile update data
+  const profileUpdateData = {
+    ...(firstName && { firstName }),
+    ...(lastName && { lastName }),
+    ...(middleName && { middleName }),
+    ...(dateOfBirth && { dateOfBirth: new Date(dateOfBirth) }),
+    ...(phoneNumber && { phoneNumber }),
+    ...(addressLine1 && { addressLine1 }),
+    ...(addressLine2 && { addressLine2 }),
+    ...(city && { city }),
+    ...(state && { state }),
+    ...(country && { country }),
+    ...(zipcode && { zipcode }),
+    ...(parentName && { parentName }),
+    ...(parentEmail && { parentEmail }),
+    ...(chessComId && { chessComId }),
+    ...(lichessId && { lichessId }),
+    ...(uscfId && { uscfId }),
+    ...(imageUrl && { imageUrl }), // Add the Cloudinary URL if an image was uploaded
+  };
+
+  // Prepare user update data
+  const userUpdateData = {
+    ...(status && { status }),
+  };
+
+  try {
+    // Update or create profile
+    if (user.profile) {
+      await db.profile.update({
+        where: { userId: id },
+        data: profileUpdateData,
+      });
+    } else {
+      await db.profile.create({
+        data: {
+          ...profileUpdateData,
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+        },
+      });
+    }
+
+    // Update user if there are user-specific fields
+    if (Object.keys(userUpdateData).length > 0) {
+      await db.user.update({
+        where: { id },
+        data: userUpdateData,
+      });
+    }
+
+    const updatedUser = await db.user.findUnique({
+      where: { id },
+      include: {
+        profile: true,
+        role: true,
+      },
+    });
+
+    return updatedUser;
+  } catch (error) {
+    if (imageUrl) {
+      try {
+        const newImagePublicId = imageUrl.split('/').slice(-1)[0].split('.')[0];
+        await deleteFromCloudinary(newImagePublicId);
+      } catch (cleanupError) {
+        console.error('Failed to cleanup Cloudinary image:', cleanupError);
+      }
+    }
+    throw error;
+  }
+};
+
 const userService = {
   fetchAllUsersHandler,
   signUpSubscriberHandler,
@@ -990,6 +1166,7 @@ const userService = {
   requestEmailChangeHandler,
   verifyEmailChangeHandler,
   getProfileCompletionHandler,
+  updateProfileHandler,
 };
 
 module.exports = userService;

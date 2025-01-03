@@ -43,6 +43,14 @@ userRouter.patch(
   userController.updateUserHandler
 );
 
+userRouter.put(
+  '/profile/:id',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  uploadFile.single('profileImage'),
+  userController.updateProfileHandler
+);
+
 userRouter.get(
   '/profile/:id',
   checkJWT,
