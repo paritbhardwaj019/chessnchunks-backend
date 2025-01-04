@@ -1,67 +1,76 @@
-// index.js
-
 const http = require('http');
 const app = require('./app');
 const config = require('./config');
 const logger = require('./utils/logger');
-const socket = require('./socket'); // Import the socket module
-const { verifyJWTForSocket } = require('./utils/auth'); // Import the function
-const messageService = require('./services/message.service'); // Import messageService
+const socket = require('./socket');
+const { verifyJWTForSocket } = require('./utils/auth');
+const messageService = require('./services/message.service');
+const db = require('./database/prisma');
 
-const httpServer = http.createServer(app);
-
-const io = socket.init(httpServer);
-
-io.use(async (socket, next) => {
-  const token = socket.handshake.auth.token;
-  if (!token) {
-    logger.info('Authentication failed: Token not provided');
-    return next(new Error('Authentication error: Token not provided'));
-  }
-
+async function startServer() {
   try {
-    const user = await verifyJWTForSocket(token);
-    socket.user = user;
-    logger.info(`User authenticated: ${user.id}`);
-    next();
-  } catch (err) {
-    logger.info(`Authentication failed: ${err.message}`);
-    next(new Error('Authentication error'));
-  }
-});
+    await db.$connect();
+    logger.info('Database connection successful');
 
-io.on('connection', (socket) => {
-  const userId = socket.user?.id;
-  if (userId) {
-    socket.join(`user-${userId}`);
-    logger.info(`User connected and joined room: user-${userId}`);
-  }
+    const httpServer = http.createServer(app);
+    const io = socket.init(httpServer);
 
-  socket.on('send_message', async ({ receiverId, content }) => {
-    if (!userId)
-      return logger.info('Message sending failed: Unauthenticated user');
+    io.use(async (socket, next) => {
+      const token = socket.handshake.auth.token;
+      if (!token) {
+        logger.info('Authentication failed: Token not provided');
+        return next(new Error('Authentication error: Token not provided'));
+      }
 
-    try {
-      const message = await messageService.sendMessage({
-        senderId: userId,
-        receiverId,
-        content,
+      try {
+        const user = await verifyJWTForSocket(token);
+        socket.user = user;
+        logger.info(`User authenticated: ${user.id}`);
+        next();
+      } catch (err) {
+        logger.info(`Authentication failed: ${err.message}`);
+        next(new Error('Authentication error'));
+      }
+    });
+
+    // Handle socket events
+    io.on('connection', (socket) => {
+      const userId = socket.user?.id;
+      if (userId) {
+        socket.join(`user-${userId}`);
+        logger.info(`User connected and joined room: user-${userId}`);
+      }
+
+      socket.on('send_message', async ({ receiverId, content }) => {
+        if (!userId)
+          return logger.info('Message sending failed: Unauthenticated user');
+
+        try {
+          const message = await messageService.sendMessage({
+            senderId: userId,
+            receiverId,
+            content,
+          });
+
+          io.to(`user-${receiverId}`).emit('new_message', message);
+          logger.info(`Message sent from User ${userId} to User ${receiverId}`);
+        } catch (err) {
+          logger.info(`Message sending failed: ${err.message}`);
+        }
       });
 
-      io.to(`user-${receiverId}`).emit('new_message', message);
-      logger.info(`Message sent from User ${userId} to User ${receiverId}`);
-    } catch (err) {
-      logger.info(`Message sending failed: ${err.message}`);
-    }
-  });
+      socket.on('disconnect', () => {
+        if (userId) logger.info(`User disconnected: ${userId}`);
+      });
+    });
 
-  socket.on('disconnect', () => {
-    if (userId) logger.info(`User disconnected: ${userId}`);
-  });
-});
+    httpServer.listen(config.port, () => {
+      logger.info(`Server is running on port ${config.port}`);
+    });
+  } catch (error) {
+    logger.error('Failed to connect to the database:', error);
+    process.exit(1); // Exit the process if DB connection fails
+  }
+}
 
-httpServer.listen(config.port, () => {
-  logger.info(`Server is running on port ${config.port}`);
-});
-
-module.exports = { httpServer };
+startServer();
