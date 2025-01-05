@@ -11,7 +11,9 @@ const checkRole = (roles) => async (req, res, next) => {
 
     const { role, id } = decoded;
 
-    if (!roles.includes(role.name)) {
+    console.log('---ROLE---', role);
+
+    if (!roles.includes(role)) {
       return res.status(httpStatus.UNAUTHORIZED).json({
         message: 'Unauthorized access!',
         statusCode: httpStatus.UNAUTHORIZED,

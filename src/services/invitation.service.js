@@ -1,13 +1,9 @@
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
-const {
-  sendCoachInvitation,
-  sendAcademyAdminInvitation,
-  sendStudentInvitation,
-} = require('../utils/invitationMailer');
-const hashPassword = require('../utils/hashPassword');
 const crypto = require('crypto');
+const { sendAcademyAdminInvitation } = require('../utils/invitationMailer');
+const hashPasssword = require('../utils/hashPassword');
 
 const fetchAllInvitationsHandler = async (
   loggedInUser,
@@ -58,6 +54,13 @@ const fetchAllInvitationsHandler = async (
           string_contains: query,
         },
       },
+      {
+        academySignup: {
+          academyName: {
+            contains: query,
+          },
+        },
+      },
     ];
   }
 
@@ -72,6 +75,23 @@ const fetchAllInvitationsHandler = async (
           data: true,
           status: true,
           createdAt: true,
+          academySignup: {
+            select: {
+              id: true,
+              academyName: true,
+              requestedDomain: true,
+              finalDomain: true,
+              status: true,
+              paymentStatus: true,
+              paymentAmount: true,
+              paymentDate: true,
+              selectedPlan: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
         },
         orderBy: {
           createdAt: 'desc',
@@ -94,6 +114,9 @@ const fetchAllInvitationsHandler = async (
 const deleteInvitation = async (loggedInUser, invitationId) => {
   const invitation = await db.invitation.findUnique({
     where: { id: invitationId },
+    include: {
+      academySignup: true,
+    },
   });
 
   if (!invitation) {
@@ -108,8 +131,16 @@ const deleteInvitation = async (loggedInUser, invitationId) => {
   }
 
   try {
-    await db.invitation.delete({
-      where: { id: invitationId },
+    await db.$transaction(async (prisma) => {
+      if (invitation.academySignup) {
+        await prisma.academySignup.delete({
+          where: { id: invitation.academySignup.id },
+        });
+      }
+
+      await prisma.invitation.delete({
+        where: { id: invitationId },
+      });
     });
   } catch (error) {
     console.error('Error deleting invitation:', error);
@@ -123,6 +154,9 @@ const deleteInvitation = async (loggedInUser, invitationId) => {
 const editInvitation = async (loggedInUser, invitationId, newEmail) => {
   const invitation = await db.invitation.findUnique({
     where: { id: invitationId },
+    include: {
+      academySignup: true,
+    },
   });
 
   if (!invitation) {
@@ -151,33 +185,41 @@ const editInvitation = async (loggedInUser, invitationId, newEmail) => {
   }
 
   const tempPassword = crypto.randomBytes(8).toString('hex');
-  const hashedPassword = await hashPassword(tempPassword, 10);
+  const hashedPassword = await hashPasssword(tempPassword, 10);
 
   const newData = { email: newEmail, password: hashedPassword };
   const updatedData = Object.assign({}, invitation.data, newData);
 
   try {
-    const updatedInvitation = await db.invitation.update({
-      where: { id: invitationId },
-      data: {
-        email: newEmail,
-        expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
-        createdBy: {
-          connect: {
-            id: loggedInUser.id,
+    const updatedInvitation = await db.$transaction(async (prisma) => {
+      const updated = await prisma.invitation.update({
+        where: { id: invitationId },
+        data: {
+          email: newEmail,
+          expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
+          createdBy: {
+            connect: {
+              id: loggedInUser.id,
+            },
           },
+          version: invitation.version + 1,
+          data: updatedData,
         },
-        version: invitation.version + 1,
-        data: updatedData,
-      },
-      select: {
-        id: true,
-        type: true,
-        email: true,
-        data: true,
-        status: true,
-        createdAt: true,
-      },
+        include: {
+          academySignup: true,
+        },
+      });
+
+      if (invitation.academySignup) {
+        await prisma.academySignup.update({
+          where: { id: invitation.academySignup.id },
+          data: {
+            email: newEmail,
+          },
+        });
+      }
+
+      return updated;
     });
 
     switch (updatedInvitation.type) {

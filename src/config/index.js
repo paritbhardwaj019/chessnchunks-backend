@@ -20,6 +20,49 @@ const config = {
   },
   frontendUrl: process.env.FRONTEND_URL,
   chessinChunksUrl: process.env.CHESSINCHUNKS_URL,
+  email: {
+    user: process.env.EMAIL_USER,
+    password: process.env.EMAIL_PASSWORD,
+  },
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY,
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+  },
+  databaseUrl: process.env.DATABASE_URL,
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
+  },
 };
+
+const requiredVariables = [
+  'NODE_ENV',
+  'PORT',
+  'DATABASE_URL',
+  'INVITATION_SECRET',
+  'JWT_SECRET',
+  'RESET_PASSWORD_SECRET',
+  'FRONTEND_URL',
+  'CHESSINCHUNKS_URL',
+  'EMAIL_USER',
+  'EMAIL_PASSWORD',
+  'STRIPE_SECRET_KEY',
+  'STRIPE_PUBLISHABLE_KEY',
+  'STRIPE_WEBHOOK_SECRET',
+  'CLOUDINARY_CLOUD_NAME',
+  'CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET',
+];
+
+const missingVariables = requiredVariables.filter((key) => !process.env[key]);
+
+if (missingVariables.length > 0) {
+  console.error(
+    `Missing required environment variables: ${missingVariables.join(', ')}`
+  );
+  process.exit(1);
+}
 
 module.exports = config;

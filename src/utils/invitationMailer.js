@@ -17,11 +17,11 @@ const generateMailGenerator = () => {
   });
 };
 
-const sendAcademyAdminInvitation = async (invitation, password, version) => {
-  const { firstName, lastName, email, academyName } = invitation.data;
+const sendAcademyAdminInvitation = async (invitation, version) => {
+  const { firstName, lastName, email, academyName, signupId } = invitation.data;
 
   const token = await createToken(
-    { id: invitation.id, version },
+    { id: invitation.id, version, signupId },
     config.jwt.invitationSecret,
     '3d'
   );
@@ -30,30 +30,59 @@ const sendAcademyAdminInvitation = async (invitation, password, version) => {
     config.frontendUrl
   }/accept-invite?type=CREATE_ACADEMY&name=${encodeURIComponent(
     academyName
-  )}&token=${token}`;
+  )}&token=${token}&signup=${signupId}`;
 
-  const mailGenerator = generateMailGenerator();
+  const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: {
+      name: 'Chess in Chunks',
+      link: config.frontendUrl,
+    },
+  });
 
   const emailContent = {
     body: {
       name: `${firstName} ${lastName}`,
-      intro: 'You are invited to join our academy as an admin!',
+      intro: [
+        'You are invited to join Chess in Chunks as an Academy Admin!',
+        'Here are the next steps to set up your academy:',
+      ],
       table: {
         data: [
-          { label: 'Email', value: email },
-          { label: 'Temporary Password', value: password },
+          {
+            item: 'Step 1',
+            description:
+              'Click the "Accept Invitation" button below to start the setup process',
+          },
+          {
+            item: 'Step 2',
+            description: 'Choose your academy plan (Bronze, Silver, or Gold)',
+          },
+          {
+            item: 'Step 3',
+            description:
+              'Select your academy domain (yourname.chessinchunks.com)',
+          },
+          {
+            item: 'Step 4',
+            description: 'Complete the payment process',
+          },
         ],
       },
       action: {
         instructions:
-          'To accept this invitation, please click the button below:',
+          'To begin setting up your academy, please click the button below:',
         button: {
           color: '#22BC66',
           text: 'Accept Invitation',
           link: ACTIVATION_URL,
         },
       },
-      outro: 'If you have any questions, feel free to reply to this email.',
+      outro: [
+        "After accepting the invitation, you'll be guided through the plan selection and domain setup process.",
+        'Your academy will be activated once all steps are completed.',
+        'If you have any questions, feel free to reply to this email.',
+      ],
     },
   };
 
@@ -63,7 +92,7 @@ const sendAcademyAdminInvitation = async (invitation, password, version) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Academy Admin Invitation',
+    subject: 'Welcome to Chess in Chunks - Academy Admin Invitation',
     html: emailBody,
     text: emailText,
   };

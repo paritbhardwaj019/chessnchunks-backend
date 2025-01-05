@@ -6,19 +6,6 @@ const checkPermission = require('../../middlewares/checkPermission');
 
 const eventRouter = express.Router();
 
-// // Get academy events
-// router.get(
-//   '/academy/:academyId',
-//   authenticateUser,
-//   eventController.getAcademyEvents
-// );
-
-// // Update an event
-// router.put('/:eventId', authenticateUser, eventController.updateEvent);
-
-// // Delete an event
-// router.delete('/:eventId', authenticateUser, eventController.deleteEvent);
-
 eventRouter
   .route('/')
   .post(
@@ -31,5 +18,10 @@ eventRouter
     checkPermission('view', '/dashboard/calendar'),
     eventController.fetchAcademyEventsHandler
   );
+
+eventRouter
+  .route('/:eventId')
+  .put(checkJWT, eventController.editEventHandler)
+  .delete(checkJWT, eventController.deleteEventHandler);
 
 module.exports = eventRouter;

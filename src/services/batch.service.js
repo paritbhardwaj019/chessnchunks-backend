@@ -1,13 +1,19 @@
 const httpStatus = require('http-status');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
-const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
+const {
+  validateHeadCoach,
+  validateBatchCapacity,
+  validateUserAcademy,
+} = require('./batch.validators');
+const { generateBatchCode, getWarningStatus } = require('./batch.utils');
+const { getBatchFilter, getBatchById } = require('./batch.queries');
 
 const createBatchHandler = async (data, loggedInUser) => {
-  let {
+  const {
     studentCapacity,
     description,
-    academyId,
+    academyId: providedAcademyId,
     warningCutoff,
     currentClass,
     startLevel,
@@ -15,277 +21,193 @@ const createBatchHandler = async (data, loggedInUser) => {
     coaches,
     students,
     startDate,
+    batchDay,
+    startTime,
+    endDate,
   } = data;
 
-  if (loggedInUser.role === 'COACH' || loggedInUser.role === 'ADMIN') {
-    const userWithAcademies = await db.user.findUnique({
-      where: { id: loggedInUser.id },
-      include: {
-        adminOfAcademies: true,
-        coachOfBatches: {
-          include: {
-            academy: true,
-          },
-        },
-      },
-    });
+  const academyId =
+    providedAcademyId ||
+    (await validateUserAcademy(db, loggedInUser.id, loggedInUser.role));
 
-    const academyIds = [
-      ...new Set(
-        loggedInUser.role === 'COACH'
-          ? userWithAcademies.coachOfBatches.map((batch) => batch.academyId)
-          : userWithAcademies.adminOfAcademies.map((academy) => academy.id)
-      ),
-    ];
+  await validateHeadCoach(db, coaches);
 
-    if (academyIds.length === 0) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        `${loggedInUser.role} is not associated with any academy.`
-      );
-    }
-
-    if (academyIds.length > 1) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        `${loggedInUser.role} is associated with multiple academies. Please specify the academy.`
-      );
-    }
-
-    academyId = academyIds[0];
-  }
-
-  if (coaches !== undefined) {
-    const coachRecords = await db.user.findMany({
-      where: {
-        id: { in: coaches },
-        role: {
-          name: 'COACH',
-        },
-        subRole: 'HEAD_COACH',
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (coachRecords.length > 1) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        'A batch can have only one HEAD_COACH.'
-      );
-    }
-  }
-
-  const newStartDate = new Date(startDate);
-
-  const academy = await db.academy.findUnique({
-    where: {
-      id: academyId,
-    },
-  });
-
-  if (!academy) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Academy not found!');
-  }
-
-  const allBatchesCount = await db.batch.count();
-  const batchCode = formatNumberWithPrefix('B', allBatchesCount);
+  const batchCode = await generateBatchCode(db);
 
   const batch = await db.batch.create({
     data: {
       studentCapacity: Number(studentCapacity),
       description,
-      academy: {
-        connect: {
-          id: academyId,
-        },
-      },
       batchCode,
       warningCutoff: Number(warningCutoff),
       currentClass,
-      startLevel: startLevel,
-      currentLevel: currentLevel,
-      startDate: newStartDate,
+      startLevel,
+      currentLevel,
+      batchDay,
+      startTime: startTime,
+      startDate: new Date(startDate),
+      endDate: endDate ? new Date(endDate) : null,
+      isActive: true,
+      warningMailSent: false,
+      createdByUser: {
+        connect: {
+          id: loggedInUser.id,
+        },
+      },
+      modifiedByUser: {
+        connect: {
+          id: loggedInUser.id,
+        },
+      },
+      academy: { connect: { id: academyId } },
       coaches: {
         connect:
           loggedInUser.role === 'COACH'
-            ? [
-                ...coaches.map((coachId) => ({ id: coachId })),
-                { id: loggedInUser.id },
-              ]
-            : coaches.map((coachId) => ({ id: coachId })),
+            ? [...coaches.map((id) => ({ id })), { id: loggedInUser.id }]
+            : coaches.map((id) => ({ id })),
       },
       students: {
-        connect: students.map((studentId) => ({ id: studentId })),
+        connect: students.map((id) => ({ id })),
+      },
+    },
+    include: {
+      academy: true,
+      coaches: true,
+      students: true,
+      createdByUser: {
+        select: {
+          email: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+      modifiedByUser: {
+        select: {
+          email: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
       },
     },
   });
 
-  const updatedAcademy = await db.academy.update({
-    where: {
-      id: academyId,
-    },
-    data: {
-      batches: {
-        connect: [{ id: batch.id }],
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-      batches: true,
-    },
-  });
-
-  return {
-    batch,
-    updatedAcademy,
-  };
+  return batch;
 };
 
-const updateBatchHandler = async (id, data) => {
-  const batch = await db.batch.findUnique({
-    where: { id },
-    include: { students: true },
-  });
+const updateBatchHandler = async (id, data, loggedInUser) => {
+  const batch = await getBatchById(db, id);
 
-  if (!batch) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
-  }
+  if (data.studentCapacity !== undefined) {
+    const newCapacity = Number(data.studentCapacity);
+    const currentCapacity = batch.studentCapacity;
 
-  const {
-    studentCapacity,
-    description,
-    warningCutoff,
-    currentClass,
-    startDate,
-    startLevel,
-    currentLevel,
-    coaches,
-    students,
-  } = data;
-
-  const newCapacity =
-    studentCapacity !== undefined
-      ? Number(studentCapacity)
-      : batch.studentCapacity;
-
-  const newWarningCutoff =
-    warningCutoff !== undefined ? Number(warningCutoff) : batch.warningCutoff;
-
-  if (students !== undefined) {
-    if (students.length > newCapacity) {
+    if (newCapacity < currentCapacity) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
-        `Number of students (${students.length}) exceeds the maximum capacity (${newCapacity}).`
+        `Student capacity cannot be reduced below the current capacity of ${currentCapacity}`
       );
     }
-  }
 
-  if (coaches !== undefined) {
-    const coachRecords = await db.user.findMany({
-      where: {
-        id: { in: coaches },
-        role: {
-          name: 'COACH',
-        },
-        subRole: 'HEAD_COACH',
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (coachRecords.length > 1) {
+    if (newCapacity < batch.students.length) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
-        'A batch can have only one HEAD_COACH.'
+        `Student capacity cannot be less than current number of students (${batch.students.length})`
       );
     }
   }
 
   const updateData = {};
 
-  if (studentCapacity !== undefined) {
-    updateData.studentCapacity = newCapacity;
-  }
-  if (description !== undefined) {
-    updateData.description = description;
-  }
-  if (warningCutoff !== undefined) {
-    updateData.warningCutoff = newWarningCutoff;
-  }
-  if (currentClass !== undefined) {
-    updateData.currentClass = currentClass;
-  }
-  if (startDate !== undefined) {
-    updateData.startDate = new Date(startDate);
-  }
-  if (startLevel !== undefined) {
-    updateData.startLevel = startLevel;
-  }
-  if (currentLevel !== undefined) {
-    updateData.currentLevel = currentLevel;
+  Object.assign(updateData, {
+    ...(data.studentCapacity !== undefined && {
+      studentCapacity: Number(data.studentCapacity),
+    }),
+    ...(data.description !== undefined && { description: data.description }),
+    ...(data.warningCutoff !== undefined && {
+      warningCutoff: Number(data.warningCutoff),
+    }),
+    ...(data.currentClass !== undefined && { currentClass: data.currentClass }),
+    ...(data.startDate !== undefined && {
+      startDate: new Date(data.startDate),
+    }),
+    ...(data.startLevel !== undefined && { startLevel: data.startLevel }),
+    ...(data.currentLevel !== undefined && { currentLevel: data.currentLevel }),
+    ...(data.batchDay !== undefined && { batchDay: data.batchDay }),
+    ...(data.startTime !== undefined && { startTime: data.startTime }),
+    ...(data.endDate !== undefined && { endDate: new Date(data.endDate) }),
+    ...(data.isActive !== undefined && { isActive: data.isActive }),
+    modifiedBy: loggedInUser.id,
+  });
+
+  if (data.coaches?.length) {
+    await validateHeadCoach(db, data.coaches);
+    Object.assign(updateData, {
+      coaches: { set: data.coaches.map((id) => ({ id })) },
+    });
   }
 
-  if (coaches !== undefined) {
-    updateData.coaches = {
-      set: coaches.map((coachId) => ({ id: coachId })),
-    };
+  if (data.students?.length) {
+    validateBatchCapacity(
+      batch.students.length,
+      updateData.studentCapacity || batch.studentCapacity,
+      data.students
+    );
+    Object.assign(updateData, {
+      students: { set: data.students.map((id) => ({ id })) },
+    });
   }
 
-  if (students !== undefined) {
-    updateData.students = {
-      set: students.map((studentId) => ({ id: studentId })),
-    };
-  }
-
-  // Perform the update operation
   const updatedBatch = await db.batch.update({
     where: { id },
     data: updateData,
-    include: { academy: true },
+    include: {
+      academy: true,
+      coaches: true,
+      students: true,
+      createdByUser: {
+        select: {
+          email: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+      modifiedByUser: {
+        select: {
+          email: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+    },
   });
 
-  // Determine the current number of students
-  const currentStudentCount =
-    students !== undefined ? students.length : batch.students.length;
+  const warningStatus = getWarningStatus(
+    updatedBatch.students.length,
+    updateData.warningCutoff || batch.warningCutoff,
+    updateData.studentCapacity || batch.studentCapacity
+  );
 
-  // Calculate how many more students can be added before reaching capacity
-  const remainingCapacity = newCapacity - currentStudentCount;
-
-  // Initialize warning flags
-  let warningCutoffExceeded = false;
-  let warningMessage = '';
-
-  if (currentStudentCount > newWarningCutoff) {
-    warningCutoffExceeded = true;
-    warningMessage = `Warning: You have exceeded the warning cutoff. You can only add ${remainingCapacity} more student(s) before reaching maximum capacity (${newCapacity}).`;
-  }
-
-  // Return the updated batch along with warning information if applicable
-  return {
-    batch: updatedBatch,
-    warningCutoffExceeded,
-    warningMessage,
-  };
+  return { batch: updatedBatch, ...warningStatus };
 };
 
 const deleteBatchHandler = async (id) => {
-  const batch = await db.batch.findUnique({
-    where: {
-      id: id,
-    },
-    include: {
-      students: true,
-      coaches: true,
-    },
-  });
-
-  if (!batch) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
-  }
+  const batch = await getBatchById(db, id);
 
   if (batch.students.length > 0 || batch.coaches.length > 0) {
     throw new ApiError(
@@ -294,64 +216,24 @@ const deleteBatchHandler = async (id) => {
     );
   }
 
-  await db.batch.delete({
-    where: {
-      id: id,
-    },
-  });
-
+  await db.batch.delete({ where: { id } });
   return { message: 'Batch deleted successfully' };
 };
 
 const fetchAllBatches = async (loggedInUser, { page, limit, query }) => {
-  let batchFilter = {};
+  const filter = getBatchFilter(loggedInUser, query);
 
-  if (loggedInUser.role === 'ADMIN') {
-    batchFilter.academy = {
-      admins: {
-        some: {
-          id: loggedInUser.id,
-        },
-      },
-    };
-  } else if (loggedInUser.role === 'COACH') {
-    batchFilter.coaches = {
-      some: {
-        id: loggedInUser.id,
-      },
-    };
-  }
-
-  if (query) {
-    batchFilter.batchCode = {
-      contains: query,
-    };
-  }
-
-  const allBatches = await db.batch.findMany({
-    where: batchFilter,
-    select: {
-      id: true,
-      studentCapacity: true,
-      batchCode: true,
-      startLevel: true,
-      currentLevel: true,
-      description: true,
-      warningCutoff: true,
-      currentClass: true,
+  return db.batch.findMany({
+    where: filter,
+    include: {
       students: {
         select: {
-          email: true,
           id: true,
+          email: true,
           profile: {
             select: {
               firstName: true,
               lastName: true,
-            },
-          },
-          role: {
-            select: {
-              name: true,
             },
           },
         },
@@ -366,29 +248,44 @@ const fetchAllBatches = async (loggedInUser, { page, limit, query }) => {
               lastName: true,
             },
           },
-          role: {
-            select: {
-              name: true,
-            },
-          },
           subRole: true,
         },
       },
       academy: {
         select: {
-          name: true,
           id: true,
+          name: true,
         },
       },
-      startDate: true,
-      createdAt: true,
+      createdByUser: {
+        select: {
+          id: true,
+          email: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+      modifiedByUser: {
+        select: {
+          id: true,
+          email: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
     },
-    orderBy: {
-      createdAt: 'desc',
-    },
+    orderBy: { createdAt: 'desc' },
+    skip: page ? (page - 1) * limit : undefined,
+    take: limit ? Number(limit) : undefined,
   });
-
-  return allBatches;
 };
 
 const fetchAllBatchesForOptions = async (loggedInUser) => {
@@ -436,6 +333,8 @@ const fetchAllBatchesForOptions = async (loggedInUser) => {
           id: true,
         },
       },
+      batchDay: true,
+      startTime: true,
       studentCapacity: true,
     },
   });
@@ -475,6 +374,10 @@ const fetchBatchById = async (loggedInUser, id) => {
       description: true,
       warningCutoff: true,
       currentClass: true,
+      isActive: true,
+      batchDay: true,
+      startTime: true,
+      warningMailSent: true,
       students: {
         select: {
           email: true,
@@ -516,6 +419,28 @@ const fetchBatchById = async (loggedInUser, id) => {
           name: true,
         },
       },
+      createdByUser: {
+        select: {
+          email: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+      modifiedByUser: {
+        select: {
+          email: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
       startDate: true,
       createdAt: true,
       updatedAt: true,
@@ -533,6 +458,8 @@ const fetchBatchById = async (loggedInUser, id) => {
 };
 
 const addStudentToBatch = async (batchId, studentId) => {
+  console.log(batchId, studentId);
+
   const batch = await db.batch.findUnique({
     where: { id: batchId },
     include: { students: true },
@@ -542,13 +469,24 @@ const addStudentToBatch = async (batchId, studentId) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
   }
 
-  const student = await db.student.findUnique({
-    where: { id: studentId },
+  const student = await db.user.findFirst({
+    where: {
+      AND: [
+        { id: studentId },
+        {
+          role: {
+            name: 'STUDENT',
+          },
+        },
+      ],
+    },
   });
 
   if (!student) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Student not found!');
   }
+
+  console.log(batch, student);
 
   const isAlreadyInBatch = batch.students.some((s) => s.id === studentId);
   if (isAlreadyInBatch) {
@@ -582,13 +520,20 @@ const addCoachToBatch = async (batchId, coachId) => {
     include: { coaches: true },
   });
 
+  console.log('BATCH', batch);
+
   if (!batch) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');
   }
 
   // Check if coach exists
-  const coach = await db.coach.findUnique({
-    where: { id: coachId },
+  const coach = await db.user.findUnique({
+    where: {
+      id: coachId,
+      role: {
+        name: 'COACH',
+      },
+    },
   });
 
   if (!coach) {
@@ -662,9 +607,9 @@ const batchService = {
   fetchAllBatches,
   fetchAllBatchesForOptions,
   fetchBatchById,
-  addStudentToBatch, // New
-  addCoachToBatch, // New
-  getAllCoachesByBatchId, // New
+  addStudentToBatch,
+  addCoachToBatch,
+  getAllCoachesByBatchId,
 };
 
 module.exports = batchService;

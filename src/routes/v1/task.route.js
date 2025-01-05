@@ -6,19 +6,9 @@ const checkPermission = require('../../middlewares/checkPermission');
 
 const taskRouter = express.Router();
 
-taskRouter.post(
-  '/',
-  checkJWT,
-  checkPermission('add', '/dashboard/tasks/puzzles'),
-  taskController.createTask
-);
+taskRouter.post('/', checkJWT, taskController.createTask);
 
-taskRouter.get(
-  '/',
-  checkJWT,
-  checkPermission('view', '/dashboard/tasks/puzzles'),
-  taskController.getAllTasks
-);
+taskRouter.get('/', checkJWT, taskController.getAllTasks);
 
 taskRouter.get('/:taskId', taskController.getTaskById);
 

@@ -1,6 +1,5 @@
 const express = require('express');
 
-// Import all routers
 const academyRouter = require('./academy.route');
 const superAdminRouter = require('./superAdmin.route');
 const coachRouter = require('./coach.route');
@@ -12,8 +11,6 @@ const invitationRouter = require('./invitation.route');
 const userRouter = require('./user.route');
 const dashboardRouter = require('./dashboard.route');
 const goalRouter = require('./goal.route');
-
-// New imports for communication features
 const messageRouter = require('./messageRouter');
 const chatRouter = require('./chatRouter');
 const friendRequestRouter = require('./friendRequestRouter');
@@ -22,13 +19,22 @@ const taskRouter = require('./task.route');
 const permissionRouter = require('./permission.route');
 const eventRouter = require('./event.route');
 const notificationRouter = require('./notification.route');
+const systemCodeRouter = require('./systemCode.route');
+const stipeWebhookRouter = require('./webhook/stipe');
+const academyProgramRouter = require('./academyProgram.route');
+const studentSignupRouter = require('./studentSignup.route');
+const quizRouter = require('./quiz.route');
+const navigationRouter = require('./navigation.route');
+const pageRouter = require('./page.route');
+const batchReportRouter = require('./batchReport.route');
+const enrollmentReportRouter = require('./enrollmentReport.route');
+const studentReportRouter = require('./studentReport.route');
+const portalSubscriberRouter = require('./portalSubscriber.route');
 
 const router = express.Router();
 
-// Register routes for existing modules
 router.use('/academy', academyRouter);
 router.use('/superadmin', superAdminRouter);
-router.use('/admin', adminRouter);
 router.use('/coach', coachRouter);
 router.use('/batch', batchRouter);
 router.use('/auth', authRouter);
@@ -37,15 +43,25 @@ router.use('/invitation', invitationRouter);
 router.use('/user', userRouter);
 router.use('/dashboard', dashboardRouter);
 router.use('/goal', goalRouter);
-
-// Register new routes for communication features
-router.use('/messages', messageRouter); // Routes for messaging system
-router.use('/chats', chatRouter); // Routes for chat system
-router.use('/friend-requests', friendRequestRouter); // Routes for friend requests
-router.use('/channels', channelRouter); // Routes for broadcast channels
+router.use('/messages', messageRouter);
+router.use('/chats', chatRouter);
+router.use('/friend-requests', friendRequestRouter);
+router.use('/channels', channelRouter);
 router.use('/tasks', taskRouter);
 router.use('/permission', permissionRouter);
 router.use('/events', eventRouter);
 router.use('/notifications', notificationRouter);
+router.use('/system-code', systemCodeRouter);
+router.use('/webhook', stipeWebhookRouter);
+router.use('/academy-programs', academyProgramRouter);
+router.use('/student-signups', studentSignupRouter);
+router.use('/quiz', quizRouter);
+router.use('/navigation', navigationRouter);
+router.use('/pages', pageRouter);
+router.use('/reports/batches', batchReportRouter);
+router.use('/reports/enrollments', enrollmentReportRouter);
+router.use('/reports/students', studentReportRouter);
+router.use('/admins', adminRouter);
+router.use('/portal-subscribers', portalSubscriberRouter);
 
 module.exports = router;

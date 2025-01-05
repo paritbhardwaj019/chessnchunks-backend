@@ -13,7 +13,77 @@ const sendMail = require('../utils/sendEmail');
 const _ = require('lodash');
 const { getSingleAcademyForUser } = require('./academy.service');
 
-const loginWithPasswordHandler = async (data) => {
+const checkAcademyAccess = async (user, academyDomain) => {
+  const normalizeDomain = (domain) => {
+    if (!domain) return null;
+    const parts = domain.split(':');
+    return parts[0];
+  };
+
+  if (user.role.name === 'SUPER_ADMIN') {
+    return null;
+  }
+
+  if (academyDomain) {
+    const normalizedRequestDomain = normalizeDomain(academyDomain);
+    let academy;
+
+    if (user.role.name === 'ADMIN') {
+      academy = await db.academy.findFirst({
+        where: {
+          domain: {
+            startsWith: normalizedRequestDomain,
+          },
+          admins: {
+            some: {
+              id: user.id,
+            },
+          },
+        },
+      });
+    } else {
+      academy = await db.academy.findFirst({
+        where: {
+          domain: {
+            startsWith: normalizedRequestDomain,
+          },
+          usersAssigned: {
+            some: {
+              id: user.id,
+            },
+          },
+        },
+      });
+    }
+
+    if (!academy) {
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        'You do not have access to this academy'
+      );
+    }
+
+    if (academy.status === 'INACTIVE') {
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        'This academy is currently inactive'
+      );
+    }
+
+    return academy;
+  }
+
+  if (!academyDomain && user.role.name !== 'SUPER_ADMIN') {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'Please login through your academy domain'
+    );
+  }
+
+  return null;
+};
+
+const loginWithPasswordHandler = async (data, host) => {
   const { email, password } = data;
 
   const user = await db.user.findUnique({
@@ -34,9 +104,9 @@ const loginWithPasswordHandler = async (data) => {
         select: {
           firstName: true,
           lastName: true,
+          chessComId: true,
         },
       },
-      hasPassword: true,
       createdAt: true,
       status: true,
     },
@@ -56,28 +126,27 @@ const loginWithPasswordHandler = async (data) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
   }
 
-  let academy = null;
-
-  if (user.role === 'COACH' || user.role === 'ADMIN') {
-    academy = await getSingleAcademyForUser(user);
-
-    if (user.role === 'ADMIN' && academy && academy.status === 'INACTIVE') {
-      throw new ApiError(
-        httpStatus.FORBIDDEN,
-        'Your academy is marked as inactive, contact support'
-      );
-    }
-  }
+  let academy = await checkAcademyAccess(user, host);
 
   const token = await createToken(
     {
       id: user.id,
-      role: user.role,
+      role: user.role.name,
       subRole: user.subRole,
+      ...(user.role.name !== 'SUPER_ADMIN' && {
+        academyDomain: host,
+      }),
     },
     config.jwt.secret,
     '7d'
   );
+
+  await db.user.update({
+    where: { id: user.id },
+    data: {
+      lastLoginAt: new Date(),
+    },
+  });
 
   return {
     token,
@@ -87,7 +156,6 @@ const loginWithPasswordHandler = async (data) => {
       role: user.role.name,
       subRole: user.subRole,
       profile: user.profile,
-      hasPassword: user.hasPassword,
       createdAt: user.createdAt,
     },
     academy,
@@ -112,7 +180,6 @@ const loginWithoutPasswordHandler = async (data) => {
           lastName: true,
         },
       },
-      hasPassword: true,
     },
   });
 
@@ -206,7 +273,6 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
           lastName: true,
         },
       },
-      hasPassword: true,
       createdAt: true,
       status: true,
     },
@@ -239,6 +305,13 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
     }
   }
 
+  await db.user.update({
+    where: { id: user.id },
+    data: {
+      lastLoginAt: new Date(),
+    },
+  });
+
   return {
     token,
     user: {
@@ -247,7 +320,6 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
       role: user.role.name,
       subRole: user.subRole,
       profile: user.profile,
-      hasPassword: user.hasPassword,
       createdAt: user.createdAt,
     },
     academy,
@@ -388,7 +460,7 @@ const updatePasswordHandler = async (data, loggedInUser) => {
 
   const updatedUser = await db.user.update({
     where: { id },
-    data: { password: hashedNewPassword, hasPassword: true },
+    data: { password: hashedNewPassword },
     select: { id: true, email: true },
   });
 
@@ -400,6 +472,178 @@ const updatePasswordHandler = async (data, loggedInUser) => {
   };
 };
 
+const loginWithCicIdHandler = async (data, host) => {
+  const { cicId, password } = data;
+
+  const profile = await db.profile.findUnique({
+    where: {
+      cicId: cicId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          password: true,
+          role: {
+            select: {
+              name: true,
+            },
+          },
+          subRole: true,
+          status: true,
+          createdAt: true,
+        },
+      },
+    },
+  });
+
+  if (!profile || !profile.user || !profile.user.password) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
+  }
+
+  const user = profile.user;
+
+  if (user.status === 'INACTIVE') {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Your account is INACTIVE');
+  }
+
+  const isPasswordValid = await comparePassword(password, user.password);
+
+  if (!isPasswordValid) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
+  }
+
+  let academy = await checkAcademyAccess(user, host);
+
+  const token = await createToken(
+    {
+      id: user.id,
+      role: user.role.name,
+      subRole: user.subRole,
+      ...(user.role.name !== 'SUPER_ADMIN' && {
+        academyDomain: host,
+      }),
+    },
+    config.jwt.secret,
+    '7d'
+  );
+
+  await db.user.update({
+    where: { id: user.id },
+    data: {
+      lastLoginAt: new Date(),
+    },
+  });
+
+  return {
+    token,
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role.name,
+      subRole: user.subRole,
+      profile: {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        chessComId: profile.chessComId,
+      },
+      createdAt: user.createdAt,
+    },
+    academy,
+  };
+};
+
+const checkMfaStatusHandler = async (data) => {
+  const { email, password } = data;
+
+  const user = await db.user.findUnique({
+    where: {
+      email,
+    },
+    select: {
+      id: true,
+      email: true,
+      password: true,
+      mfaEnabled: true,
+      status: true,
+    },
+  });
+
+  if (!user || !user.password) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
+  }
+
+  if (user.status === 'INACTIVE') {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Your account is INACTIVE');
+  }
+
+  const isPasswordValid = await comparePassword(password, user.password);
+
+  if (!isPasswordValid) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
+  }
+
+  if (user.mfaEnabled) {
+    const otp = codeGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+      lowerCaseAlphabets: false,
+      digits: true,
+    });
+
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+
+    await db.code.create({
+      data: {
+        email: user.email,
+        code: otp,
+        expiresAt,
+        type: 'MFA_LOGIN',
+      },
+    });
+
+    const mailGenerator = new Mailgen({
+      theme: 'default',
+      product: {
+        name: 'Chess in Chunks',
+        link: config.frontendUrl,
+      },
+    });
+
+    const emailContent = {
+      body: {
+        name: user.email,
+        intro: 'Two-Factor Authentication Required',
+        dictionary: {
+          'Your verification code': otp,
+        },
+        outro: [
+          'This code will expire in 10 minutes.',
+          'If you did not try to login, please secure your account immediately.',
+        ],
+      },
+    };
+
+    const emailBody = mailGenerator.generate(emailContent);
+    const emailText = mailGenerator.generatePlaintext(emailContent);
+
+    await sendMail(user.email, 'Login Verification Code', emailText, emailBody);
+
+    return {
+      requireMfa: true,
+      message: 'Please check your email for the verification code',
+      email: user.email,
+    };
+  }
+
+  return {
+    requireMfa: false,
+    email: user.email,
+  };
+};
+
 const authService = {
   loginWithPasswordHandler,
   loginWithoutPasswordHandler,
@@ -407,6 +651,8 @@ const authService = {
   resetPasswordHandler,
   verifyResetPasswordHandler,
   updatePasswordHandler,
+  loginWithCicIdHandler,
+  checkMfaStatusHandler,
 };
 
 module.exports = authService;

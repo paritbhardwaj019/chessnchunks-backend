@@ -10,98 +10,114 @@ const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 const crypto = require('crypto');
 const hashPassword = require('../utils/hashPassword');
 const { getSingleAcademyForUser } = require('./academy.service');
+const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
 
 const inviteStudentHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyId: providedAcademyId } = data;
 
-  console.log('BODY DATA', data);
+  let academyId =
+    loggedInUser.role === 'SUPER_ADMIN'
+      ? await validateAcademyId(providedAcademyId)
+      : (await getSingleAcademyForUser(loggedInUser)).id;
 
-  let academyId;
-
-  if (loggedInUser.role === 'SUPER_ADMIN') {
-    if (!providedAcademyId) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        'academyId is required for SUPER_ADMIN users.'
-      );
-    }
-
-    const academyExists = await db.academy.findUnique({
-      where: { id: providedAcademyId },
-      select: { id: true },
-    });
-
-    if (!academyExists) {
-      throw new ApiError(
-        httpStatus.NOT_FOUND,
-        'Provided academyId does not exist.'
-      );
-    }
-
-    academyId = providedAcademyId;
-  } else {
-    const academy = await getSingleAcademyForUser(loggedInUser);
-    academyId = academy.id;
-  }
-
-  const existingInvitation = await db.invitation.findFirst({
-    where: {
-      email,
-      expiresAt: {
-        gt: new Date(),
-      },
-    },
-  });
-
-  if (existingInvitation) {
-    throw new ApiError(
-      httpStatus.CONFLICT,
-      'An invitation has already been sent to this email.'
-    );
-  }
-
-  const existingUser = await db.user.findUnique({
-    where: { email },
-  });
-
-  if (existingUser) {
-    throw new ApiError(
-      httpStatus.CONFLICT,
-      'A user with this email already exists.'
-    );
-  }
+  await validateInvitation(email);
 
   const tempPassword = crypto.randomBytes(8).toString('hex');
   const hashedPassword = await hashPassword(tempPassword, 10);
 
   const academy = await db.academy.findUnique({
     where: { id: academyId },
-    select: { name: true },
+    select: { name: true, domain: true },
   });
 
+  if (!academy) throw new ApiError(httpStatus.NOT_FOUND, 'Academy not found.');
+
+  const studentInvitation = await createStudentInvitation(
+    data,
+    academyId,
+    hashedPassword,
+    loggedInUser.id
+  );
+
+  const token = await createToken(
+    { id: studentInvitation.id },
+    config.jwt.invitationSecret,
+    '3d'
+  );
+
+  const baseUrl = getDomainFromAdmin(academy.domain);
+  const ACTIVATION_URL = `${baseUrl}/invitation?type=USER_INVITATION&name=${encodeURIComponent(
+    `${firstName} ${lastName} from ${academy.name}`
+  )}&token=${token}`;
+
+  await sendInvitationEmail(
+    email,
+    firstName,
+    lastName,
+    academy.name,
+    tempPassword,
+    ACTIVATION_URL
+  );
+
+  return { studentInvitation };
+};
+
+const validateAcademyId = async (academyId) => {
+  if (!academyId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'academyId is required for SUPER_ADMIN users.'
+    );
+  }
+  const academy = await db.academy.findUnique({
+    where: { id: academyId },
+    select: { id: true },
+  });
   if (!academy) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Academy not found.');
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      'Provided academyId does not exist.'
+    );
+  }
+  return academyId;
+};
+
+const validateInvitation = async (email) => {
+  const existingInvitation = await db.invitation.findFirst({
+    where: { email, expiresAt: { gt: new Date() } },
+  });
+  if (existingInvitation) {
+    throw new ApiError(
+      httpStatus.CONFLICT,
+      'An invitation has already been sent.'
+    );
   }
 
-  const academyName = academy.name;
+  const existingUser = await db.user.findUnique({ where: { email } });
+  if (existingUser) {
+    throw new ApiError(httpStatus.CONFLICT, 'Email already exists.');
+  }
+};
 
-  const studentInvitation = await db.invitation.create({
+const createStudentInvitation = async (
+  data,
+  academyId,
+  hashedPassword,
+  creatorId
+) => {
+  return await db.invitation.create({
     data: {
       data: {
-        firstName,
-        lastName,
-        email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
         academyId,
         password: hashedPassword,
       },
-      email,
+      email: data.email,
       type: 'BATCH_STUDENT',
       expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
-      createdBy: {
-        connect: {
-          id: loggedInUser.id,
-        },
-      },
+      createdBy: { connect: { id: creatorId } },
     },
     select: {
       id: true,
@@ -112,27 +128,19 @@ const inviteStudentHandler = async (data, loggedInUser) => {
       createdBy: true,
     },
   });
+};
 
-  const token = await createToken(
-    {
-      id: studentInvitation.id,
-    },
-    config.jwt.invitationSecret,
-    '3d'
-  );
-
-  const ACTIVATION_URL = `${
-    config.chessinChunksUrl
-  }/invitation?type=USER_INVITATION&name=${encodeURIComponent(
-    `${firstName} ${lastName} from ${academyName}`
-  )}&token=${token}`;
-
+const sendInvitationEmail = async (
+  email,
+  firstName,
+  lastName,
+  academyName,
+  tempPassword,
+  activationUrl
+) => {
   const mailGenerator = new Mailgen({
     theme: 'default',
-    product: {
-      name: 'Chess in Chunks',
-      link: config.frontendUrl,
-    },
+    product: { name: 'Chess in Chunks', link: config.frontendUrl },
   });
 
   const emailContent = {
@@ -141,14 +149,8 @@ const inviteStudentHandler = async (data, loggedInUser) => {
       intro: `You are invited to join the academy "${academyName}" as a student!`,
       table: {
         data: [
-          {
-            label: 'Email',
-            value: email,
-          },
-          {
-            label: 'Temporary Password',
-            value: tempPassword,
-          },
+          { label: 'Email', value: email },
+          { label: 'Temporary Password', value: tempPassword },
         ],
       },
       action: {
@@ -157,7 +159,7 @@ const inviteStudentHandler = async (data, loggedInUser) => {
         button: {
           color: '#22BC66',
           text: 'Accept Invitation',
-          link: ACTIVATION_URL,
+          link: activationUrl,
         },
       },
       outro: 'If you have any questions, feel free to reply to this email.',
@@ -175,8 +177,6 @@ const inviteStudentHandler = async (data, loggedInUser) => {
       'Failed to send invitation email'
     );
   }
-
-  return { studentInvitation };
 };
 
 const verifyStudentHandler = async (token) => {
@@ -267,7 +267,6 @@ const verifyStudentHandler = async (token) => {
             id: studentRole.id,
           },
         },
-        hasPassword: true,
         password,
       },
       select: {
@@ -301,32 +300,40 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
   const take = numberLimit;
 
   const studentRole = await db.role.findFirst({
-    where: {
-      name: 'STUDENT',
-    },
+    where: { name: 'STUDENT' },
   });
 
+  if (!studentRole) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Student role not found');
+  }
+
   const baseFilter = {
-    role: { id: studentRole.id },
+    roleId: studentRole.id,
     NOT: { id: loggedInUser.id },
-    OR: [
-      { email: { contains: query } },
-      { profile: { firstName: { contains: query } } },
-      { profile: { lastName: { contains: query } } },
-    ],
+    OR: query
+      ? [
+          { email: { contains: query } },
+          { profile: { firstName: { contains: query } } },
+          { profile: { lastName: { contains: query } } },
+          { profile: { middleName: { contains: query } } },
+          { code: { contains: query } },
+        ]
+      : undefined,
   };
 
   const selectFields = {
     id: true,
     email: true,
-    role: true,
-    subRole: true,
+    status: true,
+    code: true,
+    lastLoginAt: true,
+    mfaEnabled: true,
     profile: {
       select: {
         firstName: true,
-        lastName: true,
         middleName: true,
-        dob: true,
+        lastName: true,
+        dateOfBirth: true,
         phoneNumber: true,
         addressLine1: true,
         addressLine2: true,
@@ -334,7 +341,11 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
         state: true,
         country: true,
         parentName: true,
-        parentEmailId: true,
+        parentEmail: true,
+        chessComId: true,
+        lichessId: true,
+        uscfId: true,
+        imageUrl: true,
       },
     },
     studentOfBatches: {
@@ -344,179 +355,242 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
         description: true,
         studentCapacity: true,
         currentClass: true,
+        startLevel: true,
         currentLevel: true,
+        startDate: true,
+        isActive: true,
         academy: {
           select: {
             id: true,
             name: true,
+            domain: true,
           },
         },
+      },
+    },
+    studentSubscriptions: {
+      select: {
+        id: true,
+        status: true,
         startDate: true,
-        createdAt: true,
+        endDate: true,
+        academyPlan: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+          },
+        },
+      },
+      where: {
+        status: 'ACTIVE',
       },
     },
     createdAt: true,
     updatedAt: true,
-    status: true,
-    code: true,
   };
 
   let students = [];
+  let total = 0;
 
-  const user = await db.user.findUnique({
-    where: { id: loggedInUser.id },
-    include: {
-      adminOfAcademies: true,
-      coachOfBatches: true,
-    },
-  });
-
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
-  }
-
-  if (user.role === 'SUPER_ADMIN') {
-    students = await db.user.findMany({
-      skip,
-      take,
-      where: baseFilter,
-      select: selectFields,
-    });
-  } else if (user.role === 'ADMIN' || user.role === 'COACH') {
+  if (loggedInUser.role.name === 'SUPER_ADMIN') {
+    [students, total] = await Promise.all([
+      db.user.findMany({
+        where: baseFilter,
+        select: selectFields,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+      }),
+      db.user.count({ where: baseFilter }),
+    ]);
+  } else {
     const academy = await getSingleAcademyForUser(loggedInUser);
-
     if (!academy) {
       throw new ApiError(
         httpStatus.NOT_FOUND,
-        'No academy associated with the user.'
+        'No academy associated with the user'
       );
     }
 
-    students = await db.user.findMany({
-      skip,
-      take,
-      where: {
-        ...baseFilter,
-        assignedToAcademyId: academy.id,
-      },
-      select: selectFields,
-    });
-  } else {
-    throw new ApiError(
-      httpStatus.FORBIDDEN,
-      'You do not have permission to view students'
-    );
+    [students, total] = await Promise.all([
+      db.user.findMany({
+        where: {
+          ...baseFilter,
+          assignedToAcademyId: academy.id,
+        },
+        select: selectFields,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+      }),
+      db.user.count({
+        where: {
+          ...baseFilter,
+          assignedToAcademyId: academy.id,
+        },
+      }),
+    ]);
   }
 
-  console.log('STUDENTS', students);
-
-  return students;
+  return {
+    data: students,
+    pagination: {
+      total,
+      page: numberPage,
+      limit: numberLimit,
+      totalPages: Math.ceil(total / numberLimit),
+    },
+  };
 };
 
 const fetchAllStudentsByBatchId = async (batchId, { query }) => {
-  console.log('BATCH ID', batchId);
-  console.log('QUERY', query);
-
-  const batchExists = await db.batch.findUnique({
+  const batch = await db.batch.findUnique({
     where: { id: batchId },
-    select: { id: true },
+    select: {
+      id: true,
+      academy: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
   });
 
-  if (!batchExists) {
+  if (!batch) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
   }
 
-  const selectFields = {
-    id: true,
-    email: true,
-    role: true,
-    profile: {
-      select: {
-        firstName: true,
-        middleName: true,
-        lastName: true,
-        dob: true,
-        phoneNumber: true,
-        addressLine1: true,
-        addressLine2: true,
-        city: true,
-        state: true,
-        country: true,
-        parentName: true,
-        parentEmailId: true,
-      },
-    },
-    studentOfBatches: {
-      select: {
-        id: true,
-        batchCode: true,
-        description: true,
-        studentCapacity: true,
-        currentClass: true,
-        currentLevel: true,
-        academy: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        startDate: true,
-        createdAt: true,
-      },
-    },
-    createdAt: true,
-  };
-
   const studentRole = await db.role.findFirst({
-    where: {
-      name: 'STUDENT',
-    },
+    where: { name: 'STUDENT' },
   });
 
-  const whereClause = {
-    role: {
-      id: studentRole.id,
-    },
-    studentOfBatches: {
-      some: {
-        id: batchId,
-      },
-    },
-  };
-
-  if (query) {
-    whereClause.OR = [
-      { email: { contains: query } },
-      {
-        profile: { firstName: { contains: query } },
-      },
-      { profile: { lastName: { contains: query } } },
-      {
-        profile: { middleName: { contains: query } },
-      },
-    ];
+  if (!studentRole) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Student role not found');
   }
+
+  const whereClause = {
+    roleId: studentRole.id,
+    studentOfBatches: {
+      some: { id: batchId },
+    },
+    ...(query && {
+      OR: [
+        { email: { contains: query } },
+        { profile: { firstName: { contains: query } } },
+        { profile: { lastName: { contains: query } } },
+        { profile: { middleName: { contains: query } } },
+        { code: { contains: query } },
+      ],
+    }),
+  };
 
   const students = await db.user.findMany({
     where: whereClause,
-    select: selectFields,
+    select: {
+      id: true,
+      email: true,
+      status: true,
+      code: true,
+      lastLoginAt: true,
+      profile: {
+        select: {
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          dateOfBirth: true,
+          phoneNumber: true,
+          parentName: true,
+          parentEmail: true,
+          chessComId: true,
+          lichessId: true,
+          uscfId: true,
+          imageUrl: true,
+        },
+      },
+      studentOfBatches: {
+        where: { id: batchId },
+        select: {
+          id: true,
+          batchCode: true,
+          currentClass: true,
+          currentLevel: true,
+          startDate: true,
+        },
+      },
+      studentGoals: {
+        where: {
+          weeklyGoal: {
+            batch: { id: batchId },
+          },
+        },
+        select: {
+          id: true,
+          puzzlesTarget: true,
+          puzzlesSolved: true,
+          puzzlesPassed: true,
+          weeklyGoal: {
+            select: {
+              id: true,
+              code: true,
+              startDate: true,
+              endDate: true,
+            },
+          },
+        },
+      },
+      batchHistory: {
+        where: { batchId },
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: {
+          fromDate: true,
+          oldClass: true,
+          newClass: true,
+          oldLevel: true,
+          newLevel: true,
+        },
+      },
+      createdAt: true,
+      updatedAt: true,
+    },
+    orderBy: {
+      profile: {
+        firstName: 'asc',
+      },
+    },
   });
 
-  return students;
+  return {
+    data: students,
+    batchInfo: {
+      id: batch.id,
+      academyId: batch.academy.id,
+      academyName: batch.academy.name,
+    },
+  };
 };
 
 const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
   console.log(studentId, fromBatchId, toBatchId);
 
+  // Get source batch with class and level info
   const fromBatch = await db.batch.findUnique({
     where: { id: fromBatchId },
-    select: { id: true },
+    select: {
+      id: true,
+      currentClass: true,
+      currentLevel: true,
+      batchCode: true,
+    },
   });
 
   if (!fromBatch) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Source batch not found');
   }
 
+  // Get destination batch with all necessary info
   const toBatch = await db.batch.findUnique({
     where: { id: toBatchId },
     include: {
@@ -572,7 +646,40 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
     remainingCapacity = toBatch.studentCapacity - (currentStudentCount + 1);
   }
 
+  const currentDate = new Date();
+
+  // Handle everything in a transaction
   const updatedStudent = await db.$transaction(async (prisma) => {
+    // Create exit history record
+    await prisma.userBatchHistory.create({
+      data: {
+        userId: studentId,
+        batchId: fromBatchId,
+        fromDate: student.studentOfBatches[0].createdAt || new Date(), // Use batch assignment date or current date
+        toDate: currentDate,
+        reason: 'Batch Transfer',
+        oldClass: fromBatch.currentClass,
+        oldLevel: fromBatch.currentLevel,
+        newClass: toBatch.currentClass,
+        newLevel: toBatch.currentLevel,
+      },
+    });
+
+    // Create entry history record
+    await prisma.userBatchHistory.create({
+      data: {
+        userId: studentId,
+        batchId: toBatchId,
+        fromDate: currentDate,
+        reason: 'Batch Transfer',
+        oldClass: fromBatch.currentClass,
+        oldLevel: fromBatch.currentLevel,
+        newClass: toBatch.currentClass,
+        newLevel: toBatch.currentLevel,
+      },
+    });
+
+    // Remove from old batch
     await prisma.user.update({
       where: { id: studentId },
       data: {
@@ -582,6 +689,7 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
       },
     });
 
+    // Add to new batch
     const updated = await prisma.user.update({
       where: { id: studentId },
       data: {
@@ -605,7 +713,7 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
   });
 
   const response = {
-    message: 'Student moved successfully.',
+    message: `Student moved successfully from batch ${fromBatch.batchCode} to ${toBatch.batchCode}`,
     batchCode: toBatch.batchCode,
   };
 
@@ -616,12 +724,19 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
 
   return response;
 };
+
+module.exports = {
+  moveStudentToBatchHandler,
+};
+
 const studentService = {
   inviteStudentHandler,
   verifyStudentHandler,
   fetchAllStudentsHandler,
   fetchAllStudentsByBatchId,
   moveStudentToBatchHandler,
+  createStudentInvitation,
+  sendInvitationEmail,
 };
 
 module.exports = studentService;

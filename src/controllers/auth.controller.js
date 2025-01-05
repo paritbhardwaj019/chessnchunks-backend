@@ -2,15 +2,29 @@ const httpStatus = require('http-status');
 const authService = require('../services/auth.service');
 const catchAsync = require('../utils/catchAsync');
 
+const checkMfaStatusHandler = catchAsync(async (req, res) => {
+  const mfaStatus = await authService.checkMfaStatusHandler(req.body);
+  res.status(httpStatus.OK).send(mfaStatus);
+});
+
 const loginWithPasswordHandler = catchAsync(async (req, res) => {
-  console.log('Login Request Body:', req.body); // Log the incoming request body
-  const loggedInUser = await authService.loginWithPasswordHandler(req.body);
+  const origin = 'http://' + req.headers['x-origin-host'];
+
+  console.log('origin', origin);
+
+  const loggedInUser = await authService.loginWithPasswordHandler(
+    req.body,
+    origin
+  );
 
   res.status(httpStatus.OK).send(loggedInUser);
 });
 
 const loginWithoutPasswordHandler = catchAsync(async (req, res) => {
-  const successUser = await authService.loginWithoutPasswordHandler(req.body);
+  const successUser = await authService.loginWithoutPasswordHandler(
+    req.body,
+    req.get('host')
+  );
 
   res.status(httpStatus.OK).send(successUser);
 });
@@ -18,7 +32,8 @@ const verifyLoginWithoutPasswordHandler = catchAsync(async (req, res) => {
   console.log(req.body);
 
   const loggedInUser = await authService.verifyLoginWithoutPasswordHandler(
-    req.body
+    req.body,
+    req.get('host')
   );
 
   res.status(httpStatus.OK).send(loggedInUser);
@@ -43,6 +58,17 @@ const updatePasswordHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(updatedUser);
 });
 
+const loginWithCicIdHandler = catchAsync(async (req, res) => {
+  const origin = 'http://' + req.headers['x-origin-host'];
+
+  const loggedInUser = await authService.loginWithCicIdHandler(
+    req.body,
+    origin
+  );
+
+  res.status(httpStatus.OK).send(loggedInUser);
+});
+
 const authController = {
   loginWithPasswordHandler,
   loginWithoutPasswordHandler,
@@ -50,6 +76,8 @@ const authController = {
   resetPasswordHandler,
   verifyResetPasswordHandler,
   updatePasswordHandler,
+  loginWithCicIdHandler,
+  checkMfaStatusHandler,
 };
 
 module.exports = authController;

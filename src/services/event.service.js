@@ -2,10 +2,13 @@ const db = require('../database/prisma');
 const { getSingleAcademyForUser } = require('./academy.service');
 const notificationService = require('./notification.service');
 
+/**
+ * Creates a new event.
+ * @param {Object} data - The event data.
+ * @param {Object} loggedInUser - The currently logged-in user.
+ */
 const createEventHandler = async (data, loggedInUser) => {
   const academy = await getSingleAcademyForUser(loggedInUser);
-
-  console.log(data);
 
   const createdEvent = await db.event.create({
     data: {
@@ -25,10 +28,18 @@ const createEventHandler = async (data, loggedInUser) => {
     createdEvent,
     loggedInUser
   );
+
+  return createdEvent;
 };
 
+/**
+ * Retrieves all events for the user's academy.
+ * @param {Object} loggedInUser - The currently logged-in user.
+ */
 const getAcademyEventsHandler = async (loggedInUser) => {
   const academy = await getSingleAcademyForUser(loggedInUser);
+
+  console.log('academy', academy);
 
   return db.event.findMany({
     where: {
@@ -43,16 +54,59 @@ const getAcademyEventsHandler = async (loggedInUser) => {
   });
 };
 
+/**
+ * Deletes an event by ID.
+ * @param {string} id - The ID of the event to delete.
+ */
 const deleteEventHandler = async (id) => {
   return db.event.delete({
     where: { id: id },
   });
 };
 
+/**
+ * Edits an existing event.
+ * @param {string} id - The ID of the event to edit.
+ * @param {Object} data - The updated event data.
+ * @param {Object} loggedInUser - The currently logged-in user.
+ */
+const editEventHandler = async (id, data, loggedInUser) => {
+  const existingEvent = await db.event.findUnique({
+    where: { id: id },
+    include: { academy: true, createdBy: true },
+  });
+
+  if (!existingEvent) {
+    throw new Error('Event not found');
+  }
+
+  const updatedEvent = await db.event.update({
+    where: { id: id },
+    data: {
+      title: data.title !== undefined ? data.title : existingEvent.title,
+      description:
+        data.description !== undefined
+          ? data.description
+          : existingEvent.description,
+      startDate:
+        data.startDate !== undefined ? data.startDate : existingEvent.startDate,
+      endDate:
+        data.endDate !== undefined ? data.endDate : existingEvent.endDate,
+    },
+    include: {
+      academy: true,
+      createdBy: true,
+    },
+  });
+
+  return updatedEvent;
+};
+
 const eventService = {
   createEventHandler,
   getAcademyEventsHandler,
   deleteEventHandler,
+  editEventHandler,
 };
 
 module.exports = eventService;

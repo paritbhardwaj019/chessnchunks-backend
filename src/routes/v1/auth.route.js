@@ -5,6 +5,10 @@ const checkRole = require('../../middlewares/checkRole');
 
 const authRouter = express.Router();
 
+authRouter.post('/check-mfa', authController.checkMfaStatusHandler);
+
+authRouter.post('/login-with-cicid', authController.loginWithCicIdHandler);
+
 authRouter.post(
   '/login-with-password',
   authController.loginWithPasswordHandler
@@ -29,7 +33,7 @@ authRouter.post(
 
 authRouter.post(
   '/update-password',
-  checkJWT,
+  // checkJWT,
   checkRole(['ADMIN', 'COACH', 'SUPER_ADMIN']),
   authController.updatePasswordHandler
 );

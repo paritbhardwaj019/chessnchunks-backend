@@ -24,7 +24,7 @@ userRouter.post(
 userRouter.post(
   '/xlsx-upload',
   checkJWT,
-  checkPermission('add', '/dashboard/users'),
+  // checkPermission('add', '/dashboard/users'),
   uploadFile.single('file'),
   userController.xlsxUploadHandler
 );
@@ -43,6 +43,14 @@ userRouter.patch(
   userController.updateUserHandler
 );
 
+userRouter.put(
+  '/profile/:id',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  uploadFile.single('profileImage'),
+  userController.updateProfileHandler
+);
+
 userRouter.get(
   '/profile/:id',
   checkJWT,
@@ -55,6 +63,27 @@ userRouter.patch(
   checkJWT,
   checkRole(['SUPER_ADMIN', 'COACH', 'STUDENT', 'ADMIN', 'SUBSCRIBER']),
   userController.updatePasswordHandler
+);
+
+userRouter.post(
+  '/request-email-change',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  userController.requestEmailChange
+);
+
+userRouter.post(
+  '/verify-email-change',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  userController.verifyEmailChange
+);
+
+userRouter.get(
+  '/profile-completion/:id',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  userController.getProfileCompletionHandler
 );
 
 module.exports = userRouter;

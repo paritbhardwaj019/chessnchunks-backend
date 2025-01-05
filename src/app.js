@@ -1,43 +1,72 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
-const config = require('./config');
 const errorHandler = require('./middlewares/errorHandler');
 const router = require('./routes/v1');
+const { isOriginAllowed } = require('./services/origin.service');
+const logger = require('./utils/logger');
+const initializeCronJobs = require('./cron/studentSignup.cron');
+const morgan = require('morgan');
+const {
+  scheduleBatchExpiryCheck,
+} = require('./cron/batchExpiryNotification.cron');
+const {
+  checkAndUpdateExpiredBatches,
+} = require('./cron/batchStatusUpdate.cron');
 
 const app = express();
 
+initializeCronJobs();
+scheduleBatchExpiryCheck();
+checkAndUpdateExpiredBatches();
+
+const morganMiddleware = morgan('dev', {
+  stream: {
+    write: (message) => logger.info(message.trim()),
+  },
+});
+
+app.use(morganMiddleware);
+
+app.use('/api/v1/webhook/stripe', express.raw({ type: 'application/json' }));
+
 app.use((req, res, next) => {
-  let origin = req.headers.origin;
-  let theOrigin =
-    config.allowedOrigins.indexOf(origin) >= 0
-      ? origin
-      : config.allowedOrigins[0];
+  const origin = req.headers.origin;
 
-  res.header('Access-Control-Allow-Origin', theOrigin);
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, x-auth-token'
-  );
-
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
+  if (!origin || isOriginAllowed(origin)) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
     res.header(
       'Access-Control-Allow-Headers',
-      'Origin, X-Requested-With, Content-Type, Accept, x-auth-token'
+      'Origin, X-Requested-With, Content-Type, Accept, x-auth-token, x-origin-host, stripe-signature'
     );
-    return res.status(200).end();
+
+    if (req.method === 'OPTIONS') {
+      res.header(
+        'Access-Control-Allow-Methods',
+        'GET, POST, PUT, PATCH, DELETE'
+      );
+      return res.status(200).end();
+    }
+  } else {
+    logger.warn(`Blocked request from unauthorized origin: ${origin}`);
+    return res.status(403).json({ message: 'Forbidden: Origin not allowed' });
   }
 
   next();
 });
 
-app.use(bodyParser.json({ limit: '4mb' }));
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/v1/webhook/stripe') {
+    next();
+  } else {
+    bodyParser.json()(req, res, next);
+  }
+});
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(helmet());
 
-/* ALL ROUTES */
 app.use('/api/v1', router);
 
 app.use(errorHandler);

@@ -7,6 +7,26 @@ const fs = require('fs');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 const comparePassword = require('../utils/comparePassword');
 const { getSingleAcademyForUser } = require('./academy.service');
+const crypto = require('crypto');
+const { ROLE } = require('@prisma/client');
+const _ = require('lodash');
+
+const createToken = require('../utils/createToken');
+const Mailgen = require('mailgen');
+const sendMail = require('../utils/sendEmail');
+const generateSystemCode = require('../utils/generateSystemCode');
+const { sendSignupEmail } = require('./studentSignup.service');
+const config = require('../config');
+const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
+const {
+  sendInvitationEmail,
+  createStudentInvitation,
+} = require('./student.service');
+const sendEmail = require('../utils/sendEmail');
+const {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} = require('../utils/cloudinary.utils');
 
 const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const numberPage = Number(page) || 1;
@@ -77,6 +97,9 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
       take,
       where: baseFilter,
       select: selectFields,
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   } else if (user.role.name === 'ADMIN' || user.role.name === 'COACH') {
     const academy = await getSingleAcademyForUser(loggedInUser);
@@ -89,6 +112,9 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
         assignedToAcademyId: academy.id,
       },
       select: selectFields,
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   } else {
     allUsers = [];
@@ -97,9 +123,9 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const usersWithAcademies = allUsers.map((u) => {
     let academy = null;
 
-    if (u.role === 'ADMIN') {
+    if (u.role.name === 'ADMIN') {
       academy = u.adminOfAcademies[0];
-    } else if (u.role === 'COACH' || u.role === 'STUDENT') {
+    } else if (u.role.name === 'COACH' || u.role.name === 'STUDENT') {
       academy = u.assignedToAcademy;
     }
 
@@ -123,7 +149,7 @@ const signUpSubscriberHandler = async (data) => {
     password,
     firstName,
     lastName,
-    dob,
+    dateOfBirth,
     phoneNumber,
     addressLine1,
     addressLine2,
@@ -142,13 +168,13 @@ const signUpSubscriberHandler = async (data) => {
 
   const hashedPassword = await hashPassword(password, 10);
 
-  const newDOB = new Date(dob);
+  const newDOB = new Date(dateOfBirth);
 
   const profile = await db.profile.create({
     data: {
       firstName,
       lastName,
-      dob: newDOB,
+      dateOfBirth: newDOB,
       phoneNumber,
       addressLine1,
       addressLine2,
@@ -195,70 +221,15 @@ const signUpSubscriberHandler = async (data) => {
 };
 
 const createUsersFromXlsx = async (file, loggedInUser) => {
-  // Step 1: Validate the file
-  if (!file || !file.path) {
+  if (!file?.path) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'File is missing!');
   }
 
-  // Step 2: Fetch the user along with their academies and batches
-  const user = await db.user.findUnique({
-    where: { id: loggedInUser.id },
-    include: {
-      adminOfAcademies: true,
-      coachOfBatches: true,
-    },
-  });
+  const user = await validateUser(loggedInUser);
+  const academyId = user.adminOfAcademies[0].id;
 
-  if (!user) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'User not found.');
-  }
-
-  let academyId = null;
-
-  // Step 3: Determine the academyId based on the user's role
-  if (user.role === 'ADMIN') {
-    if (user.adminOfAcademies.length === 0) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        'User is not associated with any academy.'
-      );
-    }
-    // Assuming the admin is associated with a single academy
-    academyId = user.adminOfAcademies[0].id;
-  } else if (user.role === 'COACH') {
-    if (user.coachOfBatches.length === 0) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        'Coach is not associated with any batches.'
-      );
-    }
-    // Derive academyId from the first associated batch
-    academyId = user.coachOfBatches[0].academyId;
-
-    // Optional: Ensure all coach's batches belong to the same academy
-    const uniqueAcademies = new Set(
-      user.coachOfBatches.map((batch) => batch.academyId)
-    );
-    if (uniqueAcademies.size > 1) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        'Coach is associated with multiple academies. Please ensure the coach is linked to only one academy.'
-      );
-    }
-  } else {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      'User role does not have permission to create users.'
-    );
-  }
-
-  // Step 4: Define role mappings
-  const ROLE_MAPPING = {
-    1: 'COACH',
-    2: 'STUDENT',
-  };
-
-  const COACH_ROLE_MAPPING = {
+  const ROLE_MAPPING = { 1: 'COACH', 2: 'STUDENT' };
+  const COACH_SUB_ROLE_MAPPING = {
     1: 'HEAD_COACH',
     2: 'SENIOR_COACH',
     3: 'JUNIOR_COACH',
@@ -266,163 +237,355 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
     5: 'PUZZLE_MASTER_SCHOLAR',
   };
 
-  const validRoles = ['COACH', 'STUDENT'];
-  const validSubRoles = [
-    'HEAD_COACH',
-    'SENIOR_COACH',
-    'JUNIOR_COACH',
-    'PUZZLE_MASTER',
-    'PUZZLE_MASTER_SCHOLAR',
-  ];
-
-  // Step 5: Read and parse the XLSX file
   const workbook = xlsx.readFile(file.path);
-  const sheetNames = workbook.SheetNames;
+  const jsonData = xlsx.utils.sheet_to_json(
+    workbook.Sheets[workbook.SheetNames[0]]
+  );
 
-  const usersCreated = [];
+  const coachesCreated = [];
+  const studentsCreated = [];
   const errors = [];
+  const batches = _.chunk(jsonData, 10);
 
-  for (const sheetName of sheetNames) {
-    const worksheet = workbook.Sheets[sheetName];
-    const jsonData = xlsx.utils.sheet_to_json(worksheet);
-
-    for (const row of jsonData) {
-      const firstName = row['FIRST NAME'];
-      const lastName = row['LAST NAME'];
-      const email = row['EMAIL'];
-      const roleNumber = row['ROLE'];
-      const subRoleNumber = row['SUB_ROLE'];
-      const batchCode = row['BATCH CODE'];
-
-      try {
-        // Validate required fields
-        if (
-          !email ||
-          !firstName ||
-          !lastName ||
-          roleNumber === undefined ||
-          !batchCode
-        ) {
-          throw new Error('Missing required fields');
-        }
-
-        // Map role number to role string
-        const role = ROLE_MAPPING[roleNumber];
-        if (!role) {
-          throw new Error(`Invalid role number: ${roleNumber}`);
-        }
-
-        if (!validRoles.includes(role)) {
-          throw new Error(`Invalid role: ${role}`);
-        }
-
-        let subRole = null;
-        if (role === 'COACH') {
-          if (subRoleNumber === undefined) {
-            throw new Error('SubRole is required for role COACH');
-          }
-          subRole = COACH_ROLE_MAPPING[subRoleNumber];
-          if (!subRole) {
-            throw new Error(`Invalid subRole number: ${subRoleNumber}`);
-          }
-          if (!validSubRoles.includes(subRole)) {
-            throw new Error(`Invalid subRole: ${subRole}`);
-          }
-        }
-
-        // Find the batch within the determined academy
-        const batch = await db.batch.findFirst({
-          where: {
-            batchCode: batchCode,
-            academyId: academyId,
-          },
-        });
-
-        if (!batch) {
-          throw new Error(
-            `Batch with code ${batchCode} not found for your academy.`
+  for (const batch of batches) {
+    await Promise.all(
+      batch.map(async (row) => {
+        try {
+          await processRow(
+            row,
+            academyId,
+            loggedInUser,
+            coachesCreated,
+            studentsCreated,
+            ROLE_MAPPING,
+            COACH_SUB_ROLE_MAPPING
           );
+        } catch (error) {
+          errors.push(createErrorEntry(row, error));
         }
-
-        // Generate a unique user code
-        const userCount = await db.user.count();
-        const newCode = formatNumberWithPrefix('U', userCount);
-
-        // Check if the email already exists
-        const isEmailAlreadyExists = await db.user.findUnique({
-          where: {
-            email,
-          },
-        });
-
-        if (isEmailAlreadyExists) {
-          throw new ApiError(httpStatus.CONFLICT, 'Email is already taken.');
-        }
-
-        // Prepare user data
-        const userData = {
-          email,
-          role,
-          subRole,
-          profile: {
-            create: {
-              firstName,
-              lastName,
-            },
-          },
-          code: newCode,
-        };
-
-        // Connect the user to the appropriate batch based on role
-        if (role === 'COACH') {
-          userData.coachOfBatches = {
-            connect: {
-              id: batch.id,
-            },
-          };
-        } else if (role === 'STUDENT') {
-          userData.studentOfBatches = {
-            connect: {
-              id: batch.id,
-            },
-          };
-        }
-
-        // Create the new user
-        const newUser = await db.user.create({
-          data: userData,
-        });
-
-        // Track successfully created users
-        usersCreated.push({
-          email,
-          firstName,
-          lastName,
-          role,
-          subRole,
-          batchCode,
-        });
-      } catch (error) {
-        console.error(error);
-        errors.push({
-          email,
-          firstName,
-          lastName,
-          roleNumber,
-          subRoleNumber,
-          batchCode,
-          error: error.message,
-        });
-      }
-    }
+      })
+    );
   }
 
   fs.unlinkSync(file.path);
+  return { coachesCreated, studentsCreated, errors };
+};
 
-  return {
-    usersCreated,
-    errors,
+const validateUser = async (loggedInUser) => {
+  const user = await db.user.findUnique({
+    where: { id: loggedInUser.id },
+    include: { adminOfAcademies: true, role: true },
+  });
+
+  if (!user) throw new ApiError(httpStatus.BAD_REQUEST, 'User not found.');
+  if (user.role.name !== 'ADMIN')
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Insufficient permissions');
+  if (!user.adminOfAcademies.length)
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No associated academy');
+
+  return user;
+};
+
+const validateRowData = (row) => {
+  const {
+    'FIRST NAME': firstName,
+    'LAST NAME': lastName,
+    EMAIL: email,
+    'PHONE NUMBER': phoneNumber,
+    ROLE: roleNumber,
+  } = row;
+  if (!email || !firstName || !lastName || !phoneNumber || !roleNumber) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Missing required fields');
+  }
+  return { firstName, lastName, email, phoneNumber, roleNumber };
+};
+
+const processRow = async (
+  row,
+  academyId,
+  loggedInUser,
+  coachesCreated,
+  studentsCreated,
+  ROLE_MAPPING,
+  COACH_SUB_ROLE_MAPPING
+) => {
+  const { firstName, lastName, email, phoneNumber, roleNumber } =
+    validateRowData(row);
+  const role = ROLE_MAPPING[roleNumber];
+
+  if (!role)
+    throw new ApiError(httpStatus.BAD_REQUEST, `Invalid role: ${roleNumber}`);
+
+  const existingUser = await db.user.findUnique({ where: { email } });
+  if (existingUser) throw new ApiError(httpStatus.CONFLICT, 'Email exists');
+
+  const academy = await db.academy.findUnique({
+    where: { id: academyId },
+    select: { name: true, domain: true },
+  });
+
+  console.log('ROLE', role);
+
+  if (role === 'COACH') {
+    await processCoach(
+      row,
+      academy,
+      academyId,
+      loggedInUser,
+      COACH_SUB_ROLE_MAPPING,
+      coachesCreated
+    );
+  } else {
+    await processStudent(
+      row,
+      academy,
+      academyId,
+      loggedInUser,
+      studentsCreated
+    );
+  }
+};
+
+const processCoach = async (
+  row,
+  academy,
+  academyId,
+  loggedInUser,
+  COACH_SUB_ROLE_MAPPING,
+  coachesCreated
+) => {
+  const {
+    'FIRST NAME': firstName,
+    'LAST NAME': lastName,
+    EMAIL: email,
+    'PHONE NUMBER': phoneNumber,
+    SUB_ROLE: subRole,
+  } = row;
+
+  console.log('ROW', row);
+
+  const tempPassword = crypto.randomBytes(8).toString('hex');
+  const hashedPassword = await hashPassword(tempPassword, 10);
+
+  const coachInvitation = await createCoachInvitation(
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    academyId,
+    hashedPassword,
+    COACH_SUB_ROLE_MAPPING[subRole],
+    loggedInUser.id
+  );
+
+  console.log('COACH_INVITATION', coachInvitation);
+
+  const token = await createToken(
+    { id: coachInvitation.id, version: coachInvitation.version },
+    config.jwt.invitationSecret,
+    '3d'
+  );
+
+  const baseUrl =
+    COACH_SUB_ROLE_MAPPING[subRole] === 'HEAD_COACH'
+      ? academy.domain
+      : getDomainFromAdmin(academy.domain);
+
+  console.log('BASE_URL', baseUrl);
+
+  const ACTIVATION_URL = `${baseUrl}/invitation?type=BATCH_COACH&name=${encodeURIComponent(
+    `${firstName} ${lastName} from ${academy.name}`
+  )}&token=${token}`;
+
+  console.log('ACTIVATION_URL', ACTIVATION_URL);
+
+  await sendCoachInvitationEmail(
+    firstName,
+    lastName,
+    email,
+    tempPassword,
+    ACTIVATION_URL
+  );
+  coachesCreated.push({ email, firstName, lastName, role: 'COACH' });
+};
+
+const processStudent = async (
+  row,
+  academy,
+  academyId,
+  loggedInUser,
+  studentsCreated
+) => {
+  const {
+    'FIRST NAME': firstName,
+    'LAST NAME': lastName,
+    EMAIL: email,
+    'PHONE NUMBER': phoneNumber,
+  } = row;
+
+  const tempPassword = crypto.randomBytes(8).toString('hex');
+  const hashedPassword = await hashPassword(tempPassword, 10);
+
+  console.log('Creating student invitation for:', email);
+
+  try {
+    studentInvitation = await createStudentInvitation(
+      { firstName, lastName, email, phoneNumber },
+      academyId,
+      hashedPassword,
+      loggedInUser.id
+    );
+    console.log('Student invitation created:', studentInvitation.id);
+  } catch (error) {
+    console.error('Failed to create student invitation for:', email, error);
+    throw error;
+  }
+
+  const token = await createToken(
+    { id: studentInvitation.id },
+    config.jwt.invitationSecret,
+    '3d'
+  );
+
+  const baseUrl = getDomainFromAdmin(academy.domain);
+
+  const ACTIVATION_URL = `${baseUrl}/invitation?type=USER_INVITATION&name=${encodeURIComponent(
+    `${firstName} ${lastName} from ${academy.name}`
+  )}&token=${token}`;
+
+  await sendInvitationEmail(
+    email,
+    firstName,
+    lastName,
+    academy.name,
+    tempPassword,
+    ACTIVATION_URL
+  );
+
+  studentsCreated.push({
+    email,
+    firstName,
+    lastName,
+    role: 'STUDENT',
+    invitationId: studentInvitation.id,
+  });
+};
+
+const createCoachInvitation = async (
+  firstName,
+  lastName,
+  email,
+  phoneNumber,
+  academyId,
+  hashedPassword,
+  subRole,
+  creatorId
+) => {
+  return await db.invitation.create({
+    data: {
+      data: {
+        firstName,
+        lastName,
+        email,
+        phoneNumber,
+        academyId,
+        password: hashedPassword,
+        subRole,
+      },
+      email,
+      type: 'BATCH_COACH',
+      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
+      createdById: creatorId,
+    },
+  });
+};
+
+const createStudentSignup = async (
+  email,
+  signupId,
+  firstName,
+  lastName,
+  phoneNumber,
+  academyId,
+  expiryDate
+) => {
+  return await db.userSignup.create({
+    data: {
+      email,
+      signupId,
+      firstName,
+      lastName,
+      phoneNumber,
+      userRole: ROLE.STUDENT,
+      signupStage: REGISTRATION_STAGE.INQUIRY,
+      signupStatus: SIGNUP_STATUS.INQUIRY,
+      academyId,
+      reservationExpiry: expiryDate,
+    },
+  });
+};
+
+const createSignupOTP = async (email, otp, expiryDate) => {
+  return await db.signupOTP.create({
+    data: {
+      email,
+      otp,
+      expiresAt: expiryDate,
+      verified: false,
+    },
+  });
+};
+
+const createErrorEntry = (row, error) => ({
+  email: row.EMAIL,
+  firstName: row['FIRST NAME'],
+  lastName: row['LAST NAME'],
+  roleNumber: row.ROLE,
+  error: error.message,
+});
+
+const sendCoachInvitationEmail = async (
+  firstName,
+  lastName,
+  email,
+  tempPassword,
+  url
+) => {
+  const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: { name: 'Chess in Chunks', link: config.frontendUrl },
+  });
+
+  const emailContent = {
+    body: {
+      name: `${firstName} ${lastName}`,
+      intro: 'You are invited to join as a coach!',
+      table: {
+        data: [
+          { label: 'Email', value: email },
+          { label: 'Temporary Password', value: tempPassword },
+        ],
+      },
+      action: {
+        instructions:
+          'To accept this invitation and complete your profile, please click the button below:',
+        button: {
+          color: '#22BC66',
+          text: 'Accept Invitation',
+          link: url,
+        },
+      },
+      outro:
+        'After logging in, you will be prompted to complete your profile with additional information.',
+    },
   };
+
+  await sendMail(
+    email,
+    'Coach Invitation',
+    mailGenerator.generatePlaintext(emailContent),
+    mailGenerator.generate(emailContent)
+  );
 };
 
 const updateUserStatus = async (userId, status) => {
@@ -449,7 +612,6 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required.');
   }
 
-  // Fetch the user to be updated
   const user = await db.user.findUnique({
     where: { id },
     include: { profile: true, coachOfBatches: true, studentOfBatches: true },
@@ -459,10 +621,8 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
   }
 
-  // Authorization: Only SUPER_ADMIN or ADMIN can update users
   if (loggedInUser.role !== 'SUPER_ADMIN') {
     if (loggedInUser.role === 'ADMIN') {
-      // Check if the user belongs to any academy managed by the ADMIN
       const adminAcademyIds = loggedInUser.adminOfAcademies.map(
         (academy) => academy.id
       );
@@ -501,7 +661,17 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
   }
 
   if (role) {
-    updateData.role = role;
+    const existingRole = await db.role.findUnique({
+      where: { name: role.name },
+    });
+
+    if (!existingRole) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid role name.');
+    }
+
+    updateData.role = {
+      connect: { name: role.name },
+    };
   }
 
   if (subRole) {
@@ -535,7 +705,6 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
     }
   }
 
-  // Perform the update
   const updatedUser = await db.user.update({
     where: { id },
     data: updateData,
@@ -635,6 +804,357 @@ const updatePasswordHandler = async (data, loggedInUser) => {
   return updatedUser;
 };
 
+const requestEmailChangeHandler = async (userId, newEmail, academyDomain) => {
+  const existingUser = await db.user.findUnique({
+    where: { email: newEmail },
+  });
+
+  if (existingUser) {
+    throw new ApiError(httpStatus.CONFLICT, 'Email is already in use.');
+  }
+
+  const token = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date();
+  expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+
+  await db.emailVerificationToken.deleteMany({
+    where: {
+      userId,
+      newEmail,
+    },
+  });
+
+  await db.emailVerificationToken.create({
+    data: {
+      userId,
+      newEmail,
+      token,
+      expiresAt,
+    },
+  });
+
+  const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: {
+      name: 'Chess in Chunks',
+      link: academyDomain,
+    },
+  });
+
+  const mailgenBody = {
+    body: {
+      name: 'User',
+      intro: 'You requested to change your email address on Chess in Chunks.',
+      action: {
+        instructions:
+          'Please use the following OTP to verify your new email address within 10 minutes:',
+        button: {
+          color: '#22BC66',
+          text: `${token}`,
+          link: academyDomain,
+        },
+      },
+      outro:
+        'If you did not request this, please ignore this email or contact our support.',
+    },
+  };
+
+  const emailBody = mailGenerator.generate(mailgenBody);
+  const emailText = mailGenerator.generatePlaintext(mailgenBody);
+
+  await sendEmail(
+    newEmail,
+    'Verify Your New Email Address - Chess in Chunks',
+    emailText,
+    emailBody
+  );
+
+  return { message: 'OTP has been sent to your new email address.' };
+};
+
+/**
+ * Verify the OTP and change the user's email if valid.
+ * @param {string} userId The ID of the logged-in user.
+ * @param {string} token The OTP provided by the user.
+ */
+const verifyEmailChangeHandler = async (userId, token) => {
+  const record = await db.emailVerificationToken.findFirst({
+    where: {
+      userId,
+      token,
+    },
+  });
+
+  if (!record) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Invalid OTP.');
+  }
+
+  if (record.expiresAt < new Date()) {
+    await db.emailVerificationToken.delete({
+      where: { id: record.id },
+    });
+    throw new ApiError(httpStatus.BAD_REQUEST, 'OTP has expired.');
+  }
+
+  await db.user.update({
+    where: { id: userId },
+    data: { email: record.newEmail },
+  });
+
+  await db.emailVerificationToken.delete({
+    where: { id: record.id },
+  });
+
+  return { message: 'Email updated successfully.' };
+};
+
+const getProfileCompletionHandler = async (userId) => {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    include: {
+      profile: true,
+      role: true,
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
+  }
+
+  // Define required fields for different roles
+  const commonFields = [
+    'email',
+    'profile.firstName',
+    'profile.lastName',
+    'profile.phoneNumber',
+    'profile.addressLine1',
+    'profile.city',
+    'profile.state',
+    'profile.country',
+  ];
+
+  const studentFields = [
+    ...commonFields,
+    'profile.dateOfBirth',
+    'profile.parentName',
+    'profile.parentEmail',
+    'profile.chessComId',
+  ];
+
+  const coachFields = [
+    ...commonFields,
+    'profile.dateOfBirth',
+    'subRole',
+    'profile.qualification',
+    'profile.experience',
+  ];
+
+  // Select fields based on user role
+  let requiredFields = commonFields;
+  if (user.role.name === 'STUDENT') {
+    requiredFields = studentFields;
+  } else if (user.role.name === 'COACH') {
+    requiredFields = coachFields;
+  }
+
+  // Count filled fields
+  let filledFields = 0;
+  for (const field of requiredFields) {
+    const [parent, child] = field.includes('.')
+      ? field.split('.')
+      : [field, null];
+    const value = child ? user[parent]?.[child] : user[parent];
+
+    if (value !== null && value !== undefined && value !== '') {
+      filledFields++;
+    }
+  }
+
+  // Calculate percentage
+  const completionPercentage = Math.round(
+    (filledFields / requiredFields.length) * 100
+  );
+
+  return {
+    completionPercentage,
+    totalFields: requiredFields.length,
+    filledFields,
+    emptyFields: requiredFields.length - filledFields,
+  };
+};
+
+const updateProfileHandler = async (id, data, loggedInUser) => {
+  const user = await db.user.findUnique({
+    where: { id },
+    include: {
+      profile: true,
+      role: true,
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  // Only allow users to update their own profile unless they're a super admin
+  if (loggedInUser.id !== id && loggedInUser.role !== 'SUPER_ADMIN') {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'You do not have permission to update this profile'
+    );
+  }
+
+  // Handle file upload if there's a profile image
+  let imageUrl = null;
+  if (data.profileImage) {
+    try {
+      const uploadResult = await uploadToCloudinary(data.profileImage.path, {
+        folder: 'profile-images',
+        publicId: `profile-${id}-${Date.now()}`,
+        allowedFormats: ['jpg', 'jpeg', 'png', 'gif'],
+        maxSize: 5 * 1024 * 1024, // 5MB max size
+      });
+      imageUrl = uploadResult.url;
+
+      // Delete old profile image if it exists
+      if (user.profile?.imageUrl) {
+        const oldImagePublicId = user.profile.imageUrl
+          .split('/')
+          .slice(-1)[0]
+          .split('.')[0];
+        if (oldImagePublicId) {
+          await deleteFromCloudinary(oldImagePublicId);
+        }
+      }
+    } catch (error) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `Profile image upload failed - ${error.message}`
+      );
+    } finally {
+      // Clean up the temporary file
+      if (data.profileImage.path) {
+        fs.unlinkSync(data.profileImage.path);
+      }
+    }
+  }
+
+  // Extract profile-specific fields
+  const {
+    firstName,
+    lastName,
+    middleName,
+    dateOfBirth,
+    phoneNumber,
+    addressLine1,
+    addressLine2,
+    city,
+    state,
+    country,
+    zipcode,
+    parentName,
+    parentEmail,
+    chessComId,
+    lichessId,
+    uscfId,
+    status,
+  } = data;
+
+  // Validate chess.com ID if provided
+  if (chessComId) {
+    const existingUserWithChessComId = await db.profile.findFirst({
+      where: {
+        chessComId,
+        NOT: {
+          userId: id,
+        },
+      },
+    });
+
+    if (existingUserWithChessComId) {
+      throw new ApiError(
+        httpStatus.CONFLICT,
+        'Chess.com ID is already associated with another user'
+      );
+    }
+  }
+
+  // Prepare profile update data
+  const profileUpdateData = {
+    ...(firstName && { firstName }),
+    ...(lastName && { lastName }),
+    ...(middleName && { middleName }),
+    ...(dateOfBirth && { dateOfBirth: new Date(dateOfBirth) }),
+    ...(phoneNumber && { phoneNumber }),
+    ...(addressLine1 && { addressLine1 }),
+    ...(addressLine2 && { addressLine2 }),
+    ...(city && { city }),
+    ...(state && { state }),
+    ...(country && { country }),
+    ...(zipcode && { zipcode }),
+    ...(parentName && { parentName }),
+    ...(parentEmail && { parentEmail }),
+    ...(chessComId && { chessComId }),
+    ...(lichessId && { lichessId }),
+    ...(uscfId && { uscfId }),
+    ...(imageUrl && { imageUrl }), // Add the Cloudinary URL if an image was uploaded
+  };
+
+  // Prepare user update data
+  const userUpdateData = {
+    ...(status && { status }),
+  };
+
+  try {
+    // Update or create profile
+    if (user.profile) {
+      await db.profile.update({
+        where: { userId: id },
+        data: profileUpdateData,
+      });
+    } else {
+      await db.profile.create({
+        data: {
+          ...profileUpdateData,
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+        },
+      });
+    }
+
+    // Update user if there are user-specific fields
+    if (Object.keys(userUpdateData).length > 0) {
+      await db.user.update({
+        where: { id },
+        data: userUpdateData,
+      });
+    }
+
+    const updatedUser = await db.user.findUnique({
+      where: { id },
+      include: {
+        profile: true,
+        role: true,
+      },
+    });
+
+    return updatedUser;
+  } catch (error) {
+    if (imageUrl) {
+      try {
+        const newImagePublicId = imageUrl.split('/').slice(-1)[0].split('.')[0];
+        await deleteFromCloudinary(newImagePublicId);
+      } catch (cleanupError) {
+        console.error('Failed to cleanup Cloudinary image:', cleanupError);
+      }
+    }
+    throw error;
+  }
+};
+
 const userService = {
   fetchAllUsersHandler,
   signUpSubscriberHandler,
@@ -643,6 +1163,10 @@ const userService = {
   updateUserHandler,
   fetchProfileById,
   updatePasswordHandler,
+  requestEmailChangeHandler,
+  verifyEmailChangeHandler,
+  getProfileCompletionHandler,
+  updateProfileHandler,
 };
 
 module.exports = userService;

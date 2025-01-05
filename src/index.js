@@ -2,38 +2,26 @@ const http = require('http');
 const app = require('./app');
 const config = require('./config');
 const logger = require('./utils/logger');
-const socket = require('./socket');
-const { verifyJWTForSocket } = require('./utils/auth');
+const { Server } = require('socket.io');
 const messageService = require('./services/message.service');
 const db = require('./database/prisma');
+
+let httpServer;
 
 async function startServer() {
   try {
     await db.$connect();
     logger.info('Database connection successful');
 
-    const httpServer = http.createServer(app);
-    const io = socket.init(httpServer);
+    httpServer = http.createServer(app);
 
-    io.use(async (socket, next) => {
-      const token = socket.handshake.auth.token;
-      if (!token) {
-        logger.info('Authentication failed: Token not provided');
-        return next(new Error('Authentication error: Token not provided'));
-      }
-
-      try {
-        const user = await verifyJWTForSocket(token);
-        socket.user = user;
-        logger.info(`User authenticated: ${user.id}`);
-        next();
-      } catch (err) {
-        logger.info(`Authentication failed: ${err.message}`);
-        next(new Error('Authentication error'));
-      }
+    const io = new Server(httpServer, {
+      cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+      },
     });
 
-    // Handle socket events
     io.on('connection', (socket) => {
       const userId = socket.user?.id;
       if (userId) {
@@ -42,21 +30,19 @@ async function startServer() {
       }
 
       socket.on('send_message', async ({ receiverId, content }) => {
-        if (!userId)
-          return logger.info('Message sending failed: Unauthenticated user');
-
-        try {
-          const message = await messageService.sendMessage({
-            senderId: userId,
-            receiverId,
-            content,
-          });
-
-          io.to(`user-${receiverId}`).emit('new_message', message);
-          logger.info(`Message sent from User ${userId} to User ${receiverId}`);
-        } catch (err) {
-          logger.info(`Message sending failed: ${err.message}`);
+        if (!userId) {
+          logger.info('Message sending failed: Unauthenticated user');
+          return;
         }
+
+        const message = await messageService.sendMessage({
+          senderId: userId,
+          receiverId,
+          content,
+        });
+
+        io.to(`user-${receiverId}`).emit('new_message', message);
+        logger.info(`Message sent from User ${userId} to User ${receiverId}`);
       });
 
       socket.on('disconnect', () => {
@@ -69,8 +55,32 @@ async function startServer() {
     });
   } catch (error) {
     logger.error('Failed to connect to the database:', error);
-    process.exit(1); // Exit the process if DB connection fails
+    process.exit(1);
   }
 }
+
+async function shutdown() {
+  logger.info('Received shutdown signal. Closing server...');
+
+  try {
+    await db.$disconnect();
+    logger.info('Database disconnected');
+
+    if (httpServer) {
+      await new Promise((resolve) => {
+        httpServer.close(resolve);
+      });
+      logger.info('Server closed');
+    }
+
+    process.exit(0);
+  } catch (error) {
+    logger.error('Error during shutdown:', error);
+    process.exit(1);
+  }
+}
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
 
 startServer();
