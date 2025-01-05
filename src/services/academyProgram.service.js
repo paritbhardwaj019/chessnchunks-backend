@@ -636,9 +636,8 @@ const getAcademyPrograms = async (academyId) => {
 
   return allPrograms;
 };
-const updateProgramCredits = async (programId, academyId, creditData) => {
-  console.log('CREDIT_DATA', creditData);
 
+const updateProgramCredits = async (programId, academyId, creditData) => {
   const program = await db.academyProgram.findFirst({
     where: {
       id: programId,

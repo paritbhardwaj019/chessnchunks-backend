@@ -210,7 +210,12 @@ const createNavigationItems = async (items, academyId, parentId = null) => {
   }
 };
 
-const verifyAcademyAdminHandler = async (token, domain) => {
+const verifyAcademyAdminHandler = async (
+  token,
+  domain,
+  stripeCustomerId,
+  planId
+) => {
   if (!token) {
     throw new ApiError('Token not present!', httpStatus.BAD_REQUEST);
   }
@@ -293,6 +298,7 @@ const verifyAcademyAdminHandler = async (token, domain) => {
         },
       },
       password: hashedPassword,
+      stripeCustomerId,
     },
     select: {
       id: true,
@@ -316,6 +322,9 @@ const verifyAcademyAdminHandler = async (token, domain) => {
         connect: { id: signupId },
       },
       status: 'ACTIVE',
+      plan: {
+        connect: { id: planId },
+      },
     },
   });
 
@@ -387,10 +396,7 @@ const verifyAcademyAdminHandler = async (token, domain) => {
           link: `${newAcademy.domain}/dashboard`,
         },
       },
-      outro: [
-        'For security reasons, please change your password after your first login.',
-        'If you need any assistance, our support team is here to help!',
-      ],
+      outro: ['If you need any assistance, our support team is here to help!'],
     },
   };
 

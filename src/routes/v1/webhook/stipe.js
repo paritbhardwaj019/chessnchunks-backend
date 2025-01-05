@@ -63,6 +63,54 @@ const sendCredentialsEmail = async (
   );
 };
 
+const setupAcademySubscription = async (
+  academyId,
+  stripeCustomerId,
+  planId
+) => {
+  const plan = await db.plan.findUnique({
+    where: {
+      id: planId,
+    },
+  });
+
+  if (!plan) {
+    throw new Error('Plan not found');
+  }
+
+  const subscription = await db.subscription.create({
+    data: {
+      customer: stripeCustomerId,
+      items: [{ price: plan.academyStripePlanId }],
+      metadata: {
+        academyId,
+        planId,
+      },
+    },
+  });
+
+  await db.purchasedPlan.create({
+    data: {
+      academyId,
+      planId,
+      totalPrice: plan.academyPrice,
+      startDate: new Date(),
+      isActive: true,
+    },
+  });
+
+  await db.academy.update({
+    where: {
+      id: academyId,
+    },
+    data: {
+      planId,
+    },
+  });
+
+  return subscription;
+};
+
 router.post('/stripe', async (req, res) => {
   const sig = req.headers['stripe-signature'];
 
@@ -75,10 +123,21 @@ router.post('/stripe', async (req, res) => {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
-      const { token, domain } = session.metadata;
+      const { token, domain, planId } = session.metadata;
 
       try {
-        await verifyAcademyAdminHandler(token, domain);
+        await verifyAcademyAdminHandler(
+          token,
+          domain,
+          session.customer,
+          planId
+        );
+
+        await setupAcademySubscription(
+          result.newAcademy.id,
+          session.customer,
+          planId
+        );
       } catch (error) {
         console.error('Admin verification failed:', error);
         return res.json({ received: true });
