@@ -7,6 +7,9 @@ const setupTunnel = async () => {
     const tunnel = await localtunnel({
       port: config.port,
       subdomain: 'chessinchunks',
+      headers: {
+        'bypass-tunnel-reminder': 'true',
+      },
     });
 
     logger.info(`Tunner URL - ${tunnel.url}`);

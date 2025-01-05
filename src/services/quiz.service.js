@@ -81,10 +81,30 @@ const getQuizByTaskId = async (taskId) => {
   return quiz;
 };
 
-const startQuizAttempt = async (taskId, userId) => {
+const startQuizAttempt = async (quizId, userId) => {
+  const quiz = await db.quiz.findUnique({
+    where: { id: quizId },
+    include: {
+      task: true,
+    },
+  });
+
+  console.log('QUIZ', quiz);
+
+  if (!quiz) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Quiz not found');
+  }
+
+  if (!quiz.task) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Quiz is not assigned to any task'
+    );
+  }
+
   const attempt = await db.studentQuizAttempt.findFirst({
     where: {
-      taskId,
+      quizId,
       userId,
       status: { not: 'COMPLETED' },
     },
@@ -96,14 +116,23 @@ const startQuizAttempt = async (taskId, userId) => {
 
   return db.studentQuizAttempt.create({
     data: {
-      taskId,
+      taskId: quiz.task.id,
+      quizId,
       userId,
       startTime: new Date(),
       status: 'IN_PROGRESS',
     },
+    include: {
+      quiz: true,
+      task: true,
+      user: {
+        include: {
+          profile: true,
+        },
+      },
+    },
   });
 };
-
 const submitQuizAnswer = async (attemptId, questionId, answer) => {
   const attempt = await db.studentQuizAttempt.findUnique({
     where: { id: attemptId },
@@ -334,9 +363,27 @@ const getQuizById = async (quizId) => {
     where: { id: quizId },
     include: {
       task: true,
-      createdBy: { select: { id: true, email: true, profile: true } },
+      createdBy: {
+        select: {
+          id: true,
+          email: true,
+          profile: true,
+        },
+      },
       questions: {
         orderBy: { orderIndex: 'asc' },
+      },
+      studentQuizAttempts: {
+        include: {
+          user: {
+            include: {
+              profile: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
       },
     },
   });

@@ -66,7 +66,8 @@ const sendCredentialsEmail = async (
 const setupAcademySubscription = async (
   academyId,
   stripeCustomerId,
-  planId
+  planId,
+  user
 ) => {
   const plan = await db.plan.findUnique({
     where: {
@@ -85,6 +86,19 @@ const setupAcademySubscription = async (
       metadata: {
         academyId,
         planId,
+      },
+      user: {
+        connect: { id: user.id },
+      },
+      plan: {
+        connect: {
+          id: planId,
+        },
+      },
+      academy: {
+        connect: {
+          id: academyId,
+        },
       },
     },
   });
@@ -113,12 +127,13 @@ const setupAcademySubscription = async (
 
 router.post('/stripe', async (req, res) => {
   const sig = req.headers['stripe-signature'];
+  req.headers['bypass-tunnel-reminder'] = 'true';
 
   try {
     const event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      'whsec_wtd4irorY3RM7DTg0I4GWnFakizCYgnE'
+      'whsec_BzETu3ZIxFMhpoHuydwzos28aGKq2rEj'
     );
 
     if (event.type === 'checkout.session.completed') {
@@ -126,7 +141,7 @@ router.post('/stripe', async (req, res) => {
       const { token, domain, planId } = session.metadata;
 
       try {
-        await verifyAcademyAdminHandler(
+        const result = await verifyAcademyAdminHandler(
           token,
           domain,
           session.customer,
@@ -136,7 +151,8 @@ router.post('/stripe', async (req, res) => {
         await setupAcademySubscription(
           result.newAcademy.id,
           session.customer,
-          planId
+          planId,
+          result.academyAdmin
         );
       } catch (error) {
         console.error('Admin verification failed:', error);
@@ -155,12 +171,13 @@ router.post('/stripe', async (req, res) => {
 
 router.post('/stripe/student', async (req, res) => {
   const sig = req.headers['stripe-signature'];
+  req.headers['bypass-tunnel-reminder'] = 'true';
 
   try {
     const event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      'whsec_MwQoMoEjH7n4yDlHF7O7G0jls4W3naHI'
+      'whsec_7zqpqvaPPrrmUq90xvfh6vV3vrszYA0Z'
     );
 
     if (event.type === 'checkout.session.completed') {
@@ -395,6 +412,7 @@ router.post('/stripe/student', async (req, res) => {
 
     res.json({ received: true });
   } catch (err) {
+    console.log(err);
     return res
       .status(httpStatus.BAD_REQUEST)
       .send(`Webhook Error: ${err.message}`);

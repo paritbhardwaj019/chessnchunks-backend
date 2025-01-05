@@ -24,8 +24,8 @@ const getQuizByTaskIdHandler = catchAsync(async (req, res) => {
  * Start Quiz Attempt Handler
  */
 const startQuizAttemptHandler = catchAsync(async (req, res) => {
-  const { taskId } = _.pick(req.params, ['taskId']);
-  const attempt = await quizService.startQuizAttempt(taskId, req.user.id);
+  const { quizId } = _.pick(req.params, ['quizId']);
+  const attempt = await quizService.startQuizAttempt(quizId, req.user.id);
   res.status(httpStatus.CREATED).send(attempt);
 });
 

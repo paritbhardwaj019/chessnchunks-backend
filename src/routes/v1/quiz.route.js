@@ -85,12 +85,12 @@ quizRouter.get(
 );
 
 /**
- * @route   POST /api/quiz/attempt/:taskId
+ * @route   POST /api/quiz/attempt/:quizId
  * @desc    Start a new quiz attempt for a Task
  * @access  Protected (STUDENT)
  */
 quizRouter.post(
-  '/attempt/:taskId',
+  '/attempt/:quizId',
   checkJWT,
   checkRole(['STUDENT']),
   quizController.startQuizAttemptHandler

@@ -1,17 +1,42 @@
 const db = require('../database/prisma');
 
 const getCurrentSubscription = async (loggedInUser) => {
-  const platformSubscription = await db.subscription.findFirst({
+  const student = await db.user.findUnique({
     where: {
-      user: {
-        id: loggedInUser.id,
-      },
-      academyId: null,
+      id: loggedInUser.id,
     },
     include: {
-      plan: true,
+      assignedToAcademy: {
+        include: {
+          admins: {
+            where: {
+              adminRole: 'ACADEMY_ADMIN',
+            },
+            take: 1,
+          },
+        },
+      },
     },
   });
+
+  let platformSubscription = null;
+
+  console.log(student);
+
+  if (student?.assignedToAcademy) {
+    platformSubscription = await db.subscription.findFirst({
+      where: {
+        academy: {
+          id: student?.assignedToAcademy?.id,
+        },
+      },
+      include: {
+        plan: true,
+      },
+    });
+  }
+
+  console.log('PLATFORM SUBSCRIPTION', platformSubscription);
 
   const academySubscription = await db.studentSubscription.findFirst({
     where: {
