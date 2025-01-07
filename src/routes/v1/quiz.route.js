@@ -6,6 +6,18 @@ const quizController = require('../../controllers/quiz.controller');
 const quizRouter = express.Router();
 
 /**
+ * @route   GET /api/quiz/id/:quizId
+ * @desc    Get quiz details by Quiz ID
+ * @access  Protected (ADMIN, COACH, STUDENT)
+ */
+quizRouter.get(
+  '/id/:quizId',
+  checkJWT,
+  checkRole(['ADMIN', 'COACH', 'STUDENT']),
+  quizController.getQuizByIdHandler
+);
+
+/**
  * @route   GET /api/quiz/student-attempts
  * @desc    Get all quiz attempts for the current student
  * @access  Protected (STUDENT)
@@ -58,18 +70,6 @@ quizRouter.post(
   checkJWT,
   checkRole(['ADMIN', 'COACH']),
   quizController.createQuizHandler
-);
-
-/**
- * @route   GET /api/quiz/id/:quizId
- * @desc    Get quiz details by Quiz ID
- * @access  Protected (ADMIN, COACH, STUDENT)
- */
-quizRouter.get(
-  '/id/:quizId',
-  checkJWT,
-  checkRole(['ADMIN', 'COACH', 'STUDENT']),
-  quizController.getQuizByIdHandler
 );
 
 /**

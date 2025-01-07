@@ -938,14 +938,13 @@ enum SIGNUP_STATUS {
   CONFIRMED
 }
 
-// QUIZ TYPE
 
 enum QUESTION_TYPE {
   MULTIPLE_CHOICE
   TRUE_FALSE
   SHORT_ANSWER
   LONG_ANSWER
-  MATCHING
+  FILL_IN_THE_BLANKS    
 }
 
 model Quiz {
@@ -981,14 +980,15 @@ model QuizQuestion {
   orderIndex    Int
   options       Json
   correctAnswer String
+  wordLimit     Int?          
 
-  quizId String
-  quiz   Quiz   @relation(fields: [quizId], references: [id])
+  quizId        String
+  quiz          Quiz          @relation(fields: [quizId], references: [id])
 
   studentAnswers StudentQuizAnswer[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   @@map("quiz_questions")
 }

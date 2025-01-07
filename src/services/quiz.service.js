@@ -2,17 +2,23 @@ const httpStatus = require('http-status');
 const ApiError = require('../utils/apiError');
 const db = require('../database/prisma');
 const generateSystemCode = require('../utils/generateSystemCode');
-const { SYSTEM_CODE_MODULE } = require('@prisma/client');
+const { SYSTEM_CODE_MODULE, QUESTION_TYPE } = require('@prisma/client');
 
 const questionTypeMapping = {
   mcq: 'MULTIPLE_CHOICE',
   'true-false': 'TRUE_FALSE',
-  'fill-blanks': 'SHORT_ANSWER',
+  'fill-blanks': 'FILL_IN_THE_BLANKS',
+  'short-answer': 'SHORT_ANSWER',
+  'long-answer': 'LONG_ANSWER',
 };
 
 const createQuiz = async (data, userId) => {
   const { title, description, timeLimit, passingScore, taskId, questions } =
     data;
+
+  if (!questions || !Array.isArray(questions) || questions.length === 0) {
+    throw new Error('At least one question is required to create a quiz.');
+  }
 
   const quiz = await db.$transaction(async (prisma) => {
     const quizCode = await generateSystemCode(SYSTEM_CODE_MODULE.QUIZ);
@@ -24,15 +30,49 @@ const createQuiz = async (data, userId) => {
         SYSTEM_CODE_MODULE.QUIZ_QUESTION
       );
 
-      mappedQuestions.push({
+      const mappedType = questionTypeMapping[q.type] || q.type;
+
+      console.log(mappedType);
+
+      if (!Object.values(QUESTION_TYPE).includes(mappedType)) {
+        throw new Error(`Invalid question type: ${mappedType}`);
+      }
+
+      const questionData = {
         questionText: q.questionText,
-        type: questionTypeMapping[q.type] || q.type,
+        type: mappedType,
         marks: q.marks,
         orderIndex: index + 1,
         questionCode,
-        options: q.options,
         correctAnswer: q.correctAnswer,
-      });
+        options: [],
+      };
+
+      if (['MULTIPLE_CHOICE', 'TRUE_FALSE'].includes(mappedType)) {
+        if (!Array.isArray(q.options) || q.options.length < 2) {
+          throw new Error(
+            `Question ${
+              index + 1
+            }: At least two options are required for ${mappedType} type.`
+          );
+        }
+        questionData.options = q.options;
+      }
+
+      if (
+        ['FILL_IN_THE_BLANKS', 'SHORT_ANSWER', 'LONG_ANSWER'].includes(
+          mappedType
+        )
+      ) {
+        if (!q.wordLimit || q.wordLimit < 1) {
+          throw new Error(
+            `Question ${index + 1}: Word limit must be at least 1.`
+          );
+        }
+        questionData.wordLimit = q.wordLimit;
+      }
+
+      mappedQuestions.push(questionData);
     }
 
     const createdQuiz = await prisma.quiz.create({
@@ -109,10 +149,6 @@ const startQuizAttempt = async (quizId, userId) => {
       status: { not: 'COMPLETED' },
     },
   });
-
-  if (attempt) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Active attempt exists');
-  }
 
   return db.studentQuizAttempt.create({
     data: {
@@ -387,6 +423,8 @@ const getQuizById = async (quizId) => {
       },
     },
   });
+
+  console.log('QUIZ', quiz);
 
   if (!quiz) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Quiz not found');
