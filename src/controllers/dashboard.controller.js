@@ -49,10 +49,34 @@ const getCoachBatchStats = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(performanceData);
 });
 
+const getStudentChessStatsHandler = async (req, res) => {
+  try {
+    const loggedInUser = req.user;
+    const { startDate, endDate } = req.query;
+
+    const stats = await dashboardService.getStudentChessStats(
+      loggedInUser.id,
+      startDate,
+      endDate
+    );
+
+    res.status(200).json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Internal server error',
+    });
+  }
+};
+
 const dashboardController = {
   fetchAllDashboard,
   getStudentBatchStats,
   getCoachBatchStats,
+  getStudentChessStatsHandler,
 };
 
 module.exports = dashboardController;

@@ -510,12 +510,166 @@ function calculateAverage(numbers) {
   return validNumbers.reduce((sum, num) => sum + num, 0) / validNumbers.length;
 }
 
+const getStudentChessStats = async (userId, startDate, endDate) => {
+  try {
+    const student = await db.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        profile: {
+          select: {
+            firstName: true,
+            lastName: true,
+            chessComId: true,
+          },
+        },
+      },
+    });
+
+    if (!student) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Student not found');
+    }
+
+    let dateFilter = '';
+    const queryParams = [userId];
+
+    if (startDate && endDate) {
+      dateFilter = 'AND CreatedDate BETWEEN ? AND ?';
+      queryParams.push(startDate, endDate);
+    }
+
+    const statsQuery = `
+      SELECT 
+        UserId,
+        RapidLastRating,
+        RapidBest,
+        RapidWin,
+        RapidLoss,
+        RapidDraw,
+        TacticsHighestRating,
+        RushBestScore,
+        RushTotalAttempts,
+        CreatedDate as lastUpdated
+      FROM user_chess_stats
+      WHERE UserId = ? ${dateFilter}
+      ORDER BY CreatedDate DESC
+    `;
+
+    const [chessStats] = await mysqlPool.query(statsQuery, queryParams);
+
+    if (!chessStats.length) {
+      return {
+        studentInfo: {
+          id: student.id,
+          name:
+            `${student.profile?.firstName || ''} ${
+              student.profile?.lastName || ''
+            }`.trim() || 'N/A',
+          chessComId: student.profile?.chessComId,
+        },
+        stats: {
+          games: {
+            total: 0,
+            wins: 0,
+            losses: 0,
+            draws: 0,
+            timeline: [],
+          },
+          puzzles: {
+            highestRating: 0,
+            timeline: [],
+          },
+          puzzleRush: {
+            bestScore: 0,
+            totalAttempts: 0,
+            timeline: [],
+          },
+          ratings: {
+            current: 0,
+            best: 0,
+            timeline: [],
+          },
+        },
+        lastUpdated: null,
+      };
+    }
+
+    const timelineData = chessStats.map((stat) => ({
+      date: stat.lastUpdated,
+      rapidRating: stat.RapidLastRating || 0,
+      tacticsRating: stat.TacticsHighestRating || 0,
+      rushScore: stat.RushBestScore || 0,
+      games:
+        (stat.RapidWin || 0) + (stat.RapidLoss || 0) + (stat.RapidDraw || 0),
+    }));
+
+    const latestStat = chessStats[0];
+
+    return {
+      studentInfo: {
+        id: student.id,
+        name:
+          `${student.profile?.firstName || ''} ${
+            student.profile?.lastName || ''
+          }`.trim() || 'N/A',
+        chessComId: student.profile?.chessComId,
+      },
+      stats: {
+        games: {
+          total:
+            (latestStat.RapidWin || 0) +
+            (latestStat.RapidLoss || 0) +
+            (latestStat.RapidDraw || 0),
+          wins: latestStat.RapidWin || 0,
+          losses: latestStat.RapidLoss || 0,
+          draws: latestStat.RapidDraw || 0,
+          timeline: timelineData.map((data) => ({
+            date: data.date,
+            total: data.games,
+          })),
+        },
+        puzzles: {
+          highestRating: latestStat.TacticsHighestRating || 0,
+          timeline: timelineData.map((data) => ({
+            date: data.date,
+            rating: data.tacticsRating,
+          })),
+        },
+        puzzleRush: {
+          bestScore: latestStat.RushBestScore || 0,
+          totalAttempts: latestStat.RushTotalAttempts || 0,
+          timeline: timelineData.map((data) => ({
+            date: data.date,
+            score: data.rushScore,
+          })),
+        },
+        ratings: {
+          current: latestStat.RapidLastRating || 0,
+          best: latestStat.RapidBest || 0,
+          timeline: timelineData.map((data) => ({
+            date: data.date,
+            rating: data.rapidRating,
+          })),
+        },
+      },
+      lastUpdated: latestStat.lastUpdated,
+    };
+  } catch (error) {
+    throw new ApiError(
+      error.statusCode || httpStatus.INTERNAL_SERVER_ERROR,
+      error.message || 'Error fetching student chess statistics'
+    );
+  }
+};
+
 const dashboardService = {
   getSuperAdminDashboardData,
   getAdminDashboardData,
   getCoachDashboardData,
   getBatchStudentsStatsHandler,
   getCoachBatchPerformance,
+  getStudentChessStats,
 };
 
 module.exports = dashboardService;

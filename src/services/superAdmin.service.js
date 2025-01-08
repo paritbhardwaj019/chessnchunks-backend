@@ -12,7 +12,10 @@ const hashPassword = require('../utils/hashPassword');
 const crypto = require('crypto');
 const generateDomain = require('../utils/generateDomain');
 const stripe = require('../config/stripe');
-const { uploadToCloudinary } = require('../utils/cloudinary.utils');
+const {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} = require('../utils/cloudinary.utils');
 const { defaultNavigation } = require('../data/defaultNavigation');
 const createDefaultPagesForAcademy = require('../utils/createDefaultPages');
 const fs = require('fs');

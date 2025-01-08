@@ -6,6 +6,13 @@ const checkRole = require('../../middlewares/checkRole');
 
 const dashboardRouter = express.Router();
 
+dashboardRouter.get(
+  '/student/chess-stats',
+  checkJWT,
+  checkRole(['STUDENT']),
+  dashboardController.getStudentChessStatsHandler
+);
+
 dashboardRouter
   .route('/')
   .get(
