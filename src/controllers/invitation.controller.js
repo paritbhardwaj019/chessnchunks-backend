@@ -11,6 +11,9 @@ const fetchAllInvitationsHandler = catchAsync(async (req, res) => {
     'query',
   ]);
 
+  page = parseInt(page, 10);
+  limit = parseInt(limit, 10);
+
   const allInvitations = await invitationService.fetchAllInvitationsHandler(
     req.user,
     page,
