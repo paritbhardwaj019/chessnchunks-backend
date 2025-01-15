@@ -3,6 +3,7 @@ const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 const FPDF = require('node-fpdf');
+const studentService = require('./student.service');
 
 const createSeasonalGoalHandler = async (data) => {
   const { startDate, endDate, batchId } = data;
@@ -587,6 +588,95 @@ const getWeeklyGoalsForOptions = async (batchId, monthlyGoalId) => {
   return weeklyGoals;
 };
 
+const getAllAssignedWeeklyGoals = async (page, limit, query, loggedInUser) => {
+  const numberPage = Number(page) || 1;
+  const numberLimit = Number(limit) || 10;
+
+  const studentsResponse = await studentService.fetchAllStudentsHandler(
+    1,
+    1000,
+    '',
+    loggedInUser
+  );
+
+  const students = studentsResponse.data;
+
+  const assignedWeeklyGoals = await db.studentWeeklyGoal.findMany({
+    where: {
+      studentId: {
+        in: students.map((student) => student.id),
+      },
+    },
+    include: {
+      weeklyGoal: {
+        include: {
+          target: true,
+          monthlyGoal: {
+            include: {
+              seasonalGoal: true,
+            },
+          },
+        },
+      },
+      student: {
+        select: {
+          id: true,
+          email: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+    },
+    skip: (numberPage - 1) * numberLimit,
+    take: numberLimit,
+  });
+
+  const formattedGoals = assignedWeeklyGoals.map((goal) => ({
+    id: goal.id,
+    studentId: goal.studentId,
+    studentEmail: goal.student.email,
+    studentName: `${goal.student.profile.firstName} ${goal.student.profile.lastName}`,
+    weeklyGoalId: goal.weeklyGoalId,
+    puzzlesTarget: goal.puzzlesTarget,
+    puzzlesSolved: goal.puzzlesSolved,
+    puzzlesPassed: goal.puzzlesPassed,
+    isCustom: goal.isCustom,
+    weeklyGoal: {
+      id: goal.weeklyGoal.id,
+      code: goal.weeklyGoal.code,
+      startDate: goal.weeklyGoal.startDate,
+      endDate: goal.weeklyGoal.endDate,
+      target: goal.weeklyGoal.target,
+      monthlyGoal: {
+        id: goal.weeklyGoal.monthlyGoal.id,
+        code: goal.weeklyGoal.monthlyGoal.code,
+        startDate: goal.weeklyGoal.monthlyGoal.startDate,
+        endDate: goal.weeklyGoal.monthlyGoal.endDate,
+        seasonalGoal: {
+          id: goal.weeklyGoal.monthlyGoal.seasonalGoal.id,
+          code: goal.weeklyGoal.monthlyGoal.seasonalGoal.code,
+          startDate: goal.weeklyGoal.monthlyGoal.seasonalGoal.startDate,
+          endDate: goal.weeklyGoal.monthlyGoal.seasonalGoal.endDate,
+        },
+      },
+    },
+  }));
+
+  return {
+    data: formattedGoals,
+    pagination: {
+      total: assignedWeeklyGoals.length,
+      page: numberPage,
+      limit: numberLimit,
+      totalPages: Math.ceil(assignedWeeklyGoals.length / numberLimit),
+    },
+  };
+};
+
 module.exports = {
   createSeasonalGoalHandler,
   createMonthlyGoalHandler,
@@ -600,4 +690,5 @@ module.exports = {
   getSeasonalGoalsForOptions,
   getMonthlyGoalsForOptions,
   getWeeklyGoalsForOptions,
+  getAllAssignedWeeklyGoals,
 };

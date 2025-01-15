@@ -123,6 +123,19 @@ const generateStudentPDFReportHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send({ filePath });
 });
 
+const getAllAssignedWeeklyGoalsHandler = catchAsync(async (req, res) => {
+  const { page, limit } = _.pick(req.query, ['page', 'limit']);
+
+  const assignedWeeklyGoals = await goalService.getAllAssignedWeeklyGoals(
+    page,
+    limit,
+    req.query,
+    req.user
+  );
+
+  res.status(httpStatus.OK).send(assignedWeeklyGoals);
+});
+
 const goalController = {
   assignWeeklyGoalHandler,
   createSeasonalGoalHandler,
@@ -137,6 +150,7 @@ const goalController = {
   fetchAllStudentAssignedWeeklyGoalsHandler,
   generateStudentPDFReportHandler,
   fetchAllWeeklyGoalsHandler,
+  getAllAssignedWeeklyGoalsHandler,
 };
 
 module.exports = goalController;
