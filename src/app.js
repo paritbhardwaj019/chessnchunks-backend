@@ -13,23 +13,29 @@ const {
 const {
   checkAndUpdateExpiredBatches,
 } = require('./cron/batchStatusUpdate.cron');
+const swaggerJsDoc = require('swagger-jsdoc');
+const swaggerUI = require('swagger-ui-express');
+const swaggerOptions = require('./config/swaggerOptions');
 
 const app = express();
 
+// Initialize cron jobs
 initializeCronJobs();
 scheduleBatchExpiryCheck();
 checkAndUpdateExpiredBatches();
 
+// Morgan middleware for logging
 const morganMiddleware = morgan('dev', {
   stream: {
     write: (message) => logger.info(message.trim()),
   },
 });
-
 app.use(morganMiddleware);
 
+// Stripe webhook endpoint (raw body parser)
 app.use('/api/v1/webhook/stripe', express.raw({ type: 'application/json' }));
 
+// CORS middleware
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
@@ -56,6 +62,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// Body parser middleware
 app.use((req, res, next) => {
   if (req.originalUrl === '/api/v1/webhook/stripe') {
     next();
@@ -67,8 +74,14 @@ app.use((req, res, next) => {
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(helmet());
 
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+
+app.use('/', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
+
+// API routes
 app.use('/api/v1', router);
 
+// Error handler middleware
 app.use(errorHandler);
 
 module.exports = app;
