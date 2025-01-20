@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+
 const authService = require('../services/auth.service');
 const catchAsync = require('../utils/catchAsync');
 
@@ -10,7 +11,7 @@ const checkMfaStatusHandler = catchAsync(async (req, res) => {
 const loginWithPasswordHandler = catchAsync(async (req, res) => {
   const origin = 'http://' + req.headers['x-origin-host'];
 
-  console.log('origin', origin);
+  'origin', origin;
 
   const loggedInUser = await authService.loginWithPasswordHandler(
     req.body,
@@ -29,7 +30,7 @@ const loginWithoutPasswordHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(successUser);
 });
 const verifyLoginWithoutPasswordHandler = catchAsync(async (req, res) => {
-  console.log(req.body);
+  req.body;
 
   const loggedInUser = await authService.verifyLoginWithoutPasswordHandler(
     req.body,

@@ -1,4 +1,5 @@
 const express = require('express');
+
 const friendRequestController = require('../../controllers/friendRequest.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 

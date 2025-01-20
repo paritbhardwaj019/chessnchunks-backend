@@ -1,7 +1,8 @@
+const { USER_STATUS, PAYMENT_STATUS } = require('@prisma/client');
 const httpStatus = require('http-status');
+
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
-const { USER_STATUS, PAYMENT_STATUS } = require('@prisma/client');
 
 const getBatchesSnapshotHandler = async (filters = {}) => {
   const where = {

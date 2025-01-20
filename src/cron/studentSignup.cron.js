@@ -1,6 +1,7 @@
 const cron = require('node-cron');
-const logger = require('../utils/logger');
+
 const studentSignupService = require('../services/studentSignup.service');
+const logger = require('../utils/logger');
 
 const initializeCronJobs = () => {
   cron.schedule('0 * * * *', async () => {

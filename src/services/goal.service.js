@@ -1,8 +1,10 @@
 const httpStatus = require('http-status');
+const FPDF = require('node-fpdf');
+
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
-const FPDF = require('node-fpdf');
+
 const studentService = require('./student.service');
 
 const createSeasonalGoalHandler = async (data) => {
@@ -75,7 +77,7 @@ const createMonthlyGoalHandler = async (data) => {
 };
 
 const getSeasonalGoalsForOptions = async (batchId) => {
-  console.log('BATCH ID', batchId);
+  'BATCH ID', batchId;
   const seasonalGoals = await db.seasonalGoal.findMany({
     where: {
       batchId,
@@ -566,7 +568,7 @@ const fetchAllWeeklyGoalsHandler = async (loggedInUser) => {
 const getWeeklyGoalsForOptions = async (batchId, monthlyGoalId) => {
   const whereClause = {};
 
-  console.log(batchId, monthlyGoalId);
+  batchId, monthlyGoalId;
 
   if (batchId && monthlyGoalId) {
     whereClause.batchId = batchId;

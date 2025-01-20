@@ -1,8 +1,9 @@
 const express = require('express');
+
 const batchController = require('../../controllers/batch.controller');
 const checkJWT = require('../../middlewares/checkJWT');
-const checkRole = require('../../middlewares/checkRole');
 const checkPermission = require('../../middlewares/checkPermission');
+const checkRole = require('../../middlewares/checkRole');
 
 const batchRouter = express.Router();
 

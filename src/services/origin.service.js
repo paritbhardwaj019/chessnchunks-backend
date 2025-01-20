@@ -1,6 +1,7 @@
+const cron = require('node-cron');
+
 const db = require('../database/prisma');
 const logger = require('../utils/logger');
-const cron = require('node-cron');
 
 // Initialize with default allowed origins (no trailing slashes)
 let cachedOrigins = new Set(['http://localhost:3001', 'http://localhost:3000']);

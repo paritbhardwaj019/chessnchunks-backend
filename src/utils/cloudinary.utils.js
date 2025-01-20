@@ -1,7 +1,9 @@
 const { v2: cloudinary } = require('cloudinary');
 const httpStatus = require('http-status');
-const ApiError = require('./apiError');
+
 const config = require('../config');
+
+const ApiError = require('./apiError');
 
 cloudinary.config({
   cloud_name: config.cloudinary.cloudName,

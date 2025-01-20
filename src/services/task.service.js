@@ -1,9 +1,10 @@
+const { SYSTEM_CODE_MODULE } = require('@prisma/client');
 const httpStatus = require('http-status');
+
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
-const logger = require('../utils/logger');
 const generateSystemCode = require('../utils/generateSystemCode');
-const { SYSTEM_CODE_MODULE } = require('@prisma/client');
+const logger = require('../utils/logger');
 
 /**
  * Create a new task
@@ -26,7 +27,7 @@ const createTaskHandler = async (data, loggedInUser) => {
   try {
     const taskId = await generateSystemCode(SYSTEM_CODE_MODULE.TASK);
 
-    let taskData = {
+    const taskData = {
       taskId,
       description,
       startDate: new Date(startDate),
@@ -189,7 +190,7 @@ const getTaskById = async (taskId, loggedInUser) => {
 const updateTask = async (taskId, data, loggedInUser) => {
   const existingTask = await db.task.findUnique({ where: { id: taskId } });
 
-  console.log('DATA', data);
+  'DATA', data;
 
   if (!existingTask) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Task not found');

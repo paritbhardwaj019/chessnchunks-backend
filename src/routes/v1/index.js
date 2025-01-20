@@ -1,16 +1,6 @@
 const express = require('express');
 
 const academyRouter = require('./academy.route');
-const superAdminRouter = require('./superAdmin.route');
-const coachRouter = require('./coach.route');
-const adminRouter = require('./admin.route');
-const batchRouter = require('./batch.route');
-const authRouter = require('./auth.route');
-const studentRouter = require('./student.route');
-const invitationRouter = require('./invitation.route');
-const userRouter = require('./user.route');
-const dashboardRouter = require('./dashboard.route');
-const goalRouter = require('./goal.route');
 const messageRouter = require('./messageRouter');
 const chatRouter = require('./chatRouter');
 const friendRequestRouter = require('./friendRequestRouter');
@@ -22,15 +12,25 @@ const notificationRouter = require('./notification.route');
 const systemCodeRouter = require('./systemCode.route');
 const stipeWebhookRouter = require('./webhook/stipe');
 const academyProgramRouter = require('./academyProgram.route');
-const studentSignupRouter = require('./studentSignup.route');
-const quizRouter = require('./quiz.route');
-const navigationRouter = require('./navigation.route');
+const adminRouter = require('./admin.route');
+const authRouter = require('./auth.route');
+const batchRouter = require('./batch.route');
 const pageRouter = require('./page.route');
 const batchReportRouter = require('./batchReport.route');
+const coachRouter = require('./coach.route');
+const dashboardRouter = require('./dashboard.route');
 const enrollmentReportRouter = require('./enrollmentReport.route');
-const studentReportRouter = require('./studentReport.route');
+const goalRouter = require('./goal.route');
+const invitationRouter = require('./invitation.route');
+const navigationRouter = require('./navigation.route');
 const portalSubscriberRouter = require('./portalSubscriber.route');
+const quizRouter = require('./quiz.route');
+const studentRouter = require('./student.route');
 const studentProfileRouter = require('./studentProfile.route');
+const studentReportRouter = require('./studentReport.route');
+const studentSignupRouter = require('./studentSignup.route');
+const superAdminRouter = require('./superAdmin.route');
+const userRouter = require('./user.route');
 
 const router = express.Router();
 

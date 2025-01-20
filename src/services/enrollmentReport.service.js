@@ -1,11 +1,12 @@
-const db = require('../database/prisma');
-const httpStatus = require('http-status');
-const ApiError = require('../utils/apiError');
 const {
   SIGNUP_STATUS,
   PAYMENT_STATUS,
   USER_STATUS,
 } = require('@prisma/client');
+const httpStatus = require('http-status');
+
+const db = require('../database/prisma');
+const ApiError = require('../utils/apiError');
 
 const getCurrentSeasonEnrollmentsHandler = async (filters = {}) => {
   try {
@@ -286,7 +287,7 @@ const getWithdrawalsHandler = async (filters = {}) => {
       withdrawalDate: withdrawal.updatedAt,
     }));
   } catch (error) {
-    console.log('ERROR', error);
+    'ERROR', error;
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Error fetching withdrawals'

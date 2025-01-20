@@ -1,5 +1,6 @@
-const config = require('.'); // Assuming this imports your configuration
 const path = require('path');
+
+const config = require('.'); // Assuming this imports your configuration
 
 const swaggerOptions = {
   swaggerDefinition: {

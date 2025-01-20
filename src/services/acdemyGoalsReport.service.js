@@ -1,7 +1,9 @@
 const ChessWebAPI = require('chess-web-api');
 const httpStatus = require('http-status');
+
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
+const logger = require('../utils/logger');
 
 const chess = new ChessWebAPI();
 
@@ -107,9 +109,8 @@ const getAcademyGoalsReport = async (academyId, filters = {}) => {
           },
         };
       } catch (error) {
-        console.error(
-          `Error fetching stats for ${student.profile?.chessComId}:`,
-          error
+        logger.error(
+          `Error fetching Chess.com stats for ${student.profile?.firstName} ${student.profile?.lastName}: ${error.message}`
         );
         return {
           batchCode: student.studentOfBatches[0]?.batchCode || 'Unassigned',

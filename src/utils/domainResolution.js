@@ -6,7 +6,7 @@ const db = require('../database/prisma');
  * @returns {Promise<string>} Resolved academy domain
  */
 const resolveAcademyDomain = async (inputDomain) => {
-  let domain = inputDomain.replace(/^https?:\/\//, '');
+  const domain = inputDomain.replace(/^https?:\/\//, '');
 
   const parts = domain.split(':');
 

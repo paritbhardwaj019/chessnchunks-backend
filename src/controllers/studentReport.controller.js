@@ -1,6 +1,8 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
+
 const studentReportService = require('../services/studentReport.service');
+const catchAsync = require('../utils/catchAsync');
+
 const { getAndValidateAcademy } = require('./academyProgram.controller');
 
 const getStudentPerformance = catchAsync(async (req, res) => {
@@ -12,9 +14,8 @@ const getStudentPerformance = catchAsync(async (req, res) => {
     searchQuery: req.query.search,
   };
 
-  const performance = await studentReportService.getStudentPerformanceHandler(
-    filters
-  );
+  const performance =
+    await studentReportService.getStudentPerformanceHandler(filters);
   res.status(httpStatus.OK).send(performance);
 });
 

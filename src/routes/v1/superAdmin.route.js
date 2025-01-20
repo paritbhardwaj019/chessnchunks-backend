@@ -1,4 +1,5 @@
 const express = require('express');
+
 const superAdminController = require('../../controllers/superAdmin.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 const checkRole = require('../../middlewares/checkRole');

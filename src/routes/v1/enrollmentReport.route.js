@@ -1,4 +1,5 @@
 const express = require('express');
+
 const enrollmentReportController = require('../../controllers/enrollmentReport.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 

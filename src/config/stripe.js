@@ -1,4 +1,5 @@
 const Stripe = require('stripe');
+
 const config = require('.');
 
 const stripe = new Stripe(config.stripe.secretKey, {

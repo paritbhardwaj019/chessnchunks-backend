@@ -1,32 +1,35 @@
+const crypto = require('crypto');
+const fs = require('fs');
+
+const { ROLE } = require('@prisma/client');
+const httpStatus = require('http-status');
+const _ = require('lodash');
+const Mailgen = require('mailgen');
+const xlsx = require('xlsx');
+
+const config = require('../config');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
-const hashPassword = require('../utils/hashPassword');
-const httpStatus = require('http-status');
-const xlsx = require('xlsx');
-const fs = require('fs');
-const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
-const comparePassword = require('../utils/comparePassword');
-const { getSingleAcademyForUser } = require('./academy.service');
-const crypto = require('crypto');
-const { ROLE } = require('@prisma/client');
-const _ = require('lodash');
-
-const createToken = require('../utils/createToken');
-const Mailgen = require('mailgen');
-const sendMail = require('../utils/sendEmail');
-const generateSystemCode = require('../utils/generateSystemCode');
-const { sendSignupEmail } = require('./studentSignup.service');
-const config = require('../config');
 const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
-const {
-  sendInvitationEmail,
-  createStudentInvitation,
-} = require('./student.service');
 const sendEmail = require('../utils/sendEmail');
 const {
   uploadToCloudinary,
   deleteFromCloudinary,
 } = require('../utils/cloudinary.utils');
+const comparePassword = require('../utils/comparePassword');
+const createToken = require('../utils/createToken');
+const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
+const generateSystemCode = require('../utils/generateSystemCode');
+const hashPassword = require('../utils/hashPassword');
+const sendMail = require('../utils/sendEmail');
+const { getSingleAcademyForUser } = require('./academy.service');
+
+const {
+  sendInvitationEmail,
+  createStudentInvitation,
+} = require('./student.service');
+const { sendSignupEmail } = require('./studentSignup.service');
+const logger = require('../utils/logger');
 
 const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const numberPage = Number(page) || 1;
@@ -324,7 +327,7 @@ const processRow = async (
     select: { name: true, domain: true },
   });
 
-  console.log('ROLE', role);
+  'ROLE', role;
 
   if (role === 'COACH') {
     await processCoach(
@@ -362,7 +365,7 @@ const processCoach = async (
     SUB_ROLE: subRole,
   } = row;
 
-  console.log('ROW', row);
+  'ROW', row;
 
   const tempPassword = crypto.randomBytes(8).toString('hex');
   const hashedPassword = await hashPassword(tempPassword, 10);
@@ -378,7 +381,7 @@ const processCoach = async (
     loggedInUser.id
   );
 
-  console.log('COACH_INVITATION', coachInvitation);
+  'COACH_INVITATION', coachInvitation;
 
   const token = await createToken(
     { id: coachInvitation.id, version: coachInvitation.version },
@@ -391,13 +394,13 @@ const processCoach = async (
       ? academy.domain
       : getDomainFromAdmin(academy.domain);
 
-  console.log('BASE_URL', baseUrl);
+  'BASE_URL', baseUrl;
 
   const ACTIVATION_URL = `${baseUrl}/invitation?type=BATCH_COACH&name=${encodeURIComponent(
     `${firstName} ${lastName} from ${academy.name}`
   )}&token=${token}`;
 
-  console.log('ACTIVATION_URL', ACTIVATION_URL);
+  'ACTIVATION_URL', ACTIVATION_URL;
 
   await sendCoachInvitationEmail(
     firstName,
@@ -426,7 +429,7 @@ const processStudent = async (
   const tempPassword = crypto.randomBytes(8).toString('hex');
   const hashedPassword = await hashPassword(tempPassword, 10);
 
-  console.log('Creating student invitation for:', email);
+  'Creating student invitation for:', email;
 
   try {
     studentInvitation = await createStudentInvitation(
@@ -435,9 +438,9 @@ const processStudent = async (
       hashedPassword,
       loggedInUser.id
     );
-    console.log('Student invitation created:', studentInvitation.id);
+    'Student invitation created:', studentInvitation.id;
   } catch (error) {
-    console.error('Failed to create student invitation for:', email, error);
+    logger.error(`Failed to create student invitation: ${error.message}`);
     throw error;
   }
 
@@ -606,7 +609,7 @@ const updateUserStatus = async (userId, status) => {
 const updateUserHandler = async (id, userData, loggedInUser) => {
   const { email, firstName, lastName, role, subRole, status } = userData;
 
-  console.log('USER DATA', userData);
+  'USER DATA', userData;
 
   if (!id) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required.');
@@ -1148,7 +1151,7 @@ const updateProfileHandler = async (id, data, loggedInUser) => {
         const newImagePublicId = imageUrl.split('/').slice(-1)[0].split('.')[0];
         await deleteFromCloudinary(newImagePublicId);
       } catch (cleanupError) {
-        console.error('Failed to cleanup Cloudinary image:', cleanupError);
+        logger.error(`Failed to clean up Cloudinary image: ${cleanupError}`);
       }
     }
     throw error;

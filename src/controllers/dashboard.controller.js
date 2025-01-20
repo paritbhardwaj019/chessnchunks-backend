@@ -1,7 +1,8 @@
 const httpStatus = require('http-status');
+
 const dashboardService = require('../services/dashboard.service');
-const catchAsync = require('../utils/catchAsync');
 const ApiError = require('../utils/apiError');
+const catchAsync = require('../utils/catchAsync');
 
 const fetchAllDashboard = catchAsync(async (req, res) => {
   const loggedInUser = req.user;
@@ -10,19 +11,16 @@ const fetchAllDashboard = catchAsync(async (req, res) => {
 
   switch (loggedInUser.role) {
     case 'SUPER_ADMIN':
-      dashboardData = await dashboardService.getSuperAdminDashboardData(
-        loggedInUser
-      );
+      dashboardData =
+        await dashboardService.getSuperAdminDashboardData(loggedInUser);
       break;
     case 'ADMIN':
-      dashboardData = await dashboardService.getAdminDashboardData(
-        loggedInUser
-      );
+      dashboardData =
+        await dashboardService.getAdminDashboardData(loggedInUser);
       break;
     case 'COACH':
-      dashboardData = await dashboardService.getCoachDashboardData(
-        loggedInUser
-      );
+      dashboardData =
+        await dashboardService.getCoachDashboardData(loggedInUser);
       break;
     default:
       throw new ApiError(httpStatus.UNAUTHORIZED, 'Forbidden');
@@ -44,7 +42,7 @@ const getCoachBatchStats = catchAsync(async (req, res) => {
     req.user
   );
 
-  console.log('PERFORMANCE_DATA', performanceData);
+  'PERFORMANCE_DATA', performanceData;
 
   res.status(httpStatus.OK).send(performanceData);
 });

@@ -1,6 +1,7 @@
 const express = require('express');
-const checkJWT = require('../../middlewares/checkJWT');
+
 const permissionController = require('../../controllers/permission.controller');
+const checkJWT = require('../../middlewares/checkJWT');
 
 const permissionRouter = express.Router();
 

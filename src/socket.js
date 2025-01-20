@@ -1,7 +1,8 @@
 const socketIO = require('socket.io');
-const logger = require('./utils/logger');
+
 const SOCKET_EVENTS = require('./config/socketEvents');
 const { isOriginAllowed } = require('./services/origin.service');
+const logger = require('./utils/logger');
 
 let io;
 

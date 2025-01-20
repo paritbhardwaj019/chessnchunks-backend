@@ -1,4 +1,5 @@
 const express = require('express');
+
 const navigationController = require('../../controllers/navigation.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 

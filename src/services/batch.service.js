@@ -1,13 +1,15 @@
 const httpStatus = require('http-status');
+
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
+
+const { getBatchFilter, getBatchById } = require('./batch.queries');
+const { generateBatchCode, getWarningStatus } = require('./batch.utils');
 const {
   validateHeadCoach,
   validateBatchCapacity,
   validateUserAcademy,
 } = require('./batch.validators');
-const { generateBatchCode, getWarningStatus } = require('./batch.utils');
-const { getBatchFilter, getBatchById } = require('./batch.queries');
 
 const createBatchHandler = async (data, loggedInUser) => {
   const {
@@ -343,7 +345,7 @@ const fetchAllBatchesForOptions = async (loggedInUser) => {
 };
 
 const fetchBatchById = async (loggedInUser, id) => {
-  let batchFilter = {
+  const batchFilter = {
     id: id,
   };
 
@@ -458,7 +460,7 @@ const fetchBatchById = async (loggedInUser, id) => {
 };
 
 const addStudentToBatch = async (batchId, studentId) => {
-  console.log(batchId, studentId);
+  batchId, studentId;
 
   const batch = await db.batch.findUnique({
     where: { id: batchId },
@@ -486,7 +488,7 @@ const addStudentToBatch = async (batchId, studentId) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Student not found!');
   }
 
-  console.log(batch, student);
+  batch, student;
 
   const isAlreadyInBatch = batch.students.some((s) => s.id === studentId);
   if (isAlreadyInBatch) {
@@ -520,7 +522,7 @@ const addCoachToBatch = async (batchId, coachId) => {
     include: { coaches: true },
   });
 
-  console.log('BATCH', batch);
+  'BATCH', batch;
 
   if (!batch) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found!');

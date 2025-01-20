@@ -1,8 +1,9 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
 const _ = require('lodash');
-const userService = require('../services/user.service');
+
 const academyService = require('../services/academy.service');
+const userService = require('../services/user.service');
+const catchAsync = require('../utils/catchAsync');
 
 const fetchAllUsersHandler = catchAsync(async (req, res) => {
   const { page, limit, query } = _.pick(req.query, ['page', 'limit', 'query']);
@@ -56,7 +57,7 @@ const fetchProfileByIdHandler = catchAsync(async (req, res) => {
 });
 
 const updatePasswordHandler = catchAsync(async (req, res) => {
-  console.log('req==>', req.params.id);
+  'req==>', req.params.id;
   const id = await req.params.id;
   const updatedUser = await userService.updatePasswordHandler(
     {
@@ -69,7 +70,7 @@ const updatePasswordHandler = catchAsync(async (req, res) => {
 });
 
 const requestEmailChange = catchAsync(async (req, res) => {
-  console.log('REQ_BODY', req.body);
+  'REQ_BODY', req.body;
 
   const { newEmail } = req.body;
 

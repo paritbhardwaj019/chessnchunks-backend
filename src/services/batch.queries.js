@@ -1,8 +1,9 @@
 const httpStatus = require('http-status');
+
 const ApiError = require('../utils/apiError');
 
 const getBatchFilter = (loggedInUser, query = null) => {
-  let filter = {};
+  const filter = {};
 
   if (loggedInUser.role === 'ADMIN') {
     filter.academy = {

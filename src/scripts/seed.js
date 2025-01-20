@@ -1,4 +1,5 @@
 const { PrismaClient, SYSTEM_CODE_MODULE } = require('@prisma/client');
+
 const logger = require('../utils/logger');
 const prisma = new PrismaClient();
 
@@ -615,10 +616,9 @@ async function main() {
   }
 }
 
-// Execute the main function
 main()
   .catch((e) => {
-    console.error(e);
+    logger.error(`Error in seeding: ${e.message || e}`);
     process.exit(1);
   })
   .finally(async () => {

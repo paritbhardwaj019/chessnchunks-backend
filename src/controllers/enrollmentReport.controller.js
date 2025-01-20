@@ -1,6 +1,8 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
+
 const enrollmentReportService = require('../services/enrollmentReport.service');
+const catchAsync = require('../utils/catchAsync');
+
 const { getAndValidateAcademy } = require('./academyProgram.controller');
 
 const getCurrentSeasonEnrollments = catchAsync(async (req, res) => {
@@ -23,9 +25,8 @@ const getNewEnrollments = catchAsync(async (req, res) => {
     days: req.query.days ? parseInt(req.query.days) : 30,
   };
 
-  const enrollments = await enrollmentReportService.getNewEnrollmentsHandler(
-    filters
-  );
+  const enrollments =
+    await enrollmentReportService.getNewEnrollmentsHandler(filters);
   res.status(httpStatus.OK).send(enrollments);
 });
 
@@ -36,9 +37,8 @@ const getWithdrawals = catchAsync(async (req, res) => {
     days: req.query.days ? parseInt(req.query.days) : 30,
   };
 
-  const withdrawals = await enrollmentReportService.getWithdrawalsHandler(
-    filters
-  );
+  const withdrawals =
+    await enrollmentReportService.getWithdrawalsHandler(filters);
   res.status(httpStatus.OK).send(withdrawals);
 });
 

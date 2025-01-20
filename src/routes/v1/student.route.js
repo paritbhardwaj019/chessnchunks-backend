@@ -1,4 +1,5 @@
 const express = require('express');
+
 const studentController = require('../../controllers/student.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 const checkRole = require('../../middlewares/checkRole');

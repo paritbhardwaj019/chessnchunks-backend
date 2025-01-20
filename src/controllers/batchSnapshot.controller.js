@@ -1,6 +1,8 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
+
 const batchesSnapshotService = require('../services/batchSnapshot.service');
+const catchAsync = require('../utils/catchAsync');
+
 const { getAndValidateAcademy } = require('./academyProgram.controller');
 
 const getBatchesSnapshot = catchAsync(async (req, res) => {
@@ -30,9 +32,8 @@ const getBatchMetrics = catchAsync(async (req, res) => {
   const metrics = {
     total: await batchesSnapshotService.getTotalBatchesCount(academyId),
     active: await batchesSnapshotService.getActiveBatchesCount(academyId),
-    nearCapacity: await batchesSnapshotService.getNearCapacityBatchesCount(
-      academyId
-    ),
+    nearCapacity:
+      await batchesSnapshotService.getNearCapacityBatchesCount(academyId),
     requiresAttention:
       await batchesSnapshotService.getAttentionRequiredBatchesCount(academyId),
   };

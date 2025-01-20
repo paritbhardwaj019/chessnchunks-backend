@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+
 const ApiError = require('../utils/apiError');
 
 const validateHeadCoach = async (db, coaches) => {

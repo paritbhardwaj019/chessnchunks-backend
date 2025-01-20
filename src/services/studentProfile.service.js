@@ -21,7 +21,7 @@ const getCurrentSubscription = async (loggedInUser) => {
 
   let platformSubscription = null;
 
-  console.log(student);
+  student;
 
   if (student?.assignedToAcademy) {
     platformSubscription = await db.subscription.findFirst({
@@ -36,7 +36,7 @@ const getCurrentSubscription = async (loggedInUser) => {
     });
   }
 
-  console.log('PLATFORM SUBSCRIPTION', platformSubscription);
+  'PLATFORM SUBSCRIPTION', platformSubscription;
 
   const academySubscription = await db.studentSubscription.findFirst({
     where: {

@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const logger = require('./logger');
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -31,7 +32,7 @@ const sendMail = async (to, subject, text, html = '') => {
     const info = await transporter.sendMail(mailOptions);
     return info;
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    logger.error(`Error sending email ${error.message || error}`); // eslint-disable-line no-console
   }
 };
 

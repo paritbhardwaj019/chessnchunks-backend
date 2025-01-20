@@ -1,7 +1,9 @@
-const db = require('../database/prisma');
 const httpStatus = require('http-status');
-const ApiError = require('../utils/apiError');
+
 const { mysqlPool } = require('../config/db');
+const db = require('../database/prisma');
+const ApiError = require('../utils/apiError');
+const logger = require('../utils/logger');
 
 /**
  * Service to fetch dashboard data for Super Admins.
@@ -321,7 +323,7 @@ const getBatchStudentsStatsHandler = async (loggedInUser) => {
       lastUpdated: Object.values(latestStatsMap)[0]?.lastUpdated || null,
     };
   } catch (error) {
-    console.log(error);
+    error;
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Error fetching batch students statistics'
@@ -491,7 +493,7 @@ async function getCoachBatchPerformance(loggedInUser) {
     if (error instanceof ApiError) {
       throw error;
     }
-    console.error('Error in getCoachBatchPerformance:', error);
+    logger.error(`Error in getCoachBatchPerformance: ${error.message}`);
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Error fetching coach batch performance data'

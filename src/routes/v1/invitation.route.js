@@ -1,8 +1,9 @@
 const express = require('express');
-const checkJWT = require('../../middlewares/checkJWT');
-const checkRole = require('../../middlewares/checkRole');
+
 const invitationController = require('../../controllers/invitation.controller');
+const checkJWT = require('../../middlewares/checkJWT');
 const checkPermission = require('../../middlewares/checkPermission');
+const checkRole = require('../../middlewares/checkRole');
 
 const invitationRouter = express.Router();
 

@@ -1,10 +1,11 @@
 const httpStatus = require('http-status');
-const navigationService = require('../services/navigation.service');
+
 const academyService = require('../services/academy.service');
+const navigationService = require('../services/navigation.service');
 const ApiError = require('../utils/apiError');
-const pick = require('../utils/pick');
 const catchAsync = require('../utils/catchAsync');
 const { resolveAcademyDomain } = require('../utils/domainResolution');
+const pick = require('../utils/pick');
 
 const getAndValidateAcademy = async (loggedInUser) => {
   const academy = await academyService.getSingleAcademyForUser(loggedInUser);
@@ -17,7 +18,7 @@ const getAndValidateAcademy = async (loggedInUser) => {
 const getNavigationItems = catchAsync(async (req, res) => {
   const academy = await getAndValidateAcademy(req.user);
 
-  console.log('ACADEMY', academy);
+  'ACADEMY', academy;
 
   const filters = pick(req.query, ['search', 'isActive']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
@@ -27,7 +28,7 @@ const getNavigationItems = catchAsync(async (req, res) => {
     ...options,
   });
 
-  console.log(result?.results);
+  result?.results;
 
   res.send(result);
 });

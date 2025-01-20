@@ -1,14 +1,16 @@
+const fs = require('fs');
+
 const httpStatus = require('http-status');
+
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const {
   uploadToCloudinary,
   deleteFromCloudinary,
 } = require('../utils/cloudinary.utils');
-const fs = require('fs');
 
 const updateAcademyByIdHandler = async (data, id, loggedInUser) => {
-  console.log(data, id, loggedInUser);
+  data, id, loggedInUser;
 
   if (loggedInUser.role === 'SUPER_ADMIN') {
     const updatedAcademy = await db.academy.update({
@@ -130,7 +132,7 @@ const fetchAcademyByIdHandler = async (id, loggedInUser) => {
         "User isn't authorized to perform this action"
       );
 
-    console.log('academy', academy);
+    'academy', academy;
 
     return {
       academy,
@@ -299,7 +301,7 @@ const parseSlug = (slug) => {
 const getPublicPageBySlug = async (domain, slug) => {
   const parsedSlug = parseSlug(slug);
 
-  console.log('SLUG', slug);
+  'SLUG', slug;
 
   const academy = await db.academy.findUnique({
     where: { domain },
@@ -426,7 +428,7 @@ const updateAcademySettings = async (id, data, logoFile, loggedInUser) => {
 
   const updateData = {};
 
-  console.log(logoFile);
+  logoFile;
 
   if (logoFile) {
     try {

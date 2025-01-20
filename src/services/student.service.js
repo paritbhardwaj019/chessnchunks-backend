@@ -1,21 +1,24 @@
-const httpStatus = require('http-status');
-const db = require('../database/prisma');
-const createToken = require('../utils/createToken');
-const ApiError = require('../utils/apiError');
-const decodeToken = require('../utils/decodeToken');
-const config = require('../config');
-const sendMail = require('../utils/sendEmail');
-const Mailgen = require('mailgen');
-const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 const crypto = require('crypto');
-const hashPassword = require('../utils/hashPassword');
-const { getSingleAcademyForUser } = require('./academy.service');
+
+const httpStatus = require('http-status');
+const Mailgen = require('mailgen');
+
+const config = require('../config');
+const db = require('../database/prisma');
+const ApiError = require('../utils/apiError');
+const createToken = require('../utils/createToken');
+const decodeToken = require('../utils/decodeToken');
+const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
 const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
+const hashPassword = require('../utils/hashPassword');
+const sendMail = require('../utils/sendEmail');
+
+const { getSingleAcademyForUser } = require('./academy.service');
 
 const inviteStudentHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyId: providedAcademyId } = data;
 
-  let academyId =
+  const academyId =
     loggedInUser.role === 'SUPER_ADMIN'
       ? await validateAcademyId(providedAcademyId)
       : (await getSingleAcademyForUser(loggedInUser)).id;
@@ -573,7 +576,7 @@ const fetchAllStudentsByBatchId = async (batchId, { query }) => {
 };
 
 const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
-  console.log(studentId, fromBatchId, toBatchId);
+  studentId, fromBatchId, toBatchId;
 
   // Get source batch with class and level info
   const fromBatch = await db.batch.findUnique({

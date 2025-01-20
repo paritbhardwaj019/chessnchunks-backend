@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
+
 const studentProfileService = require('../services/studentProfile.service');
+const catchAsync = require('../utils/catchAsync');
 
 const getCurrentSubscriptionHandler = catchAsync(async (req, res) => {
   const subscriptions = await studentProfileService.getCurrentSubscription(

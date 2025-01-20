@@ -2,6 +2,7 @@
 
 const httpStatus = require('http-status');
 const jwt = require('jsonwebtoken');
+
 const db = require('../database/prisma');
 
 async function checkJWT(req, res, next) {

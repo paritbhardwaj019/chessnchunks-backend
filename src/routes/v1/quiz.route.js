@@ -1,7 +1,8 @@
 const express = require('express');
+
+const quizController = require('../../controllers/quiz.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 const checkRole = require('../../middlewares/checkRole');
-const quizController = require('../../controllers/quiz.controller');
 
 const quizRouter = express.Router();
 

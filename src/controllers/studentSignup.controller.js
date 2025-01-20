@@ -1,8 +1,10 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
-const studentSignupService = require('../services/studentSignup.service');
 const _ = require('lodash');
+
+const studentSignupService = require('../services/studentSignup.service');
 const ApiError = require('../utils/apiError');
+const catchAsync = require('../utils/catchAsync');
+
 const { getAndValidateAcademy } = require('./academyProgram.controller');
 
 const createSignupHandler = catchAsync(async (req, res) => {
@@ -138,7 +140,7 @@ const setupMFAHandler = catchAsync(async (req, res) => {
 });
 
 const verifyMFAHandler = catchAsync(async (req, res) => {
-  console.log('BODY', req.body);
+  'BODY', req.body;
 
   const { token } = req.body;
 

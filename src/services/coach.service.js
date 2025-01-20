@@ -1,16 +1,19 @@
+const crypto = require('crypto');
+
 const httpStatus = require('http-status');
+const Mailgen = require('mailgen');
+
+const config = require('../config');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const createToken = require('../utils/createToken');
-const config = require('../config');
 const decodeToken = require('../utils/decodeToken');
-const sendMail = require('../utils/sendEmail');
-const Mailgen = require('mailgen');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
-const hashPassword = require('../utils/hashPassword');
-const crypto = require('crypto');
-const { getSingleAcademyForUser } = require('./academy.service');
 const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
+const hashPassword = require('../utils/hashPassword');
+const sendMail = require('../utils/sendEmail');
+
+const { getSingleAcademyForUser } = require('./academy.service');
 
 const inviteCoachHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyId: providedAcademyId } = data;

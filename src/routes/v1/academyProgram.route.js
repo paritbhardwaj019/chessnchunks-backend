@@ -1,4 +1,5 @@
 const express = require('express');
+
 const academyProgramController = require('../../controllers/academyProgram.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 

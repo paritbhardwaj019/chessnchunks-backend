@@ -1,11 +1,13 @@
-const prompt = require('prompt');
-const db = require('../database/prisma');
-const logger = require('./logger');
 const _ = require('lodash');
-const hashPassword = require('./hashPassword');
-const formatNumberWithPrefix = require('./formatNumberWithPrefix');
+const prompt = require('prompt');
+
 const { defaultNavigation } = require('../data/defaultNavigation');
+const db = require('../database/prisma');
 const createDefaultPagesForAcademy = require('../utils/createDefaultPages');
+
+const formatNumberWithPrefix = require('./formatNumberWithPrefix');
+const hashPassword = require('./hashPassword');
+const logger = require('./logger');
 
 const createNavigationItems = async (items, academyId, parentId = null) => {
   for (const item of items) {

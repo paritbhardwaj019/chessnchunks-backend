@@ -1,6 +1,8 @@
 const cron = require('node-cron');
+
 const db = require('../database/prisma');
 const sendEmail = require('../utils/sendEmail');
+const logger = require('../utils/logger');
 
 const checkAndUpdateExpiredBatches = async () => {
   try {
@@ -95,17 +97,15 @@ const checkAndUpdateExpiredBatches = async () => {
       }
     }
 
-    console.log(
-      `Batch status check completed. Updated ${expiredBatches.length} batches to inactive.`
-    );
+    `Batch status check completed. Updated ${expiredBatches.length} batches to inactive.`;
   } catch (error) {
-    console.error('Error in batch status update job:', error);
+    logger.error(`Error checking batch status: ${error.message || error}`);
   }
 };
 
 const scheduleBatchStatusCheck = () => {
   cron.schedule('1 0 * * *', async () => {
-    console.log('Running batch status check...');
+    ('Running batch status check...');
     await checkAndUpdateExpiredBatches();
   });
 };

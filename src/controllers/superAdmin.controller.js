@@ -1,8 +1,9 @@
 const httpStatus = require('http-status');
-const superAdminService = require('../services/superAdmin.service');
-const catchAsync = require('../utils/catchAsync');
 const _ = require('lodash');
+
+const superAdminService = require('../services/superAdmin.service');
 const ApiError = require('../utils/apiError');
+const catchAsync = require('../utils/catchAsync');
 
 const inviteAcademyAdminHandler = catchAsync(async (req, res) => {
   const academyAdminInvitation =

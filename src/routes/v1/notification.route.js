@@ -1,4 +1,5 @@
 const express = require('express');
+
 const notificationController = require('../../controllers/notification.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 

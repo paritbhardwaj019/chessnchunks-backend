@@ -1,4 +1,5 @@
 const db = require('../database/prisma');
+
 const { getSingleAcademyForUser } = require('./academy.service');
 const notificationService = require('./notification.service');
 
@@ -39,7 +40,7 @@ const createEventHandler = async (data, loggedInUser) => {
 const getAcademyEventsHandler = async (loggedInUser) => {
   const academy = await getSingleAcademyForUser(loggedInUser);
 
-  console.log('academy', academy);
+  'academy', academy;
 
   return db.event.findMany({
     where: {

@@ -21,7 +21,7 @@ const validateAcademyAccess = async (academyId, loggedInUser) => {
           },
         },
       });
-      return !!academy;
+      return Boolean(academy);
     }
 
     if (
@@ -35,7 +35,7 @@ const validateAcademyAccess = async (academyId, loggedInUser) => {
           subRole: 'HEAD_COACH',
         },
       });
-      return !!coach;
+      return Boolean(coach);
     }
 
     if (['COACH', 'STUDENT'].includes(loggedInUser.role)) {
@@ -45,7 +45,7 @@ const validateAcademyAccess = async (academyId, loggedInUser) => {
           assignedToAcademyId: academyId,
         },
       });
-      return !!user;
+      return Boolean(user);
     }
 
     return false;

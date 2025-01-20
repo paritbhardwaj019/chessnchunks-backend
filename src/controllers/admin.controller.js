@@ -1,7 +1,8 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
 const _ = require('lodash');
+
 const adminService = require('../services/admin.service');
+const catchAsync = require('../utils/catchAsync');
 
 const createAdminHandler = catchAsync(async (req, res) => {
   const data = _.pick(req.body, [

@@ -1,6 +1,7 @@
 // services/chat.service.js
 
 const httpStatus = require('http-status');
+
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 
@@ -23,7 +24,10 @@ const sendChatMessage = async ({ senderId, receiverId, content }) => {
   });
 
   if (!commonBatch) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'You can only chat with students in your batch');
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'You can only chat with students in your batch'
+    );
   }
 
   const message = await db.message.create({

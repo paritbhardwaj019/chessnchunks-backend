@@ -1,9 +1,10 @@
-const academyService = require('../services/academy.service');
-const ApiError = require('../utils/apiError');
-const academyProgramService = require('../services/academyProgram.service');
-const pick = require('../utils/pick');
-const catchAsync = require('../utils/catchAsync');
 const httpStatus = require('http-status');
+
+const academyService = require('../services/academy.service');
+const academyProgramService = require('../services/academyProgram.service');
+const ApiError = require('../utils/apiError');
+const catchAsync = require('../utils/catchAsync');
+const pick = require('../utils/pick');
 
 const getAndValidateAcademy = async (loggedInUser) => {
   const academy = await academyService.getSingleAcademyForUser(loggedInUser);

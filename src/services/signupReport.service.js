@@ -1,11 +1,12 @@
-const httpStatus = require('http-status');
-const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
 const {
   SIGNUP_STATUS,
   PAYMENT_STATUS,
   USER_STATUS,
 } = require('@prisma/client');
+const httpStatus = require('http-status');
+
+const db = require('../database/prisma');
+const ApiError = require('../utils/apiError');
 
 const getCurrentSeasonSignupsHandler = async (filters = {}) => {
   const currentDate = new Date();

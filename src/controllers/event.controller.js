@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+
 const eventService = require('../services/event.service');
 const catchAsync = require('../utils/catchAsync');
 

@@ -1,7 +1,8 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
 const _ = require('lodash');
+
 const invitationService = require('../services/invitation.service');
+const catchAsync = require('../utils/catchAsync');
 
 const fetchAllInvitationsHandler = catchAsync(async (req, res) => {
   let { page, limit, type, query } = _.pick(req.query, [

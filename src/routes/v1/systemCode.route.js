@@ -1,4 +1,5 @@
 const express = require('express');
+
 const systemCodeController = require('../../controllers/systemCode.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 const checkPermission = require('../../middlewares/checkPermission');

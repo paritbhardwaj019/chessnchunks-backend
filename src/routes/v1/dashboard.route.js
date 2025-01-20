@@ -1,6 +1,7 @@
 const express = require('express');
-const checkJWT = require('../../middlewares/checkJWT');
+
 const dashboardController = require('../../controllers/dashboard.controller');
+const checkJWT = require('../../middlewares/checkJWT');
 const checkPermission = require('../../middlewares/checkPermission');
 const checkRole = require('../../middlewares/checkRole');
 

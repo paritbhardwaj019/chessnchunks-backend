@@ -1,8 +1,9 @@
-const httpStatus = require('http-status');
-const ApiError = require('../utils/apiError');
-const db = require('../database/prisma');
-const generateSystemCode = require('../utils/generateSystemCode');
 const { SYSTEM_CODE_MODULE, QUESTION_TYPE } = require('@prisma/client');
+const httpStatus = require('http-status');
+
+const db = require('../database/prisma');
+const ApiError = require('../utils/apiError');
+const generateSystemCode = require('../utils/generateSystemCode');
 
 const questionTypeMapping = {
   mcq: 'MULTIPLE_CHOICE',
@@ -32,7 +33,7 @@ const createQuiz = async (data, userId) => {
 
       const mappedType = questionTypeMapping[q.type] || q.type;
 
-      console.log(mappedType);
+      mappedType;
 
       if (!Object.values(QUESTION_TYPE).includes(mappedType)) {
         throw new Error(`Invalid question type: ${mappedType}`);
@@ -129,7 +130,7 @@ const startQuizAttempt = async (quizId, userId) => {
     },
   });
 
-  console.log('QUIZ', quiz);
+  'QUIZ', quiz;
 
   if (!quiz) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Quiz not found');
@@ -424,7 +425,7 @@ const getQuizById = async (quizId) => {
     },
   });
 
-  console.log('QUIZ', quiz);
+  'QUIZ', quiz;
 
   if (!quiz) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Quiz not found');
@@ -585,7 +586,7 @@ const assignQuizWithTask = async (data, loggedInUser) => {
 
   const taskId = await generateSystemCode(SYSTEM_CODE_MODULE.TASK);
 
-  let taskData = {
+  const taskData = {
     description: description || `Quiz Assignment: ${quiz.title}`,
     taskId,
     startDate: new Date(startDate),
@@ -667,7 +668,7 @@ const assignQuizWithTask = async (data, loggedInUser) => {
 
     return task;
   } catch (error) {
-    console.error('Error creating task:', error);
+    logger.error(`Error creating task: ${error.message || error}`);
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Failed to create quiz assignment'

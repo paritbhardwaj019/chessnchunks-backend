@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+
 const systemCodeService = require('../services/systemCode.service');
 
 const createSystemCode = async (req, res) => {

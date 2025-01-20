@@ -1,6 +1,7 @@
+const httpStatus = require('http-status');
+
 const coachService = require('../services/coach.service');
 const catchAsync = require('../utils/catchAsync');
-const httpStatus = require('http-status');
 
 const inviteCoachHandler = catchAsync(async (req, res) => {
   const coachInvitation = await coachService.inviteCoachHandler(

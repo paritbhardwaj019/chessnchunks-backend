@@ -1,11 +1,12 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
-const batchService = require('../services/batch.service');
 const _ = require('lodash');
+
+const batchService = require('../services/batch.service');
 const ApiError = require('../utils/apiError');
+const catchAsync = require('../utils/catchAsync');
 
 const createBatchHandler = catchAsync(async (req, res) => {
-  console.log('---CONTROLLLER---HERE--', req.body, req.user);
+  '---CONTROLLLER---HERE--', req.body, req.user;
 
   const createdBatch = await batchService.createBatchHandler(
     req.body,
@@ -66,8 +67,8 @@ const addCoachToBatchHandler = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { coachId } = req.body;
 
-  console.log('REQ-BODY', req.body);
-  console.log('REQ-PARAMS', req.params);
+  'REQ-BODY', req.body;
+  'REQ-PARAMS', req.params;
 
   if (!coachId) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'coach Id is required.');

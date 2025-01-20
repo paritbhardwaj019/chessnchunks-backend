@@ -1,7 +1,8 @@
 const httpStatus = require('http-status');
+const _ = require('lodash');
+
 const studentService = require('../services/student.service');
 const catchAsync = require('../utils/catchAsync');
-const _ = require('lodash');
 
 const cleanParam = (param) => {
   if (!param || param === 'undefined') return undefined;
@@ -45,7 +46,7 @@ const fetchAllStudentsByBatchId = catchAsync(async (req, res) => {
 
   query = cleanParam(query);
 
-  console.log('CONTROLLER QUERY', req.query);
+  'CONTROLLER QUERY', req.query;
 
   const allStudents = await studentService.fetchAllStudentsByBatchId(batchId, {
     page,
@@ -56,7 +57,7 @@ const fetchAllStudentsByBatchId = catchAsync(async (req, res) => {
 });
 
 const moveStudentToBatchHandler = catchAsync(async (req, res) => {
-  console.log('BODY', req.body);
+  'BODY', req.body;
 
   const updatedStudent = await studentService.moveStudentToBatchHandler(
     req.body.studentId,

@@ -1,5 +1,7 @@
 const localtunnel = require('localtunnel');
+
 const config = require('../config/index');
+
 const logger = require('./logger');
 
 const setupTunnel = async () => {

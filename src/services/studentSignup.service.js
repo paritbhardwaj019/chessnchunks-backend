@@ -1,23 +1,22 @@
-const httpStatus = require('http-status');
-const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
-const { generateOTP } = require('../utils/generateOTP');
 const {
   REGISTRATION_STAGE,
   SIGNUP_STATUS,
   SYSTEM_CODE_MODULE,
   ROLE,
 } = require('@prisma/client');
-const generateSystemCode = require('../utils/generateSystemCode');
-const config = require('../config');
-const Mailgen = require('mailgen');
-const createToken = require('../utils/createToken');
-const sendMail = require('../utils/sendEmail');
-const stripe = require('../config/stripe');
-const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
 const ChessWebAPI = require('chess-web-api');
-const speakeasy = require('speakeasy');
-const QRCode = require('qrcode');
+const httpStatus = require('http-status');
+const Mailgen = require('mailgen');
+const logger = require('../config/logger');
+const config = require('../config');
+const stripe = require('../config/stripe');
+const db = require('../database/prisma');
+const ApiError = require('../utils/apiError');
+const createToken = require('../utils/createToken');
+const { generateOTP } = require('../utils/generateOTP');
+const generateSystemCode = require('../utils/generateSystemCode');
+const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
+const sendMail = require('../utils/sendEmail');
 
 const chessAPI = new ChessWebAPI();
 
@@ -377,7 +376,7 @@ const createSignupHandler = async (data, academyId) => {
     );
   }
 
-  console.log('CHESS COM ID', chessComId);
+  'CHESS COM ID', chessComId;
 
   if (chessComId) {
     await validateChessComUsername(chessComId);
@@ -556,7 +555,7 @@ const confirmSignupHandler = async (id, userId) => {
 const fetchAllSignupsHandler = async (filters = {}) => {
   const where = {};
 
-  console.log('FILTERS', filters);
+  'FILTERS', filters;
 
   if (filters.academyId) {
     where.academyId = filters.academyId;

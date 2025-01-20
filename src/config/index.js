@@ -1,5 +1,7 @@
-const dotenv = require('dotenv');
 const path = require('path');
+const logger = require('./logger');
+
+const dotenv = require('dotenv');
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
@@ -59,7 +61,7 @@ const requiredVariables = [
 const missingVariables = requiredVariables.filter((key) => !process.env[key]);
 
 if (missingVariables.length > 0) {
-  console.error(
+  logger.error(
     `Missing required environment variables: ${missingVariables.join(', ')}`
   );
   process.exit(1);

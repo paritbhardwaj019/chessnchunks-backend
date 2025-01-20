@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
-const ApiError = require('../utils/apiError');
+
 const db = require('../database/prisma');
+const ApiError = require('../utils/apiError');
 
 const updatePage = async (pageId, pageData) => {
   return await db.$transaction(async (prisma) => {

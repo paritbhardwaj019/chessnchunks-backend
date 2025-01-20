@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+
 const config = require('../config');
 const db = require('../database/prisma');
 const decodeToken = require('../utils/decodeToken');

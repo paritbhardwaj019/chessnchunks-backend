@@ -1,10 +1,11 @@
 // services/message.service.js
 
 const httpStatus = require('http-status');
+
 const db = require('../database/prisma');
+const socket = require('../socket');
 const ApiError = require('../utils/apiError');
 const logger = require('../utils/logger');
-const socket = require('../socket');
 // Send a broadcast message from coach to students in a batch
 const sendBroadcastMessage = async ({
   senderId,
@@ -86,9 +87,9 @@ const sendBroadcastMessage = async ({
 // Send a message to another user
 const sendMessage = async ({ senderId, receiverId, content }) => {
   logger.info(`User: ${senderId} sending message to User: ${receiverId}`);
-  console.log('SENDER ID', senderId);
-  console.log('RECEIVER ID', receiverId);
-  console.log('CONTENT', content);
+  'SENDER ID', senderId;
+  'RECEIVER ID', receiverId;
+  'CONTENT', content;
 
   const receiver = await db.user.findUnique({ where: { id: receiverId } });
   if (!receiver) {

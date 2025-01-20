@@ -1,13 +1,16 @@
+const crypto = require('crypto');
+
 const httpStatus = require('http-status');
+const Mailgen = require('mailgen');
+
+const config = require('../config');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const createToken = require('../utils/createToken');
-const crypto = require('crypto');
-const Mailgen = require('mailgen');
-const config = require('../config');
-const academyService = require('./academy.service');
-const sendMail = require('../utils/sendEmail');
 const hashPassword = require('../utils/hashPassword');
+const sendMail = require('../utils/sendEmail');
+
+const academyService = require('./academy.service');
 
 const mailGenerator = new Mailgen({
   theme: 'default',

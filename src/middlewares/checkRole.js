@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+
 const config = require('../config');
 const db = require('../database/prisma');
 const decodeToken = require('../utils/decodeToken');
@@ -11,7 +12,7 @@ const checkRole = (roles) => async (req, res, next) => {
 
     const { role, id } = decoded;
 
-    console.log('---ROLE---', role);
+    '---ROLE---', role;
 
     if (!roles.includes(role)) {
       return res.status(httpStatus.UNAUTHORIZED).json({
@@ -44,11 +45,11 @@ const checkRole = (roles) => async (req, res, next) => {
     }
 
     req.user = { ...user, role: user.role.name };
-    console.log('USER ROLE', { ...user, role: user.role.name });
+    'USER ROLE', { ...user, role: user.role.name };
 
     next();
   } catch (error) {
-    console.log(error);
+    error;
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       message: 'Internal Server Error',
       statusCode: httpStatus.INTERNAL_SERVER_ERROR,

@@ -1,10 +1,12 @@
 const http = require('http');
+
+const { Server } = require('socket.io');
+
 const app = require('./app');
 const config = require('./config');
-const logger = require('./utils/logger');
-const { Server } = require('socket.io');
-const messageService = require('./services/message.service');
 const db = require('./database/prisma');
+const messageService = require('./services/message.service');
+const logger = require('./utils/logger');
 
 let httpServer;
 

@@ -1,8 +1,9 @@
 const httpStatus = require('http-status');
+
 const academyService = require('../services/academy.service');
+const pageService = require('../services/page.service');
 const ApiError = require('../utils/apiError');
 const catchAsync = require('../utils/catchAsync');
-const pageService = require('../services/page.service');
 
 const getAndValidateAcademy = async (loggedInUser) => {
   const academy = await academyService.getSingleAcademyForUser(loggedInUser);
@@ -24,7 +25,7 @@ const getPage = catchAsync(async (req, res) => {
   const academyId = await getAndValidateAcademy(req.user);
   const { slug } = req.params;
 
-  console.log(slug);
+  slug;
 
   const page = await pageService.getPageBySlug(academyId, slug);
 

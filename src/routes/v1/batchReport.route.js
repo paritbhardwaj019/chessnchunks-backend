@@ -1,4 +1,5 @@
 const express = require('express');
+
 const batchesSnapshotController = require('../../controllers/batchSnapshot.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 

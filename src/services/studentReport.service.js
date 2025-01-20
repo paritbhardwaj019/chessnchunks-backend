@@ -1,5 +1,6 @@
-const { mysqlPool } = require('../config/db');
 const httpStatus = require('http-status');
+
+const { mysqlPool } = require('../config/db');
 const ApiError = require('../utils/apiError');
 const logger = require('../utils/logger');
 
@@ -115,7 +116,7 @@ const getStudentPerformanceHandler = async (filters = {}) => {
       };
     });
   } catch (error) {
-    console.log(error);
+    error;
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Error fetching student performance data'
@@ -125,7 +126,7 @@ const getStudentPerformanceHandler = async (filters = {}) => {
 
 const getStudentProgressHandler = async (studentId, timeframe = 'monthly') => {
   try {
-    let dateFilter = getDateFilterByTimeframe(timeframe);
+    const dateFilter = getDateFilterByTimeframe(timeframe);
 
     const query = `
       SELECT 

@@ -1,15 +1,20 @@
 // controllers/chatController.js
 
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
-const chatService = require('../services/chat.service');
+
 const { io } = require('../index'); // Ensure io is imported correctly
+const chatService = require('../services/chat.service');
+const catchAsync = require('../utils/catchAsync');
 
 const sendChatMessage = catchAsync(async (req, res) => {
   const senderId = req.user.id;
   const { receiverId, content } = req.body;
 
-  const message = await chatService.sendChatMessage({ senderId, receiverId, content });
+  const message = await chatService.sendChatMessage({
+    senderId,
+    receiverId,
+    content,
+  });
 
   // Emit the message to both users
   io.to(`user-${receiverId}`).emit('new_message', message);

@@ -1,7 +1,8 @@
 const express = require('express');
+
+const academyController = require('../../controllers/academy.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 const checkRole = require('../../middlewares/checkRole');
-const academyController = require('../../controllers/academy.controller');
 const uploadFile = require('../../middlewares/uploadFile');
 
 const academyRouter = express.Router();

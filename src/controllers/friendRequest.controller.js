@@ -1,13 +1,17 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
-const friendRequestService = require('../services/friendRequest.service');
+
 const { io } = require('../app');
+const friendRequestService = require('../services/friendRequest.service');
+const catchAsync = require('../utils/catchAsync');
 
 const sendFriendRequest = catchAsync(async (req, res) => {
   const senderId = req.user.id;
   const { receiverId } = req.body;
 
-  const request = await friendRequestService.sendFriendRequest(senderId, receiverId);
+  const request = await friendRequestService.sendFriendRequest(
+    senderId,
+    receiverId
+  );
 
   // Notify the receiver in real-time
   io.to(`user-${receiverId}`).emit('friend_request', {

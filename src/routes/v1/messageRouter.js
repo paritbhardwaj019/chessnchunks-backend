@@ -1,4 +1,5 @@
 const express = require('express');
+
 const messageController = require('../../controllers/message.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 const checkRole = require('../../middlewares/checkRole');
@@ -30,6 +31,5 @@ messageRouter.get(
   checkJWT,
   messageController.getConversations
 );
-
 
 module.exports = messageRouter;

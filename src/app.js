@@ -1,21 +1,22 @@
-const express = require('express');
 const bodyParser = require('body-parser');
+const express = require('express');
 const helmet = require('helmet');
-const errorHandler = require('./middlewares/errorHandler');
-const router = require('./routes/v1');
-const { isOriginAllowed } = require('./services/origin.service');
-const logger = require('./utils/logger');
-const initializeCronJobs = require('./cron/studentSignup.cron');
 const morgan = require('morgan');
+const swaggerJsDoc = require('swagger-jsdoc');
+const swaggerUI = require('swagger-ui-express');
+
+const swaggerOptions = require('./config/swaggerOptions');
 const {
   scheduleBatchExpiryCheck,
 } = require('./cron/batchExpiryNotification.cron');
 const {
   checkAndUpdateExpiredBatches,
 } = require('./cron/batchStatusUpdate.cron');
-const swaggerJsDoc = require('swagger-jsdoc');
-const swaggerUI = require('swagger-ui-express');
-const swaggerOptions = require('./config/swaggerOptions');
+const initializeCronJobs = require('./cron/studentSignup.cron');
+const errorHandler = require('./middlewares/errorHandler');
+const router = require('./routes/v1');
+const { isOriginAllowed } = require('./services/origin.service');
+const logger = require('./utils/logger');
 
 const app = express();
 

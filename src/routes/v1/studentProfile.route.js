@@ -1,7 +1,8 @@
 const express = require('express');
+
+const studentProfileController = require('../../controllers/studentProfile.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 const checkRole = require('../../middlewares/checkRole');
-const studentProfileController = require('../../controllers/studentProfile.controller');
 
 const studentProfileRouter = express.Router();
 

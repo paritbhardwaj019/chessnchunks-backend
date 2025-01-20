@@ -1,9 +1,12 @@
+const crypto = require('crypto');
+
 const httpStatus = require('http-status');
+
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
-const crypto = require('crypto');
-const { sendAcademyAdminInvitation } = require('../utils/invitationMailer');
 const hashPasssword = require('../utils/hashPassword');
+const { sendAcademyAdminInvitation } = require('../utils/invitationMailer');
+const logger = require('../utils/logger');
 
 const fetchAllInvitationsHandler = async (
   loggedInUser,
@@ -103,7 +106,7 @@ const fetchAllInvitationsHandler = async (
 
     return invitations;
   } catch (error) {
-    console.error('Error fetching invitations:', error);
+    logger.error(`Error fetching invitations: ${error.message || error}`);
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Failed to fetch invitations.'
@@ -143,7 +146,7 @@ const deleteInvitation = async (loggedInUser, invitationId) => {
       });
     });
   } catch (error) {
-    console.error('Error deleting invitation:', error);
+    logger.error(`Error deleting invitation: ${error.message || error}`);
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Failed to delete invitation.'
@@ -241,7 +244,7 @@ const editInvitation = async (loggedInUser, invitationId, newEmail) => {
 
     return updatedInvitation;
   } catch (error) {
-    console.log(error);
+    error;
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Failed to edit invitation.'

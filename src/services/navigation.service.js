@@ -1,8 +1,10 @@
 // services/navigation.service.js
 const { PrismaClient } = require('@prisma/client');
+
 const prisma = new PrismaClient();
-const ApiError = require('../utils/apiError');
 const httpStatus = require('http-status');
+
+const ApiError = require('../utils/apiError');
 
 /**
  * List all navigation items for an academy
@@ -193,7 +195,7 @@ const reorderNavigationItems = async (academyId, items) => {
  */
 
 const toggleNavigationStatus = async (id, isActive) => {
-  console.log('ID', id);
+  'ID', id;
 
   const navItem = await prisma.academyNavigation.findFirst({
     where: {

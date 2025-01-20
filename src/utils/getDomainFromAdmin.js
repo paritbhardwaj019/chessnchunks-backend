@@ -1,3 +1,5 @@
+const logger = require('./logger');
+
 /**
  * Switches the port of the given admin domain from 3001 to 3000.
  *
@@ -16,7 +18,7 @@ function getDomainFromAdmin(adminDomain) {
     } else if (currentPort === '3000') {
       newPort = '3001';
     } else {
-      console.warn(
+      n(
         `Unexpected port "${currentPort}" in admin domain "${adminDomain}". No port change applied.`
       );
       return null;
@@ -27,7 +29,7 @@ function getDomainFromAdmin(adminDomain) {
 
     return newUrl.origin;
   } catch (error) {
-    console.error(
+    logger.error(
       `Invalid admin domain URL: "${adminDomain}" - ${error.message}`
     );
     return null;

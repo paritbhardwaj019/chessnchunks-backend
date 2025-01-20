@@ -1,16 +1,18 @@
 const httpStatus = require('http-status');
+const _ = require('lodash');
+const Mailgen = require('mailgen');
+const codeGenerator = require('otp-generator');
+
+const config = require('../config');
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const comparePassword = require('../utils/comparePassword');
 const createToken = require('../utils/createToken');
-const config = require('../config');
-const codeGenerator = require('otp-generator');
-const logger = require('../utils/logger');
 const decodeToken = require('../utils/decodeToken');
 const hashedPassword = require('../utils/hashPassword');
-const Mailgen = require('mailgen');
+const logger = require('../utils/logger');
 const sendMail = require('../utils/sendEmail');
-const _ = require('lodash');
+
 const { getSingleAcademyForUser } = require('./academy.service');
 
 const checkAcademyAccess = async (user, academyDomain) => {
@@ -126,7 +128,7 @@ const loginWithPasswordHandler = async (data, host) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
   }
 
-  let academy = await checkAcademyAccess(user, host);
+  const academy = await checkAcademyAccess(user, host);
 
   const token = await createToken(
     {
@@ -335,7 +337,7 @@ const resetPasswordHandler = async (email) => {
     },
   });
 
-  console.log(user);
+  user;
 
   if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
 
@@ -407,7 +409,7 @@ const verifyResetPasswordHandler = async (data) => {
 
   const { id, email } = decoded;
 
-  console.log('DECODED', decoded);
+  'DECODED', decoded;
 
   const user = await db.user.findUnique({
     where: { id, email },
@@ -514,7 +516,7 @@ const loginWithCicIdHandler = async (data, host) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
   }
 
-  let academy = await checkAcademyAccess(user, host);
+  const academy = await checkAcademyAccess(user, host);
 
   const token = await createToken(
     {

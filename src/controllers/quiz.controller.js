@@ -1,7 +1,8 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
 const _ = require('lodash');
+
 const quizService = require('../services/quiz.service');
+const catchAsync = require('../utils/catchAsync');
 
 /**
  * Create Quiz Handler

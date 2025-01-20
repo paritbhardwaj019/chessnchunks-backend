@@ -1,5 +1,8 @@
-const cron = require('node-cron');
 const { subDays } = require('date-fns');
+const cron = require('node-cron');
+
+const logger = require('../utils/logger');
+
 const db = require('../database/prisma');
 const sendEmail = require('../utils/sendEmail');
 
@@ -108,18 +111,16 @@ const checkBatchExpiryAndNotify = async () => {
       });
     }
 
-    console.log(
-      `Batch expiry check completed. Notified ${batchesToNotify.length} batches.`
-    );
+    `Batch expiry check completed. Notified ${batchesToNotify.length} batches.`;
   } catch (error) {
-    console.error('Error in batch expiry notification job:', error);
+    logger.error(`Error checking batch expiry: ${error.message || error}`);
   }
 };
 
 // Schedule the job to run every day at 00:00 (midnight)
 const scheduleBatchExpiryCheck = () => {
   cron.schedule('0 0 * * *', async () => {
-    console.log('Running batch expiry check...');
+    ('Running batch expiry check...');
     await checkBatchExpiryAndNotify();
   });
 };

@@ -1,8 +1,9 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
-const portalSubscriberService = require('../services/portalSubscriber.service');
 const _ = require('lodash');
+
+const portalSubscriberService = require('../services/portalSubscriber.service');
 const ApiError = require('../utils/apiError');
+const catchAsync = require('../utils/catchAsync');
 
 const createPortalSignupHandler = catchAsync(async (req, res) => {
   const createdSignup = await portalSubscriberService.createPortalSignupHandler(
@@ -89,9 +90,8 @@ const checkEmailAvailability = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email is required');
   }
 
-  const isAvailable = await portalSubscriberService.checkEmailAvailability(
-    email
-  );
+  const isAvailable =
+    await portalSubscriberService.checkEmailAvailability(email);
   res.status(httpStatus.OK).send({ isAvailable });
 });
 
@@ -102,9 +102,8 @@ const checkCicIdAvailability = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'CIC ID is required');
   }
 
-  const isAvailable = await portalSubscriberService.checkCicIdAvailability(
-    cicId
-  );
+  const isAvailable =
+    await portalSubscriberService.checkCicIdAvailability(cicId);
   res.status(httpStatus.OK).send({ isAvailable });
 });
 
@@ -115,9 +114,8 @@ const checkChessComIdAvailability = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Chess.com ID is required');
   }
 
-  const isAvailable = await portalSubscriberService.checkChessComIdAvailability(
-    chessComId
-  );
+  const isAvailable =
+    await portalSubscriberService.checkChessComIdAvailability(chessComId);
   res.status(httpStatus.OK).send({ isAvailable });
 });
 

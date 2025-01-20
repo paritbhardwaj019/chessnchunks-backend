@@ -1,4 +1,5 @@
 const express = require('express');
+
 const portalSubscriberController = require('../../controllers/portalSubscriber.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 

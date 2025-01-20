@@ -1,4 +1,5 @@
 const express = require('express');
+
 const pageController = require('../../controllers/page.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 

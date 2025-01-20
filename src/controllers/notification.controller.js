@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+
 const notificationService = require('../services/notification.service');
 const catchAsync = require('../utils/catchAsync');
 

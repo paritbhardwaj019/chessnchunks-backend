@@ -1,11 +1,14 @@
+const crypto = require('crypto');
+
 const Mailgen = require('mailgen');
+
+const config = require('../config');
+const db = require('../database/prisma');
+
+const createToken = require('./createToken');
+const hashPassword = require('./hashPassword');
 const logger = require('./logger');
 const sendMail = require('./sendEmail');
-const config = require('../config');
-const createToken = require('./createToken');
-const db = require('../database/prisma');
-const crypto = require('crypto');
-const hashPassword = require('./hashPassword');
 
 const generateMailGenerator = () => {
   return new Mailgen({

@@ -1,6 +1,7 @@
 // services/channel.service.js
 
 const httpStatus = require('http-status');
+
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 
@@ -26,7 +27,10 @@ const createChannel = async ({ creatorId, name, batchId }) => {
     });
 
     if (!isInBatch) {
-      throw new ApiError(httpStatus.FORBIDDEN, 'You are not part of this batch');
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        'You are not part of this batch'
+      );
     }
   }
 
@@ -74,7 +78,10 @@ const sendChannelMessage = async ({ senderId, channelId, content }) => {
   });
 
   if (!isMember) {
-    throw new ApiError(httpStatus.FORBIDDEN, 'You are not a member of this channel');
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'You are not a member of this channel'
+    );
   }
 
   const message = await db.channelMessage.create({

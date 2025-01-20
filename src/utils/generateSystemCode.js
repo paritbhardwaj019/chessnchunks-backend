@@ -1,7 +1,8 @@
+const httpStatus = require('http-status');
+
 const db = require('../database/prisma');
 const ApiError = require('../utils/apiError');
 const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
-const httpStatus = require('http-status');
 
 /**
  * Generates a unique system code for a given module

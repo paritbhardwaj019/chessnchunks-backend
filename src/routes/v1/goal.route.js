@@ -1,8 +1,9 @@
 const express = require('express');
-const checkJWT = require('../../middlewares/checkJWT');
-const checkRole = require('../../middlewares/checkRole');
+
 const goalController = require('../../controllers/goal.controller');
+const checkJWT = require('../../middlewares/checkJWT');
 const checkPermission = require('../../middlewares/checkPermission');
+const checkRole = require('../../middlewares/checkRole');
 
 const goalRouter = express.Router();
 

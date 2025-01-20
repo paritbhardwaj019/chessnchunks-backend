@@ -1,15 +1,17 @@
 const express = require('express');
+const httpStatus = require('http-status');
+const Mailgen = require('mailgen');
+
+const config = require('../../../config');
+const stripe = require('../../../config/stripe');
+const db = require('../../../database/prisma');
 const {
   verifyAcademyAdminHandler,
 } = require('../../../services/superAdmin.service');
-const stripe = require('../../../config/stripe');
-const config = require('../../../config');
-const httpStatus = require('http-status');
-const Mailgen = require('mailgen');
-const sendMail = require('../../../utils/sendEmail');
-const db = require('../../../database/prisma');
-const hashPassword = require('../../../utils/hashPassword');
 const { getDomainFromAdmin } = require('../../../utils/getDomainFromAdmin');
+const hashPassword = require('../../../utils/hashPassword');
+const sendMail = require('../../../utils/sendEmail');
+const logger = require('../../../utils/logger');
 
 const router = express.Router();
 
@@ -155,14 +157,14 @@ router.post('/stripe', async (req, res) => {
           result.academyAdmin
         );
       } catch (error) {
-        console.error('Admin verification failed:', error);
+        logger.error(`Admin verification failed: ${error.message || error}`);
         return res.json({ received: true });
       }
     }
 
     res.json({ received: true });
   } catch (err) {
-    console.error('Admin webhook error:', err);
+    logger.error(`Admin webhook error: ${err.message || err}`);
     return res
       .status(httpStatus.BAD_REQUEST)
       .send(`Webhook Error: ${err.message}`);
@@ -294,7 +296,7 @@ router.post('/stripe/student', async (req, res) => {
             );
           });
         } catch (error) {
-          console.error('Portal subscription error:', error);
+          logger.error(`Portal subscription error: ${error.message || error}`);
           return res.json({ received: true });
         }
       } else {
@@ -412,7 +414,6 @@ router.post('/stripe/student', async (req, res) => {
 
     res.json({ received: true });
   } catch (err) {
-    console.log(err);
     return res
       .status(httpStatus.BAD_REQUEST)
       .send(`Webhook Error: ${err.message}`);

@@ -1,7 +1,8 @@
 const express = require('express');
+
+const adminController = require('../../controllers/admin.controller');
 const checkJWT = require('../../middlewares/checkJWT');
 const checkRole = require('../../middlewares/checkRole');
-const adminController = require('../../controllers/admin.controller');
 
 const adminRouter = express.Router();
 
