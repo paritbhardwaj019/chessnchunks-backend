@@ -19,12 +19,10 @@ const swaggerOptions = require('./config/swaggerOptions');
 
 const app = express();
 
-// Initialize cron jobs
 initializeCronJobs();
 scheduleBatchExpiryCheck();
 checkAndUpdateExpiredBatches();
 
-// Morgan middleware for logging
 const morganMiddleware = morgan('dev', {
   stream: {
     write: (message) => logger.info(message.trim()),
@@ -32,10 +30,8 @@ const morganMiddleware = morgan('dev', {
 });
 app.use(morganMiddleware);
 
-// Stripe webhook endpoint (raw body parser)
 app.use('/api/v1/webhook/stripe', express.raw({ type: 'application/json' }));
 
-// CORS middleware
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
@@ -62,7 +58,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Body parser middleware
 app.use((req, res, next) => {
   if (req.originalUrl === '/api/v1/webhook/stripe') {
     next();
@@ -76,12 +71,18 @@ app.use(helmet());
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
-app.use('/', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
-// API routes
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.use('/api/v1', router);
 
-// Error handler middleware
 app.use(errorHandler);
 
 module.exports = app;
