@@ -1,7 +1,6 @@
 const express = require('express');
-
-const navigationController = require('../../../modules/navigati../../modules/navigation/controllers/navigation.controller');
-const checkJWT = require('../../middlewares/checkJWT');
+const navigationController = require('../controllers/navigation.controller');
+const checkJWT = require('../../../middlewares/checkJWT');
 
 const router = express.Router();
 

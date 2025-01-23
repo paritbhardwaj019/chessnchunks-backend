@@ -1,7 +1,6 @@
 const httpStatus = require('http-status');
-
-const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
+const db = require('../../../database/prisma');
+const ApiError = require('../../../utils/apiError');
 
 const createSystemCode = async (data) => {
   const { module, prefix, description } = data;
@@ -55,8 +54,10 @@ const getAllSystemCodes = async () => {
   });
 };
 
-module.exports = {
+const systemCodeService = {
   createSystemCode,
   updateSystemCode,
   getAllSystemCodes,
 };
+
+module.exports = systemCodeService;

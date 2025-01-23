@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const batchesSnapshotService = require('../services/batchSnapshot.service');
 const catchAsync = require('../../../utils/catchAsync');
 const academyProgramController = require('../../academyProgram/controllers/academyProgram.controller');
+const ApiError = require('../../../utils/apiError');
 
 const getBatchesSnapshot = catchAsync(async (req, res) => {
   const filters = {

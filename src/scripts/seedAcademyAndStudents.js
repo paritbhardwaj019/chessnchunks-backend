@@ -4,8 +4,10 @@ const logger = require('../utils/logger');
 const hashPassword = require('../utils/hashPassword');
 const { defaultNavigation } = require('../data/defaultNavigation');
 const createDefaultPagesForAcademy = require('../utils/createDefaultPages');
+const {
+  createNavigationItems,
+} = require('../modules/superAdmin/services/superAdmin.service');
 const prisma = new PrismaClient();
-const { createNavigationItems } = require('../services/superAdmin.service');
 
 const academyData = {
   name: 'Chess In Chunks Academy',

@@ -1,11 +1,11 @@
 const httpStatus = require('http-status');
 const _ = require('lodash');
-
-const studentSignupService = require('../../modules/studentSign../../modules/studentSignup/services/studentSignup.service');
-const ApiError = require('../utils/apiError');
-const catchAsync = require('../utils/catchAsync');
-
-const { getAndValidateAcademy } = require('./academyProgram.controller');
+const studentSignupService = require('../services/studentSignup.service');
+const ApiError = require('../../../utils/apiError');
+const catchAsync = require('../../../utils/catchAsync');
+const {
+  getAndValidateAcademy,
+} = require('../../academyProgram/controllers/academyProgram.controller');
 
 const createSignupHandler = catchAsync(async (req, res) => {
   const academyId = await getAndValidateAcademy(req.user);
@@ -33,11 +33,8 @@ const updatePasswordHandler = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'New password is required');
   }
 
-  const updatedUser = await studentSignupService.updatePasswordHandler(
-    id,
-    password,
-    cicId
-  );
+  await studentSignupService.updatePasswordHandler(id, password, cicId);
+
   res.status(httpStatus.OK).send({
     success: true,
     message: 'Password updated successfully',
@@ -140,8 +137,6 @@ const setupMFAHandler = catchAsync(async (req, res) => {
 });
 
 const verifyMFAHandler = catchAsync(async (req, res) => {
-  'BODY', req.body;
-
   const { token } = req.body;
 
   const result = await studentSignupService.verifyMFAHandler(

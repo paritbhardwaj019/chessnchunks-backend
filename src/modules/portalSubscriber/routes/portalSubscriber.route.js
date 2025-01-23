@@ -1,7 +1,6 @@
 const express = require('express');
-
-const portalSubscriberController = require('../../../modules/portalSubscriber/controllers/portalSubscriber.controller');
-const checkJWT = require('../../middlewares/checkJWT');
+const portalSubscriberController = require('../controllers/portalSubscriber.controller');
+const checkJWT = require('../../../middlewares/checkJWT');
 
 const router = express.Router();
 

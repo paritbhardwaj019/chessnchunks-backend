@@ -1,8 +1,7 @@
 const httpStatus = require('http-status');
-
-const { mysqlPool } = require('../config/db');
-const ApiError = require('../utils/apiError');
-const logger = require('../utils/logger');
+const { mysqlPool } = require('../../../config/db');
+const ApiError = require('../../../utils/apiError');
+const logger = require('../../../utils/logger');
 
 const getStudentPerformanceHandler = async (filters = {}) => {
   try {

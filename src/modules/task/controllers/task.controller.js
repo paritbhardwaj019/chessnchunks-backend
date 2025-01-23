@@ -1,7 +1,6 @@
 const httpStatus = require('http-status');
-
-const taskService = require('../../modules/ta../../modules/task/services/task.service');
-const catchAsync = require('../utils/catchAsync');
+const taskService = require('../services/task.service');
+const catchAsync = require('../../../utils/catchAsync');
 
 const createTask = catchAsync(async (req, res) => {
   const task = await taskService.createTaskHandler(req.body, req.user);
@@ -32,10 +31,12 @@ const deleteTask = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
-module.exports = {
+const taskController = {
   createTask,
   getAllTasks,
   getTaskById,
   updateTask,
   deleteTask,
 };
+
+module.exports = taskController;

@@ -1,9 +1,8 @@
 const express = require('express');
-
-const superAdminController = require('../../../modules/superAdm../../modules/superAdmin/controllers/superAdmin.controller');
-const checkJWT = require('../../middlewares/checkJWT');
-const checkRole = require('../../middlewares/checkRole');
-const uploadFile = require('../../middlewares/uploadFile');
+const superAdminController = require('../controllers/superAdmin.controller');
+const checkJWT = require('../../../middlewares/checkJWT');
+const checkRole = require('../../../middlewares/checkRole');
+const uploadFile = require('../../../middlewares/uploadFile');
 
 const superAdminRouter = express.Router();
 

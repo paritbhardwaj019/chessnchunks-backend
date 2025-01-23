@@ -1,7 +1,8 @@
 const cron = require('node-cron');
 
-const studentSignupService = require('../services/studentSignup.service');
 const logger = require('../utils/logger');
+const db = require('../database/prisma');
+const studentSignupService = require('../modules/studentSignup/services/studentSignup.service');
 
 const initializeCronJobs = () => {
   cron.schedule('0 * * * *', async () => {

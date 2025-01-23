@@ -1,4 +1,4 @@
-const db = require('../database/prisma');
+const db = require('../../../database/prisma');
 
 const createEventNotificationHandler = async (data, loggedInUser) => {
   const academyUsers = await db.user.findMany({

@@ -1,9 +1,7 @@
 const express = require('express');
-
-const taskController = require('../../../modules/ta../../modules/task/controllers/task.controller');
-const checkJWT = require('../../middlewares/checkJWT');
-const checkPermission = require('../../middlewares/checkPermission');
-const checkRole = require('../../middlewares/checkRole');
+const taskController = require('../controllers/task.controller');
+const checkJWT = require('../../../middlewares/checkJWT');
+const checkPermission = require('../../../middlewares/checkPermission');
 
 const taskRouter = express.Router();
 

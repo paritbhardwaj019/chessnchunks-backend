@@ -1,11 +1,10 @@
 const httpStatus = require('http-status');
-
-const academyService = require('../../modules/navigati../../modules/navigation/services/academy.service');
-const navigationService = require('../../modules/navigati../../modules/navigation/services/navigation.service');
-const ApiError = require('../utils/apiError');
-const catchAsync = require('../utils/catchAsync');
-const { resolveAcademyDomain } = require('../utils/domainResolution');
-const pick = require('../utils/pick');
+const academyService = require('../../academy/services/academy.service');
+const navigationService = require('../services/navigation.service');
+const ApiError = require('../../../utils/apiError');
+const catchAsync = require('../../../utils/catchAsync');
+const { resolveAcademyDomain } = require('../../../utils/domainResolution');
+const pick = require('../../../utils/pick');
 
 const getAndValidateAcademy = async (loggedInUser) => {
   const academy = await academyService.getSingleAcademyForUser(loggedInUser);
@@ -17,8 +16,6 @@ const getAndValidateAcademy = async (loggedInUser) => {
 
 const getNavigationItems = catchAsync(async (req, res) => {
   const academy = await getAndValidateAcademy(req.user);
-
-  'ACADEMY', academy;
 
   const filters = pick(req.query, ['search', 'isActive']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
@@ -123,7 +120,7 @@ const getAllActiveNavigationByDomain = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(activeNavigation);
 });
 
-module.exports = {
+const navigationController = {
   getNavigationItems,
   createNavigationItem,
   updateNavigationItem,
@@ -132,3 +129,5 @@ module.exports = {
   toggleNavigationStatus,
   getAllActiveNavigationByDomain,
 };
+
+module.exports = navigationController;

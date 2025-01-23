@@ -1,9 +1,9 @@
 const httpStatus = require('http-status');
-
-const studentReportService = require('../../modules/studentRepo../../modules/studentReport/services/studentReport.service');
-const catchAsync = require('../utils/catchAsync');
-
-const { getAndValidateAcademy } = require('./academyProgram.controller');
+const studentReportService = require('../services/studentReport.service');
+const catchAsync = require('../../../utils/catchAsync');
+const {
+  getAndValidateAcademy,
+} = require('../../academyProgram/controllers/academyProgram.controller');
 
 const getStudentPerformance = catchAsync(async (req, res) => {
   const academyId = await getAndValidateAcademy(req.user);

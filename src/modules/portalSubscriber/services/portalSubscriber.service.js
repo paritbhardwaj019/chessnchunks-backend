@@ -1,16 +1,15 @@
 const ChessWebAPI = require('chess-web-api');
 const httpStatus = require('http-status');
 const Mailgen = require('mailgen');
-
-const config = require('../config');
-const stripe = require('../config/stripe');
-const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
-const { uploadToCloudinary } = require('../utils/cloudinary.utils');
-const createToken = require('../utils/createToken');
-const { generateOTP } = require('../utils/generateOTP');
-const hashPassword = require('../utils/hashPassword');
-const sendMail = require('../utils/sendEmail');
+const config = require('../../../config');
+const db = require('../../../database/prisma');
+const ApiError = require('../../../utils/apiError');
+const { uploadToCloudinary } = require('../../../utils/cloudinary.utils');
+const createToken = require('../../../utils/createToken');
+const { generateOTP } = require('../../../utils/generateOTP');
+const hashPassword = require('../../../utils/hashPassword');
+const sendMail = require('../../../utils/sendEmail');
+const stripe = require('../../../config/stripe');
 
 const chessAPI = new ChessWebAPI();
 
@@ -107,7 +106,6 @@ const createPortalSignupHandler = async (data) => {
     zipCode,
     chessComId,
     cicId,
-    userImage,
   } = data;
 
   const requiredFields = [
@@ -180,16 +178,6 @@ const createPortalSignupHandler = async (data) => {
 
   if (!defaultAcademy) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Default academy not found');
-  }
-
-  let imageUrl = null;
-  if (userImage) {
-    const uploadResult = await uploadToCloudinary(userImage, {
-      folder: 'user-images',
-      publicId: `user-${Date.now()}`,
-      allowedFormats: ['jpg', 'jpeg', 'png'],
-    });
-    imageUrl = uploadResult.url;
   }
 
   const signup = await db.userSignup.create({

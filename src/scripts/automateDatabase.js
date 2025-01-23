@@ -1,5 +1,4 @@
 const { execSync } = require('child_process');
-
 const logger = require('../utils/logger');
 
 const COMMANDS = {

@@ -34,9 +34,6 @@ const getAcademyByDomain = catchAsync(async (req, res) => {
 const getPublicPageBySlug = catchAsync(async (req, res) => {
   const { domain, slug } = req.params;
 
-  'DOMAIN', domain;
-  'SLUG', slug;
-
   const resolvedDomain = await resolveAcademyDomain(domain);
 
   const pageData = await academyService.getPublicPageBySlug(
@@ -47,7 +44,7 @@ const getPublicPageBySlug = catchAsync(async (req, res) => {
 });
 
 const updateComponentById = catchAsync(async (req, res) => {
-  const { domain, pageId, componentId } = req.params;
+  const { pageId, componentId } = req.params;
 
   const updatedComponent = await academyService.updateComponentById(
     pageId,

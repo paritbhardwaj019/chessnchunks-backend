@@ -8,8 +8,6 @@ const db = require('../database/prisma');
 const resolveAcademyDomain = async (inputDomain) => {
   const domain = inputDomain.replace(/^https?:\/\//, '');
 
-  const parts = domain.split(':');
-
   if (domain === 'localhost:3000') {
     const defaultAcademy = await db.academy.findFirst({
       where: {

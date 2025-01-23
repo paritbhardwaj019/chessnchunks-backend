@@ -1,9 +1,7 @@
 const cron = require('node-cron');
-
 const db = require('../database/prisma');
 const logger = require('../utils/logger');
 
-// Initialize with default allowed origins (no trailing slashes)
 let cachedOrigins = new Set(['http://localhost:3001', 'http://localhost:3000']);
 
 async function updateOrigins() {
@@ -13,7 +11,6 @@ async function updateOrigins() {
       select: { domain: true },
     });
 
-    // Start with default origins to prevent stale entries
     const newOrigins = new Set([
       'http://localhost:3001',
       'http://localhost:3000',
@@ -23,17 +20,14 @@ async function updateOrigins() {
       if (academy.domain) {
         try {
           const originalUrl = new URL(academy.domain);
-          // Use URL.origin to avoid trailing slashes
           newOrigins.add(originalUrl.origin);
 
-          // Determine the alternative port
           let alternativePort;
           if (originalUrl.port === '3001') {
             alternativePort = '3000';
           } else if (originalUrl.port === '3000') {
             alternativePort = '3001';
           } else {
-            // Default to adding port 3000 if original port is different
             alternativePort = '3000';
           }
 
@@ -73,7 +67,6 @@ function getAllowedOrigins() {
 }
 
 function addOrigin(origin) {
-  // Ensure no trailing slash when adding manually
   try {
     const url = new URL(origin);
     cachedOrigins.add(url.origin);
@@ -83,12 +76,10 @@ function addOrigin(origin) {
   }
 }
 
-// Adjust cron schedule to run every minute instead of every second
 cron.schedule('* * * * *', async () => {
   await updateOrigins();
 });
 
-// Initial origins update
 updateOrigins().then(() => {
   logger.info('Initial origins update completed');
 });

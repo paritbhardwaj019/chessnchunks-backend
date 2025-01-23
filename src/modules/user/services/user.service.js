@@ -1,35 +1,31 @@
 const crypto = require('crypto');
 const fs = require('fs');
 
-const { ROLE } = require('@prisma/client');
 const httpStatus = require('http-status');
 const _ = require('lodash');
 const Mailgen = require('mailgen');
 const xlsx = require('xlsx');
-
-const config = require('../config');
-const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
-const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
-const sendEmail = require('../utils/sendEmail');
+const config = require('../../../config');
+const db = require('../../../database/prisma');
+const ApiError = require('../../../utils/apiError');
+const { getDomainFromAdmin } = require('../../../utils/getDomainFromAdmin');
+const sendMail = require('../../../utils/sendEmail');
 const {
   uploadToCloudinary,
   deleteFromCloudinary,
-} = require('../utils/cloudinary.utils');
-const comparePassword = require('../utils/comparePassword');
-const createToken = require('../utils/createToken');
-const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
-const generateSystemCode = require('../utils/generateSystemCode');
-const hashPassword = require('../utils/hashPassword');
-const sendMail = require('../utils/sendEmail');
-const { getSingleAcademyForUser } = require('./academy.service');
-
+} = require('../../../utils/cloudinary.utils');
+const comparePassword = require('../../../utils/comparePassword');
+const createToken = require('../../../utils/createToken');
+const formatNumberWithPrefix = require('../../../utils/formatNumberWithPrefix');
+const hashPassword = require('../../../utils/hashPassword');
+const {
+  getSingleAcademyForUser,
+} = require('../../academy/services/academy.service');
 const {
   sendInvitationEmail,
   createStudentInvitation,
-} = require('./student.service');
-const { sendSignupEmail } = require('./studentSignup.service');
-const logger = require('../utils/logger');
+} = require('../../student/services/student.service');
+const logger = require('../../../utils/logger');
 
 const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
   const numberPage = Number(page) || 1;
@@ -312,8 +308,7 @@ const processRow = async (
   ROLE_MAPPING,
   COACH_SUB_ROLE_MAPPING
 ) => {
-  const { firstName, lastName, email, phoneNumber, roleNumber } =
-    validateRowData(row);
+  const { email, roleNumber } = validateRowData(row);
   const role = ROLE_MAPPING[roleNumber];
 
   if (!role)
@@ -326,8 +321,6 @@ const processRow = async (
     where: { id: academyId },
     select: { name: true, domain: true },
   });
-
-  'ROLE', role;
 
   if (role === 'COACH') {
     await processCoach(
@@ -365,8 +358,6 @@ const processCoach = async (
     SUB_ROLE: subRole,
   } = row;
 
-  'ROW', row;
-
   const tempPassword = crypto.randomBytes(8).toString('hex');
   const hashedPassword = await hashPassword(tempPassword, 10);
 
@@ -381,8 +372,6 @@ const processCoach = async (
     loggedInUser.id
   );
 
-  'COACH_INVITATION', coachInvitation;
-
   const token = await createToken(
     { id: coachInvitation.id, version: coachInvitation.version },
     config.jwt.invitationSecret,
@@ -394,13 +383,9 @@ const processCoach = async (
       ? academy.domain
       : getDomainFromAdmin(academy.domain);
 
-  'BASE_URL', baseUrl;
-
   const ACTIVATION_URL = `${baseUrl}/invitation?type=BATCH_COACH&name=${encodeURIComponent(
     `${firstName} ${lastName} from ${academy.name}`
   )}&token=${token}`;
-
-  'ACTIVATION_URL', ACTIVATION_URL;
 
   await sendCoachInvitationEmail(
     firstName,
@@ -429,49 +414,46 @@ const processStudent = async (
   const tempPassword = crypto.randomBytes(8).toString('hex');
   const hashedPassword = await hashPassword(tempPassword, 10);
 
-  'Creating student invitation for:', email;
-
   try {
-    studentInvitation = await createStudentInvitation(
+    const studentInvitation = await createStudentInvitation(
       { firstName, lastName, email, phoneNumber },
       academyId,
       hashedPassword,
       loggedInUser.id
     );
-    'Student invitation created:', studentInvitation.id;
+
+    const token = await createToken(
+      { id: studentInvitation.id },
+      config.jwt.invitationSecret,
+      '3d'
+    );
+
+    const baseUrl = getDomainFromAdmin(academy.domain);
+
+    const ACTIVATION_URL = `${baseUrl}/invitation?type=USER_INVITATION&name=${encodeURIComponent(
+      `${firstName} ${lastName} from ${academy.name}`
+    )}&token=${token}`;
+
+    await sendInvitationEmail(
+      email,
+      firstName,
+      lastName,
+      academy.name,
+      tempPassword,
+      ACTIVATION_URL
+    );
+
+    studentsCreated.push({
+      email,
+      firstName,
+      lastName,
+      role: 'STUDENT',
+      invitationId: studentInvitation.id,
+    });
   } catch (error) {
     logger.error(`Failed to create student invitation: ${error.message}`);
     throw error;
   }
-
-  const token = await createToken(
-    { id: studentInvitation.id },
-    config.jwt.invitationSecret,
-    '3d'
-  );
-
-  const baseUrl = getDomainFromAdmin(academy.domain);
-
-  const ACTIVATION_URL = `${baseUrl}/invitation?type=USER_INVITATION&name=${encodeURIComponent(
-    `${firstName} ${lastName} from ${academy.name}`
-  )}&token=${token}`;
-
-  await sendInvitationEmail(
-    email,
-    firstName,
-    lastName,
-    academy.name,
-    tempPassword,
-    ACTIVATION_URL
-  );
-
-  studentsCreated.push({
-    email,
-    firstName,
-    lastName,
-    role: 'STUDENT',
-    invitationId: studentInvitation.id,
-  });
 };
 
 const createCoachInvitation = async (
@@ -499,42 +481,6 @@ const createCoachInvitation = async (
       type: 'BATCH_COACH',
       expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
       createdById: creatorId,
-    },
-  });
-};
-
-const createStudentSignup = async (
-  email,
-  signupId,
-  firstName,
-  lastName,
-  phoneNumber,
-  academyId,
-  expiryDate
-) => {
-  return await db.userSignup.create({
-    data: {
-      email,
-      signupId,
-      firstName,
-      lastName,
-      phoneNumber,
-      userRole: ROLE.STUDENT,
-      signupStage: REGISTRATION_STAGE.INQUIRY,
-      signupStatus: SIGNUP_STATUS.INQUIRY,
-      academyId,
-      reservationExpiry: expiryDate,
-    },
-  });
-};
-
-const createSignupOTP = async (email, otp, expiryDate) => {
-  return await db.signupOTP.create({
-    data: {
-      email,
-      otp,
-      expiresAt: expiryDate,
-      verified: false,
     },
   });
 };
@@ -608,8 +554,6 @@ const updateUserStatus = async (userId, status) => {
 
 const updateUserHandler = async (id, userData, loggedInUser) => {
   const { email, firstName, lastName, role, subRole, status } = userData;
-
-  'USER DATA', userData;
 
   if (!id) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required.');
@@ -865,7 +809,7 @@ const requestEmailChangeHandler = async (userId, newEmail, academyDomain) => {
   const emailBody = mailGenerator.generate(mailgenBody);
   const emailText = mailGenerator.generatePlaintext(mailgenBody);
 
-  await sendEmail(
+  await sendMail(
     newEmail,
     'Verify Your New Email Address - Chess in Chunks',
     emailText,
@@ -875,11 +819,6 @@ const requestEmailChangeHandler = async (userId, newEmail, academyDomain) => {
   return { message: 'OTP has been sent to your new email address.' };
 };
 
-/**
- * Verify the OTP and change the user's email if valid.
- * @param {string} userId The ID of the logged-in user.
- * @param {string} token The OTP provided by the user.
- */
 const verifyEmailChangeHandler = async (userId, token) => {
   const record = await db.emailVerificationToken.findFirst({
     where: {
@@ -1082,7 +1021,6 @@ const updateProfileHandler = async (id, data, loggedInUser) => {
     }
   }
 
-  // Prepare profile update data
   const profileUpdateData = {
     ...(firstName && { firstName }),
     ...(lastName && { lastName }),
@@ -1100,16 +1038,14 @@ const updateProfileHandler = async (id, data, loggedInUser) => {
     ...(chessComId && { chessComId }),
     ...(lichessId && { lichessId }),
     ...(uscfId && { uscfId }),
-    ...(imageUrl && { imageUrl }), // Add the Cloudinary URL if an image was uploaded
+    ...(imageUrl && { imageUrl }),
   };
 
-  // Prepare user update data
   const userUpdateData = {
     ...(status && { status }),
   };
 
   try {
-    // Update or create profile
     if (user.profile) {
       await db.profile.update({
         where: { userId: id },
@@ -1128,7 +1064,6 @@ const updateProfileHandler = async (id, data, loggedInUser) => {
       });
     }
 
-    // Update user if there are user-specific fields
     if (Object.keys(userUpdateData).length > 0) {
       await db.user.update({
         where: { id },

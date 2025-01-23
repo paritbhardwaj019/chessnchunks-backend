@@ -399,11 +399,7 @@ const getAllWeeklyGoalsHandler = async (page, limit, query, loggedInUser) => {
   return weeklyGoals;
 };
 
-const generateStudentPDFReport = async ({
-  studentId,
-  seasonId,
-  currentDate,
-}) => {
+const generateStudentPDFReport = async ({ studentId, seasonId }) => {
   const season = await db.seasonalGoal.findUnique({
     where: { id: seasonId },
     include: {
@@ -465,16 +461,14 @@ const generateStudentPDFReport = async ({
     passStatus: passStatus ? 'Passed' : 'Failed',
   };
 
-  // Now, generate PDF report using FPDF (or a compatible library)// Make sure you install fpdf or use an equivalent PDF generation library
   const pdf = new FPDF('P', 'mm', 'A4');
   pdf.AddPage();
 
-  // Add report data to PDF
   pdf.SetFont('Arial', 'B', 16);
   pdf.Cell(200, 10, 'Student Performance Report', 0, 1, 'C');
 
   pdf.SetFont('Arial', '', 12);
-  pdf.Ln(10); // Line break
+  pdf.Ln(10);
   pdf.Cell(200, 10, `Student ID: ${reportData.studentId}`, 0, 1);
   pdf.Cell(200, 10, `Season Code: ${reportData.seasonCode}`, 0, 1);
   pdf.Cell(200, 10, `Total Games Goal: ${reportData.totalGamesGoal}`, 0, 1);

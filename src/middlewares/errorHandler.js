@@ -2,7 +2,8 @@ const config = require('../config');
 const ApiError = require('../utils/apiError');
 const logger = require('../utils/logger');
 
-function errorHandler(err, _, res, _) {
+// eslint-disable-next-line no-unused-vars
+function errorHandler(err, req, res, next) {
   const statusCode = err instanceof ApiError ? err.statusCode : 500;
   const message =
     err instanceof ApiError ? err.message : 'Internal Server Error';

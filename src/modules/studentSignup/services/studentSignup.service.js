@@ -3,20 +3,21 @@ const {
   SIGNUP_STATUS,
   SYSTEM_CODE_MODULE,
   ROLE,
+  PAYMENT_STATUS,
 } = require('@prisma/client');
 const ChessWebAPI = require('chess-web-api');
 const httpStatus = require('http-status');
 const Mailgen = require('mailgen');
-const logger = require('../config/logger');
-const config = require('../config');
-const stripe = require('../config/stripe');
-const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
-const createToken = require('../utils/createToken');
-const { generateOTP } = require('../utils/generateOTP');
-const generateSystemCode = require('../utils/generateSystemCode');
-const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
-const sendMail = require('../utils/sendEmail');
+const logger = require('../../../utils/logger');
+const config = require('../../../config');
+const stripe = require('../../../config/stripe');
+const db = require('../../../database/prisma');
+const ApiError = require('../../../utils/apiError');
+const createToken = require('../../../utils/createToken');
+const { generateOTP } = require('../../../utils/generateOTP');
+const generateSystemCode = require('../../../utils/generateSystemCode');
+const { getDomainFromAdmin } = require('../../../utils/getDomainFromAdmin');
+const sendMail = require('../../../utils/sendEmail');
 
 const chessAPI = new ChessWebAPI();
 
@@ -484,7 +485,7 @@ const updateSignupHandler = async (id, data) => {
 
   const filteredData = Object.fromEntries(
     Object.entries(data).filter(
-      ([_, value]) => value !== undefined && value !== null
+      ([_, value]) => value !== undefined && value !== null // eslint-disable-line no-unused-vars
     )
   );
 
@@ -723,7 +724,7 @@ const checkoutSessionHandler = async (
       description += '\nSeasonal pricing applied';
       break;
 
-    case 'yearly':
+    case 'yearly': {
       const yearlyPrice = program.monthlyPrice * 12;
       const discountAmount =
         (yearlyPrice * program.yearlyDiscountPercentage) / 100;
@@ -731,8 +732,8 @@ const checkoutSessionHandler = async (
       interval = 'year';
       description += `\nIncludes ${program.yearlyDiscountPercentage}% yearly discount`;
       break;
+    }
 
-    case 'monthly':
     default:
       finalPrice = program.monthlyPrice;
       interval = 'month';

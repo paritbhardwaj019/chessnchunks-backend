@@ -1,18 +1,17 @@
 const express = require('express');
+const pageController = require('../controllers/page.controller');
+const checkJWT = require('../../../middlewares/checkJWT');
 
-const pageController = require('../../../modules/pa../../modules/page/controllers/page.controller');
-const checkJWT = require('../../middlewares/checkJWT');
+const pageRouter = express.Router();
 
-const router = express.Router();
+pageRouter.route('/').get(checkJWT, pageController.getPages);
 
-router.route('/').get(checkJWT, pageController.getPages);
+pageRouter.route('/:pageId').put(checkJWT, pageController.updatePage);
 
-router.route('/:pageId').put(checkJWT, pageController.updatePage);
-
-router
+pageRouter
   .route('/:pageId/components/order')
   .put(checkJWT, pageController.updateComponentOrder);
 
-router.route('/:slug').get(checkJWT, pageController.getPage);
+pageRouter.route('/:slug').get(checkJWT, pageController.getPage);
 
-module.exports = router;
+module.exports = pageRouter;

@@ -100,7 +100,7 @@ const updateProgram = catchAsync(async (req, res) => {
  * Delete program
  */
 const deleteProgram = catchAsync(async (req, res) => {
-  const academyId = await getAndValidateAcademy(req.user);
+  await getAndValidateAcademy(req.user);
 
   await academyProgramService.deleteProgramById(req.params.id);
 

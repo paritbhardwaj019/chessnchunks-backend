@@ -1,10 +1,8 @@
-// services/navigation.service.js
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 const httpStatus = require('http-status');
-
-const ApiError = require('../utils/apiError');
+const ApiError = require('../../../utils/apiError');
 
 /**
  * List all navigation items for an academy
@@ -254,7 +252,7 @@ const getAllActiveNavigationByDomain = async (domain) => {
   return navigationItems;
 };
 
-module.exports = {
+const navigationService = {
   listNavigationItems,
   createNavigationItem,
   updateNavigationItem,
@@ -264,3 +262,5 @@ module.exports = {
   toggleNavigationStatus,
   getAllActiveNavigationByDomain,
 };
+
+module.exports = navigationService;

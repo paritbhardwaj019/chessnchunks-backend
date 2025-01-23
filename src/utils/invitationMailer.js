@@ -1,14 +1,12 @@
-const crypto = require('crypto');
-
 const Mailgen = require('mailgen');
+const httpStatus = require('http-status');
 
 const config = require('../config');
 const db = require('../database/prisma');
-
 const createToken = require('./createToken');
-const hashPassword = require('./hashPassword');
 const logger = require('./logger');
 const sendMail = require('./sendEmail');
+const ApiError = require('./apiError');
 
 const generateMailGenerator = () => {
   return new Mailgen({
@@ -148,7 +146,7 @@ const sendCoachInvitation = async (invitation, password, version) => {
   const emailContent = {
     body: {
       name: `${firstName} ${lastName}`,
-      intro: `You are invited to join the academy "${academy.name}" in the batch "${batch.batchCode}" as a coach (${subRole})!`,
+      intro: `You are invited to join the academy "${academy.name}" in the as a coach (${subRole})!`,
       table: {
         data: [
           { label: 'Email', value: email },
@@ -223,7 +221,7 @@ const sendStudentInvitation = async (invitation, password, version) => {
   const emailContent = {
     body: {
       name: `${firstName} ${lastName}`,
-      intro: `You are invited to join the academy "${academy.name}" in the batch "${batch.batchCode}" as a student!`,
+      intro: `You are invited to join the academy "${academy.name}" as a student!`,
       table: {
         data: [
           { label: 'Email', value: email },

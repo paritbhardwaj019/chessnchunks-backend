@@ -1,10 +1,9 @@
 const express = require('express');
+const systemCodeController = require('../controllers/systemCode.controller');
+const checkJWT = require('../../../middlewares/checkJWT');
+const checkPermission = require('../../../middlewares/checkPermission');
 
-const systemCodeController = require('../../../modules/systemCo../../modules/systemCode/controllers/systemCode.controller');
-const checkJWT = require('../../middlewares/checkJWT');
-const checkPermission = require('../../middlewares/checkPermission');
-
-const router = express.Router();
+const systemCodeRouter = express.Router();
 
 /**
  * @swagger
@@ -49,7 +48,7 @@ const router = express.Router();
  *       403:
  *         description: Forbidden - User does not have the required permission
  */
-router
+systemCodeRouter
   .route('/')
   .post(
     checkJWT,
@@ -91,7 +90,7 @@ router
  *       403:
  *         description: Forbidden - User does not have the required permission
  */
-router
+systemCodeRouter
   .route('/')
   .get(
     checkJWT,
@@ -137,7 +136,7 @@ router
  *       404:
  *         description: System code not found
  */
-router
+systemCodeRouter
   .route('/:id')
   .patch(
     checkJWT,
@@ -145,4 +144,4 @@ router
     systemCodeController.updateSystemCode
   );
 
-module.exports = router;
+module.exports = systemCodeRouter;

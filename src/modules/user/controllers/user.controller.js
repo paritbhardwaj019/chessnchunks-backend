@@ -1,9 +1,8 @@
 const httpStatus = require('http-status');
 const _ = require('lodash');
-
-const academyService = require('../../modules/us../../modules/us../../modules/user/services/academy.service');
-const userService = require('../../modules/us../../modules/us../../modules/user/services/user.service');
-const catchAsync = require('../utils/catchAsync');
+const academyService = require('../../academy/services/academy.service');
+const userService = require('../services/user.service');
+const catchAsync = require('../../../utils/catchAsync');
 
 const fetchAllUsersHandler = catchAsync(async (req, res) => {
   const { page, limit, query } = _.pick(req.query, ['page', 'limit', 'query']);

@@ -1,9 +1,8 @@
 const httpStatus = require('http-status');
 const _ = require('lodash');
-
-const portalSubscriberService = require('../../modules/portalSubscriber/services/portalSubscriber.service');
-const ApiError = require('../utils/apiError');
-const catchAsync = require('../utils/catchAsync');
+const portalSubscriberService = require('../services/portalSubscriber.service');
+const ApiError = require('../../../utils/apiError');
+const catchAsync = require('../../../utils/catchAsync');
 
 const createPortalSignupHandler = catchAsync(async (req, res) => {
   const createdSignup = await portalSubscriberService.createPortalSignupHandler(
@@ -41,9 +40,7 @@ const completeSignupHandler = catchAsync(async (req, res) => {
 });
 
 const resendVerificationEmail = catchAsync(async (req, res) => {
-  const regeneratedOtp = await portalSubscriberService.regenerateOTP(
-    req.params.id
-  );
+  await portalSubscriberService.regenerateOTP(req.params.id);
   res.status(httpStatus.OK).send({
     message: 'Verification email has been resent successfully',
   });

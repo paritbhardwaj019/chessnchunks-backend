@@ -1,4 +1,4 @@
-const db = require('../database/prisma');
+const db = require('../../../database/prisma');
 
 const getCurrentSubscription = async (loggedInUser) => {
   const student = await db.user.findUnique({

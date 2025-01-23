@@ -2,24 +2,26 @@ const express = require('express');
 const batchesSnapshotController = require('../controllers/batchSnapshot.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 
-const router = express.Router();
+const batchReportRouter = express.Router();
 
-router
+batchReportRouter
   .route('/snapshot')
   .get(checkJWT, batchesSnapshotController.getBatchesSnapshot);
 
-router
+batchReportRouter
   .route('/summary/:batchId')
   .get(checkJWT, batchesSnapshotController.getBatchSummary);
 
-router
+batchReportRouter
   .route('/metrics')
   .get(checkJWT, batchesSnapshotController.getBatchMetrics);
 
-router.route('/trends').get(checkJWT, batchesSnapshotController.getBatchTrends);
+batchReportRouter
+  .route('/trends')
+  .get(checkJWT, batchesSnapshotController.getBatchTrends);
 
-router
+batchReportRouter
   .route('/export')
   .get(checkJWT, batchesSnapshotController.exportBatchReport);
 
-module.exports = router;
+module.exports = batchReportRouter;

@@ -1,10 +1,6 @@
-// utils/auth.js
-
-const httpStatus = require('http-status');
 const jwt = require('jsonwebtoken');
 
 const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
 const logger = require('./logger');
 
 const verifyJWTForSocket = async (token) => {

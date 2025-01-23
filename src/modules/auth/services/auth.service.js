@@ -1,5 +1,4 @@
 const httpStatus = require('http-status');
-const _ = require('lodash');
 const Mailgen = require('mailgen');
 const codeGenerator = require('otp-generator');
 const config = require('../../../config');
@@ -256,7 +255,7 @@ const loginWithoutPasswordHandler = async (data) => {
 };
 
 const verifyLoginWithoutPasswordHandler = async (data) => {
-  const { code, email } = data;
+  const { email } = data;
 
   const user = await db.user.findUnique({
     where: { email },

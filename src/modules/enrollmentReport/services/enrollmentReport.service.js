@@ -122,7 +122,7 @@ const getCurrentSeasonEnrollmentsHandler = async (filters = {}) => {
         payment: enrollment.paymentDate,
       },
     }));
-  } catch (error) {
+  } catch {
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Error fetching current season enrollments'
@@ -199,7 +199,7 @@ const getNewEnrollmentsHandler = async (filters = {}) => {
           }
         : null,
     }));
-  } catch (error) {
+  } catch {
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Error fetching new enrollments'
@@ -285,8 +285,7 @@ const getWithdrawalsHandler = async (filters = {}) => {
         : null,
       withdrawalDate: withdrawal.updatedAt,
     }));
-  } catch (error) {
-    'ERROR', error;
+  } catch {
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Error fetching withdrawals'
@@ -341,7 +340,7 @@ const getEnrollmentMetricsHandler = async (academyId, timeframe = 30) => {
       withdrawn: withdrawals,
       timeframe,
     };
-  } catch (error) {
+  } catch {
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Error fetching enrollment metrics'

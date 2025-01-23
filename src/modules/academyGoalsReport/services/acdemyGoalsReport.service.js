@@ -7,7 +7,6 @@ const logger = require('../../../utils/logger');
 const chess = new ChessWebAPI();
 
 const getAcademyGoalsReport = async (academyId, filters = {}) => {
-  // Get all students in the academy with their batch assignments
   const students = await db.user.findMany({
     where: {
       assignedToAcademyId: academyId,

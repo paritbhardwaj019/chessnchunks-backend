@@ -32,7 +32,7 @@ const sendMail = async (to, subject, text, html = '') => {
     const info = await transporter.sendMail(mailOptions);
     return info;
   } catch (error) {
-    logger.error(`Error sending email ${error.message || error}`); // eslint-disable-line no-console
+    logger.error(`Error sending email ${error.message || error}`);
   }
 };
 

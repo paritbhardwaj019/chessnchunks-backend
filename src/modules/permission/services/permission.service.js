@@ -1,7 +1,6 @@
 const httpStatus = require('http-status');
-
-const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
+const db = require('../../../database/prisma');
+const ApiError = require('../../../utils/apiError');
 
 const fetchUserPermission = async (loggedInUser) => {
   const user = await db.user.findUnique({

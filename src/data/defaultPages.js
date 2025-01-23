@@ -80,7 +80,6 @@ const defaultPages = [
               card: 'bg-gray-900 p-6 rounded-lg shadow-lg',
               image: 'w-32 h-32 rounded-full mx-auto mb-4',
               name: 'text-xl font-bold text-white text-center',
-              title: 'text-gray-400 text-center',
               rating: 'text-red-500 font-bold text-center mt-2',
             },
           },

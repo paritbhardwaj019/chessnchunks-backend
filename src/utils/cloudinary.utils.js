@@ -26,7 +26,6 @@ const uploadToCloudinary = async (file, options = {}) => {
       folder = 'academy-logos',
       publicId,
       allowedFormats = ['jpg', 'jpeg', 'png', 'gif'],
-      maxSize = 5 * 1024 * 1024,
     } = options;
 
     const uploadOptions = {

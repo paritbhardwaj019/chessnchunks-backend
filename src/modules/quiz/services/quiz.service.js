@@ -1,9 +1,9 @@
 const { SYSTEM_CODE_MODULE, QUESTION_TYPE } = require('@prisma/client');
 const httpStatus = require('http-status');
-
-const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
-const generateSystemCode = require('../utils/generateSystemCode');
+const db = require('../../../database/prisma');
+const ApiError = require('../../../utils/apiError');
+const generateSystemCode = require('../../../utils/generateSystemCode');
+const logger = require('../../../utils/logger');
 
 const questionTypeMapping = {
   mcq: 'MULTIPLE_CHOICE',
@@ -143,7 +143,7 @@ const startQuizAttempt = async (quizId, userId) => {
     );
   }
 
-  const attempt = await db.studentQuizAttempt.findFirst({
+  await db.studentQuizAttempt.findFirst({
     where: {
       quizId,
       userId,
@@ -434,7 +434,7 @@ const getQuizById = async (quizId) => {
   return quiz;
 };
 
-const updateQuiz = async (quizId, data, userId) => {
+const updateQuiz = async (quizId, data) => {
   const existingQuiz = await db.quiz.findUnique({
     where: { id: quizId },
     include: { questions: true },
@@ -454,7 +454,7 @@ const updateQuiz = async (quizId, data, userId) => {
     questions,
   } = data;
 
-  const updatedQuiz = await db.quiz.update({
+  await db.quiz.update({
     where: { id: quizId },
     data: {
       title: title !== undefined ? title : existingQuiz.title,
@@ -599,7 +599,7 @@ const assignQuizWithTask = async (data, loggedInUser) => {
   };
 
   switch (assignmentType) {
-    case 'student':
+    case 'student': {
       if (!assigneeId) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'Student ID is required');
       }
@@ -614,8 +614,9 @@ const assignQuizWithTask = async (data, loggedInUser) => {
       }
       taskData.assignedToUserId = assigneeId;
       break;
+    }
 
-    case 'batch':
+    case 'batch': {
       if (!assigneeId) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'Batch ID is required');
       }
@@ -629,8 +630,9 @@ const assignQuizWithTask = async (data, loggedInUser) => {
       }
       taskData.assignedToBatchId = assigneeId;
       break;
+    }
 
-    case 'academy':
+    case 'academy': {
       if (!assigneeId) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'Academy ID is required');
       }
@@ -642,6 +644,7 @@ const assignQuizWithTask = async (data, loggedInUser) => {
       }
       taskData.assignedToAcademyId = assigneeId;
       break;
+    }
 
     default:
       throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid assignment type');
@@ -770,6 +773,7 @@ const quizService = {
   getQuizById,
   getQuizWithResults,
   getStudentQuizAttempts,
+  updateQuiz,
 };
 
 module.exports = quizService;

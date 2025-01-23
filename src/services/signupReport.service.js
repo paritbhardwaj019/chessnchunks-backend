@@ -3,10 +3,7 @@ const {
   PAYMENT_STATUS,
   USER_STATUS,
 } = require('@prisma/client');
-const httpStatus = require('http-status');
-
 const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
 
 const getCurrentSeasonSignupsHandler = async (filters = {}) => {
   const currentDate = new Date();
@@ -101,7 +98,7 @@ const getNewEnrollmentsHandler = async (filters = {}) => {
     signupStatus: SIGNUP_STATUS.CONFIRMED,
     paymentStatus: PAYMENT_STATUS.COMPLETED,
     createdAt: {
-      gte: new Date(new Date().setDate(new Date().getDate() - 30)), // Last 30 days
+      gte: new Date(new Date().setDate(new Date().getDate() - 30)),
     },
   };
 
@@ -156,7 +153,7 @@ const getWithdrawalsHandler = async (filters = {}) => {
   const where = {
     status: USER_STATUS.INACTIVE,
     updatedAt: {
-      gte: new Date(new Date().setDate(new Date().getDate() - 30)), // Last 30 days
+      gte: new Date(new Date().setDate(new Date().getDate() - 30)),
     },
   };
 

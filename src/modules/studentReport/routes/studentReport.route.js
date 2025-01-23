@@ -1,7 +1,6 @@
 const express = require('express');
-
-const studentReportController = require('../../../modules/studentRepo../../modules/studentReport/controllers/studentReport.controller');
-const checkJWT = require('../../middlewares/checkJWT');
+const studentReportController = require('../controllers/studentReport.controller');
+const checkJWT = require('../../../middlewares/checkJWT');
 
 const router = express.Router();
 

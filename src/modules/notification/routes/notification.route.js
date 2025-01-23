@@ -1,7 +1,6 @@
 const express = require('express');
-
-const notificationController = require('../../../modules/notificati../../modules/notification/controllers/notification.controller');
-const checkJWT = require('../../middlewares/checkJWT');
+const notificationController = require('../controllers/notification.controller');
+const checkJWT = require('../../../middlewares/checkJWT');
 
 const notificationRouter = express.Router();
 

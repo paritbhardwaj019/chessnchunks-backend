@@ -165,7 +165,7 @@ const createAdminHandler = async (data, loggedInUser) => {
     });
 
     return newAdmin;
-  } catch (error) {
+  } catch {
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Failed to create admin'
@@ -276,7 +276,7 @@ const transferOwnershipHandler = async (data, loggedInUser) => {
     });
 
     return { message: 'Ownership transferred successfully' };
-  } catch (error) {
+  } catch {
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Failed to transfer ownership'

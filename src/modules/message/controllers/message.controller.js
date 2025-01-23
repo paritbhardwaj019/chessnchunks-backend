@@ -1,10 +1,8 @@
 const httpStatus = require('http-status');
 const messageService = require('../services/message.service');
-
-// const messageService = require('../../modules/messa../../modules/message/services/message.service');
-// const socket = require('../socket'); // Import the socket module
-// const catchAsync = require('../utils/catchAsync');
-// const logger = require('../utils/logger');
+// const { getIO } = require('../../../socket');
+const catchAsync = require('../../../utils/catchAsync');
+const logger = require('../../../utils/logger');
 
 const sendBroadcastMessage = catchAsync(async (req, res) => {
   const { batchId, studentIds, content, isEmail } = req.body;
@@ -14,7 +12,7 @@ const sendBroadcastMessage = catchAsync(async (req, res) => {
     `Coach: ${senderId} sending broadcast message to batch: ${batchId}`
   );
 
-  const result = await messageService.sendBroadcastMessage({
+  await messageService.sendBroadcastMessage({
     senderId,
     batchId,
     studentIds,
@@ -22,16 +20,15 @@ const sendBroadcastMessage = catchAsync(async (req, res) => {
     isEmail,
   });
 
-  // Get the io instance
-  const io = socket.getIO();
+  // const io = getIO();
 
   // Emit an event to all students in the batch
-  result.recipients.forEach((studentId) => {
-    io.to(`user-${studentId}`).emit('broadcast_message', {
-      senderId,
-      content,
-    });
-  });
+  // result.recipients.forEach((studentId) => {
+  //   io.to(`user-${studentId}`).emit('broadcast_message', {
+  //     senderId,
+  //     content,
+  //   });
+  // });
 
   logger.info(
     `Broadcast message sent by Coach: ${senderId} to batch: ${batchId}`
@@ -52,10 +49,10 @@ const sendMessage = catchAsync(async (req, res) => {
     content,
   });
   // Get the io instance
-  const io = socket.getIO();
+  // const io = getIO();
 
   // Emit the message to the receiver's user room
-  io.to(`user-${receiverId}`).emit('new_message', message);
+  // io.to(`user-${receiverId}`).emit('new_message', message);
 
   res.status(httpStatus.OK).send(message);
 });

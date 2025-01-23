@@ -1,8 +1,4 @@
-const {
-  PROGRAM_TYPE,
-  PROGRAM_DURATION,
-  SYSTEM_CODE_MODULE,
-} = require('@prisma/client');
+const { SYSTEM_CODE_MODULE } = require('@prisma/client');
 const httpStatus = require('http-status');
 const { stripe } = require('../../../config');
 const db = require('../../../database/prisma');

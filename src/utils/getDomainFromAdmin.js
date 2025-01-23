@@ -18,7 +18,7 @@ function getDomainFromAdmin(adminDomain) {
     } else if (currentPort === '3000') {
       newPort = '3001';
     } else {
-      n(
+      logger.error(
         `Unexpected port "${currentPort}" in admin domain "${adminDomain}". No port change applied.`
       );
       return null;

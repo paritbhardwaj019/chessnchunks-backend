@@ -4,24 +4,23 @@ const fs = require('fs');
 const httpStatus = require('http-status');
 const Mailgen = require('mailgen');
 const { v4: uuidv4 } = require('uuid');
-
-const config = require('../config');
-const stripe = require('../config/stripe');
-const { defaultNavigation } = require('../data/defaultNavigation');
-const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
+const config = require('../../../config');
+const stripe = require('../../../config/stripe');
+const { defaultNavigation } = require('../../../data/defaultNavigation');
+const db = require('../../../database/prisma');
+const ApiError = require('../../../utils/apiError');
 const {
   uploadToCloudinary,
   deleteFromCloudinary,
-} = require('../utils/cloudinary.utils');
-const createDefaultPagesForAcademy = require('../utils/createDefaultPages');
-const createToken = require('../utils/createToken');
-const decodeToken = require('../utils/decodeToken');
-const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
-const hashPassword = require('../utils/hashPassword');
-const generateDomain = require('../utils/generateDomain');
-const logger = require('../utils/logger');
-const sendMail = require('../utils/sendEmail');
+} = require('../../../utils/cloudinary.utils');
+const createDefaultPagesForAcademy = require('../../../utils/createDefaultPages');
+const createToken = require('../../../utils/createToken');
+const decodeToken = require('../../../utils/decodeToken');
+const formatNumberWithPrefix = require('../../../utils/formatNumberWithPrefix');
+const hashPassword = require('../../../utils/hashPassword');
+const generateDomain = require('../../../utils/generateDomain');
+const logger = require('../../../utils/logger');
+const sendMail = require('../../../utils/sendEmail');
 
 const inviteAcademyAdminHandler = async (data, loggedInUser, logoFile) => {
   const { firstName, lastName, email, academyName, contactNumber } = data;
@@ -866,9 +865,7 @@ const updatePlanHandler = async (planId, planData) => {
   const academyPrice = await stripe.prices.retrieve(
     existingPlan.academyStripePlanId
   );
-  const subscriberPrice = await stripe.prices.retrieve(
-    existingPlan.subscriberStripePlanId
-  );
+
   const productId = academyPrice.product;
 
   if (planData.academyPrice !== existingPlan.academyPrice) {

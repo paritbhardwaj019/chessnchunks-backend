@@ -1,7 +1,6 @@
 const httpStatus = require('http-status');
-
-const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
+const db = require('../../../database/prisma');
+const ApiError = require('../../../utils/apiError');
 
 const updatePage = async (pageId, pageData) => {
   return await db.$transaction(async (prisma) => {
@@ -156,10 +155,12 @@ const updateComponentById = async (pageId, componentId, componentData) => {
   });
 };
 
-module.exports = {
+const pageService = {
   updatePage,
   getPageBySlug,
   getAllPages,
   updateComponentOrder,
   updateComponentById,
 };
+
+module.exports = pageService;

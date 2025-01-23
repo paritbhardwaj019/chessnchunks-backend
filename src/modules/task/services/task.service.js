@@ -1,10 +1,9 @@
 const { SYSTEM_CODE_MODULE } = require('@prisma/client');
 const httpStatus = require('http-status');
-
-const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
-const generateSystemCode = require('../utils/generateSystemCode');
-const logger = require('../utils/logger');
+const db = require('../../../database/prisma');
+const ApiError = require('../../../utils/apiError');
+const generateSystemCode = require('../../../utils/generateSystemCode');
+const logger = require('../../../utils/logger');
 
 /**
  * Create a new task
@@ -158,10 +157,9 @@ const getAllTasks = async (loggedInUser) => {
 /**
  * Get a task by its ID.
  * @param {String} taskId - The ID of the task.
- * @param {Object} loggedInUser - The user requesting the task.
  * @returns {Promise<Object>} The task.
  */
-const getTaskById = async (taskId, loggedInUser) => {
+const getTaskById = async (taskId) => {
   const task = await db.task.findUnique({
     where: { id: taskId },
     include: {
@@ -184,10 +182,9 @@ const getTaskById = async (taskId, loggedInUser) => {
  * Update an existing task.
  * @param {String} taskId - The ID of the task to update.
  * @param {Object} data - The new task data.
- * @param {Object} loggedInUser - The user performing the update.
  * @returns {Promise<Object>} The updated task.
  */
-const updateTask = async (taskId, data, loggedInUser) => {
+const updateTask = async (taskId, data) => {
   const existingTask = await db.task.findUnique({ where: { id: taskId } });
 
   'DATA', data;
@@ -218,24 +215,24 @@ const updateTask = async (taskId, data, loggedInUser) => {
  * @param {Object} loggedInUser - The user performing the deletion.
  * @returns {Promise<Object>} The deleted task.
  */
-const deleteTask = async (taskId, loggedInUser) => {
+const deleteTask = async (taskId) => {
   const existingTask = await db.task.findUnique({ where: { id: taskId } });
 
   if (!existingTask) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Task not found');
   }
 
-  // Add authorization checks here if needed
-
   const deletedTask = await db.task.delete({ where: { id: taskId } });
 
   return deletedTask;
 };
 
-module.exports = {
+const taskService = {
   createTaskHandler,
   getAllTasks,
   getTaskById,
   updateTask,
   deleteTask,
 };
+
+module.exports = taskService;

@@ -1,21 +1,20 @@
 const express = require('express');
 const httpStatus = require('http-status');
 const Mailgen = require('mailgen');
-
 const config = require('../../../config');
 const stripe = require('../../../config/stripe');
 const db = require('../../../database/prisma');
 const {
   verifyAcademyAdminHandler,
-} = require('../../../services/superAdmin.service');
+} = require('../../../modules/superAdmin/services/superAdmin.service');
 const { getDomainFromAdmin } = require('../../../utils/getDomainFromAdmin');
 const hashPassword = require('../../../utils/hashPassword');
 const sendMail = require('../../../utils/sendEmail');
 const logger = require('../../../utils/logger');
 
-const router = express.Router();
+const stripeWebhookRouter = express.Router();
 
-router.use(
+stripeWebhookRouter.use(
   ['/stripe', '/stripe/student'],
   express.raw({ type: 'application/json' })
 );
@@ -127,7 +126,7 @@ const setupAcademySubscription = async (
   return subscription;
 };
 
-router.post('/stripe', async (req, res) => {
+stripeWebhookRouter.post('/stripe', async (req, res) => {
   const sig = req.headers['stripe-signature'];
   req.headers['bypass-tunnel-reminder'] = 'true';
 
@@ -171,7 +170,7 @@ router.post('/stripe', async (req, res) => {
   }
 });
 
-router.post('/stripe/student', async (req, res) => {
+stripeWebhookRouter.post('/stripe/student', async (req, res) => {
   const sig = req.headers['stripe-signature'];
   req.headers['bypass-tunnel-reminder'] = 'true';
 
@@ -420,4 +419,4 @@ router.post('/stripe/student', async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = stripeWebhookRouter;

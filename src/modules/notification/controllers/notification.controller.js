@@ -1,7 +1,6 @@
 const httpStatus = require('http-status');
-
-const notificationService = require('../../modules/notificati../../modules/notification/services/notification.service');
-const catchAsync = require('../utils/catchAsync');
+const notificationService = require('../services/notification.service');
+const catchAsync = require('../../../utils/catchAsync');
 
 const fetchAllNotificationsHandler = catchAsync(async (req, res) => {
   const allNotifications =

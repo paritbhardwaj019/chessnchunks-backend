@@ -1,8 +1,7 @@
 const httpStatus = require('http-status');
 const _ = require('lodash');
-
-const studentService = require('../../modules/stude../../modules/student/services/student.service');
-const catchAsync = require('../utils/catchAsync');
+const studentService = require('../services/student.service');
+const catchAsync = require('../../../utils/catchAsync');
 
 const cleanParam = (param) => {
   if (!param || param === 'undefined') return undefined;

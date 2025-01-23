@@ -1,6 +1,5 @@
 const httpStatus = require('http-status');
-
-const systemCodeService = require('../../modules/systemCo../../modules/systemCode/services/systemCode.service');
+const systemCodeService = require('../services/systemCode.service');
 
 const createSystemCode = async (req, res) => {
   const systemCode = await systemCodeService.createSystemCode(req.body);
@@ -20,8 +19,10 @@ const getAllSystemCodes = async (req, res) => {
   res.json(systemCodes);
 };
 
-module.exports = {
+const systemCodeController = {
   createSystemCode,
   updateSystemCode,
   getAllSystemCodes,
 };
+
+module.exports = systemCodeController;

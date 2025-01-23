@@ -2,18 +2,18 @@ const crypto = require('crypto');
 
 const httpStatus = require('http-status');
 const Mailgen = require('mailgen');
-
-const config = require('../config');
-const db = require('../database/prisma');
-const ApiError = require('../utils/apiError');
-const createToken = require('../utils/createToken');
-const decodeToken = require('../utils/decodeToken');
-const formatNumberWithPrefix = require('../utils/formatNumberWithPrefix');
-const { getDomainFromAdmin } = require('../utils/getDomainFromAdmin');
-const hashPassword = require('../utils/hashPassword');
-const sendMail = require('../utils/sendEmail');
-
-const { getSingleAcademyForUser } = require('./academy.service');
+const config = require('../../../config');
+const db = require('../../../database/prisma');
+const ApiError = require('../../../utils/apiError');
+const createToken = require('../../../utils/createToken');
+const decodeToken = require('../../../utils/decodeToken');
+const formatNumberWithPrefix = require('../../../utils/formatNumberWithPrefix');
+const { getDomainFromAdmin } = require('../../../utils/getDomainFromAdmin');
+const hashPassword = require('../../../utils/hashPassword');
+const sendMail = require('../../../utils/sendEmail');
+const {
+  getSingleAcademyForUser,
+} = require('../../academy/services/academy.service');
 
 const inviteStudentHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyId: providedAcademyId } = data;
@@ -174,7 +174,7 @@ const sendInvitationEmail = async (
 
   try {
     await sendMail(email, 'Academy Student Invitation', emailText, emailBody);
-  } catch (error) {
+  } catch {
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Failed to send invitation email'
@@ -651,14 +651,12 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
 
   const currentDate = new Date();
 
-  // Handle everything in a transaction
-  const updatedStudent = await db.$transaction(async (prisma) => {
-    // Create exit history record
+  await db.$transaction(async (prisma) => {
     await prisma.userBatchHistory.create({
       data: {
         userId: studentId,
         batchId: fromBatchId,
-        fromDate: student.studentOfBatches[0].createdAt || new Date(), // Use batch assignment date or current date
+        fromDate: student.studentOfBatches[0].createdAt || new Date(),
         toDate: currentDate,
         reason: 'Batch Transfer',
         oldClass: fromBatch.currentClass,
@@ -668,7 +666,6 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
       },
     });
 
-    // Create entry history record
     await prisma.userBatchHistory.create({
       data: {
         userId: studentId,
@@ -682,7 +679,6 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
       },
     });
 
-    // Remove from old batch
     await prisma.user.update({
       where: { id: studentId },
       data: {
@@ -692,7 +688,6 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
       },
     });
 
-    // Add to new batch
     const updated = await prisma.user.update({
       where: { id: studentId },
       data: {

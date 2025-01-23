@@ -9,8 +9,6 @@ const {
 } = require('../../../utils/cloudinary.utils');
 
 const updateAcademyByIdHandler = async (data, id, loggedInUser) => {
-  data, id, loggedInUser;
-
   if (loggedInUser.role === 'SUPER_ADMIN') {
     const updatedAcademy = await db.academy.update({
       where: {
@@ -257,7 +255,6 @@ const getAcademyByDomain = async (domain) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Academy not found');
   }
 
-  // Get home page
   const homePage = academy.pages.find((page) => page.isHome);
   if (!homePage) {
     throw new ApiError(
@@ -266,7 +263,6 @@ const getAcademyByDomain = async (domain) => {
     );
   }
 
-  // Organize navigation into a tree structure
   const organizeNavigation = (items, parentId = null) => {
     return items
       .filter((item) => item.parentId === parentId)
@@ -299,8 +295,6 @@ const parseSlug = (slug) => {
 
 const getPublicPageBySlug = async (domain, slug) => {
   const parsedSlug = parseSlug(slug);
-
-  'SLUG', slug;
 
   const academy = await db.academy.findUnique({
     where: { domain },
@@ -426,8 +420,6 @@ const updateAcademySettings = async (id, data, logoFile, loggedInUser) => {
   }
 
   const updateData = {};
-
-  logoFile;
 
   if (logoFile) {
     try {

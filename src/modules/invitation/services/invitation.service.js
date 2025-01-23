@@ -5,8 +5,11 @@ const db = require('../../../database/prisma');
 const ApiError = require('../../../utils/apiError');
 const {
   sendAcademyAdminInvitation,
+  sendCoachInvitation,
+  sendStudentInvitation,
 } = require('../../../utils/invitationMailer');
 const logger = require('../../../utils/logger');
+const hashPassword = require('../../../utils/hashPassword');
 
 const fetchAllInvitationsHandler = async (
   loggedInUser,
@@ -188,7 +191,7 @@ const editInvitation = async (loggedInUser, invitationId, newEmail) => {
   }
 
   const tempPassword = crypto.randomBytes(8).toString('hex');
-  const hashedPassword = await hashPasssword(tempPassword, 10);
+  const hashedPassword = await hashPassword(tempPassword, 10);
 
   const newData = { email: newEmail, password: hashedPassword };
   const updatedData = Object.assign({}, invitation.data, newData);

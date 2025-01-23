@@ -192,7 +192,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
 
   try {
     await sendMail(email, 'Academy Coach Invitation', emailText, emailBody);
-  } catch (error) {
+  } catch {
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
       'Failed to send invitation email'
@@ -235,15 +235,8 @@ const verifyCoachInvitationHandler = async (token) => {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid invitation type!');
     }
 
-    const {
-      firstName,
-      lastName,
-      email,
-      academyId,
-      subRole,
-      password,
-      version,
-    } = coachInvitation.data;
+    const { firstName, lastName, email, academyId, subRole, password } =
+      coachInvitation.data;
 
     // Verify token version
     if (data.version !== coachInvitation.version) {

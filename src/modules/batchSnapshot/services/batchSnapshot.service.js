@@ -2,6 +2,8 @@ const { USER_STATUS, PAYMENT_STATUS } = require('@prisma/client');
 const httpStatus = require('http-status');
 const db = require('../../../database/prisma');
 const ApiError = require('../../../utils/apiError');
+const { Parser } = require('json2csv');
+const xl = require('excel4node');
 
 const getBatchesSnapshotHandler = async (filters = {}) => {
   const where = {
@@ -214,15 +216,15 @@ const getBatchSummaryHandler = async (batchId) => {
   };
 };
 
-const getCapacityStatus = (currentCount, capacity, warningCutoff) => {
-  const percentFull = (currentCount / capacity) * 100;
-  if (percentFull >= warningCutoff) {
-    return 'NEAR_CAPACITY';
-  } else if (currentCount >= capacity) {
-    return 'FULL';
-  }
-  return 'AVAILABLE';
-};
+// const getCapacityStatus = (currentCount, capacity, warningCutoff) => {
+//   const percentFull = (currentCount / capacity) * 100;
+//   if (percentFull >= warningCutoff) {
+//     return 'NEAR_CAPACITY';
+//   } else if (currentCount >= capacity) {
+//     return 'FULL';
+//   }
+//   return 'AVAILABLE';
+// };
 
 const getPaymentStatusWithWarnings = (subscription) => {
   const warnings = [];
@@ -404,7 +406,6 @@ const generateBatchReportHandler = async (academyId, format = 'csv') => {
     const wb = new xl.Workbook();
     const ws = wb.addWorksheet('Batch Report');
 
-    // Add headers
     const headers = [
       'Batch Code',
       'Start Date',

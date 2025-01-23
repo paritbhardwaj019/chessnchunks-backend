@@ -1,8 +1,8 @@
+const db = require('../../../database/prisma');
 const {
   getSingleAcademyForUser,
 } = require('../../academy/services/academy.service');
 const notificationService = require('../../notification/services/notification.service');
-const db = require('../database/prisma');
 
 /**
  * Creates a new event.
@@ -72,7 +72,7 @@ const deleteEventHandler = async (id) => {
  * @param {Object} data - The updated event data.
  * @param {Object} loggedInUser - The currently logged-in user.
  */
-const editEventHandler = async (id, data, loggedInUser) => {
+const editEventHandler = async (id, data) => {
   const existingEvent = await db.event.findUnique({
     where: { id: id },
     include: { academy: true, createdBy: true },

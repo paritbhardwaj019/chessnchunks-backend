@@ -1,9 +1,8 @@
 const httpStatus = require('http-status');
-
-const academyService = require('../../modules/pa../../modules/page/services/academy.service');
-const pageService = require('../../modules/pa../../modules/page/services/page.service');
-const ApiError = require('../utils/apiError');
-const catchAsync = require('../utils/catchAsync');
+const academyService = require('../../academy/services/academy.service');
+const pageService = require('../services/page.service');
+const ApiError = require('../../../utils/apiError');
+const catchAsync = require('../../../utils/catchAsync');
 
 const getAndValidateAcademy = async (loggedInUser) => {
   const academy = await academyService.getSingleAcademyForUser(loggedInUser);
@@ -24,8 +23,6 @@ const getPages = catchAsync(async (req, res) => {
 const getPage = catchAsync(async (req, res) => {
   const academyId = await getAndValidateAcademy(req.user);
   const { slug } = req.params;
-
-  slug;
 
   const page = await pageService.getPageBySlug(academyId, slug);
 
@@ -99,9 +96,11 @@ const updateComponentOrder = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(updatedComponents);
 });
 
-module.exports = {
-  updateComponentOrder,
-  updatePage,
+const pageController = {
   getPages,
   getPage,
+  updatePage,
+  updateComponentOrder,
 };
+
+module.exports = pageController;

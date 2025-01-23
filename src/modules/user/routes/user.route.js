@@ -1,11 +1,10 @@
 const express = require('express');
-
-const userController = require('../../../modules/us../../modules/us../../modules/user/controllers/user.controller');
-const checkJWT = require('../../middlewares/checkJWT');
-const checkPermission = require('../../middlewares/checkPermission');
-const checkRole = require('../../middlewares/checkRole');
-const signupLimiter = require('../../middlewares/signupLimiter');
-const uploadFile = require('../../middlewares/uploadFile');
+const userController = require('../controllers/user.controller');
+const checkJWT = require('../../../middlewares/checkJWT');
+const checkPermission = require('../../../middlewares/checkPermission');
+const checkRole = require('../../../middlewares/checkRole');
+const signupLimiter = require('../../../middlewares/signupLimiter');
+const uploadFile = require('../../../middlewares/uploadFile');
 
 const userRouter = express.Router();
 

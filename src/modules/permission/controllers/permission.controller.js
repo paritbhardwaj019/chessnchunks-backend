@@ -1,7 +1,6 @@
 const httpStatus = require('http-status');
-
-const permissionService = require('../../modules/permissi../../modules/permission/services/permission.service');
-const catchAsync = require('../utils/catchAsync');
+const permissionService = require('../services/permission.service');
+const catchAsync = require('../../../utils/catchAsync');
 
 const fetchUserPermission = catchAsync(async (req, res) => {
   const userPermission = await permissionService.fetchUserPermission(req.user);

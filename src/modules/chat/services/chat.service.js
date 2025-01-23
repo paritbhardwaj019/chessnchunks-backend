@@ -3,17 +3,11 @@ const db = require('../../../database/prisma');
 const ApiError = require('../../../utils/apiError');
 
 const sendChatMessage = async ({ senderId, receiverId, content }) => {
-  // Check if both users are in the same batch
   const commonBatch = await db.batch.findFirst({
     where: {
       students: {
         some: {
           id: senderId,
-        },
-      },
-      students: {
-        some: {
-          id: receiverId,
         },
       },
     },
