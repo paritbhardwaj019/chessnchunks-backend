@@ -61,28 +61,4 @@ async function startServer() {
   }
 }
 
-async function shutdown() {
-  logger.info('Received shutdown signal. Closing server...');
-
-  try {
-    await db.$disconnect();
-    logger.info('Database disconnected');
-
-    if (httpServer) {
-      await new Promise((resolve) => {
-        httpServer.close(resolve);
-      });
-      logger.info('Server closed');
-    }
-
-    process.exit(0);
-  } catch (error) {
-    logger.error('Error during shutdown:', error);
-    process.exit(1);
-  }
-}
-
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
-
 startServer();

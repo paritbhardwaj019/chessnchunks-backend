@@ -1,9 +1,9 @@
 const { SYSTEM_CODE_MODULE } = require('@prisma/client');
 const httpStatus = require('http-status');
-const { stripe } = require('../../../config');
 const db = require('../../../database/prisma');
 const ApiError = require('../../../utils/apiError');
 const generateSystemCode = require('../../../utils/generateSystemCode');
+const stripe = require('../../../config/stripe');
 
 const createSearchConditions = (searchText) => {
   if (!searchText) return {};

@@ -1,0 +1,913 @@
+{"level":"\u001b[32minfo\u001b[39m","message":"Roles seeded successfully","timestamp":"2025-01-24 11:17:39"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Permissions seeded successfully","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/academies\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/academies\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/academies\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/academies\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/invitations\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/users\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/permissions\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/permissions\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/system-code\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/system-code\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/plans\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/plans\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/plans\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/plans\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings/profile\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/settings/profile\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"SUPER_ADMIN permissions assigned successfully.","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/batches\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/batches\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/batches\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/batches\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/users\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/users\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/users\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/users\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/invitations\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/invitations\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/invitations\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/invitations\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/calendar\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/calendar\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/calendar\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/calendar\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/communication\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/communication\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/communication\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/communication\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/seasonal\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/seasonal\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/monthly\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/monthly\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/weekly\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/weekly\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/assign-weekly\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/assign-weekly\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/website\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/website\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/programs\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/programs\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/programs\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/programs\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/students/list\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/students/signups\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/students/signups\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/students/signups\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/students/signups\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/batches\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/enrollments\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/students\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/target-goals\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"UPDATE /dashboard/settings\" not found. Skipping assignment to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings/profile\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/settings/profile\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings/admins\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:40"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/settings/admins\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings/academy\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/settings/academy\" to role \"ADMIN\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"ADMIN permissions assigned successfully.","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"ADD /dashboard/goals\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"UPDATE /dashboard/goals\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"DELETE /dashboard/goals\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/seasonal\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/seasonal\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"UPDATE /dashboard/goals/seasonal\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"DELETE /dashboard/goals/seasonal\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/monthly\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/monthly\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"UPDATE /dashboard/goals/monthly\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"DELETE /dashboard/goals/monthly\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/weekly\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/weekly\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"UPDATE /dashboard/goals/weekly\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"DELETE /dashboard/goals/weekly\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/assign-weekly\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/assign-weekly\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"UPDATE /dashboard/goals/assign-weekly\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"DELETE /dashboard/goals/assign-weekly\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/students\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/students/list\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/students/signups\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/students/signups\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/students/signups\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/students/signups\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/batches\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/enrollments\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/students\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/target-goals\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings/profile\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/settings/profile\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/tasks\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/tasks/quizzes\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/tasks/quizzes\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/tasks/quizzes\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/tasks/quizzes\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/calendar\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/users\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/users\" to role \"COACH\".","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"COACH permissions assigned successfully.","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"All role permissions assigned successfully.","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"System codes seeded successfully","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Seeding process completed successfully.","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Seed done ✅","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Starting database automation process...","timestamp":"2025-01-24 11:17:06"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Starting: Resetting database","timestamp":"2025-01-24 11:17:06"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Completed: Resetting database","timestamp":"2025-01-24 11:17:20"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Starting: Generating Prisma Client","timestamp":"2025-01-24 11:17:20"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Completed: Generating Prisma Client","timestamp":"2025-01-24 11:17:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Starting: Pushing schema changes","timestamp":"2025-01-24 11:17:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Completed: Pushing schema changes","timestamp":"2025-01-24 11:17:39"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Starting: Seeding data","timestamp":"2025-01-24 11:17:39"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Completed: Seeding data","timestamp":"2025-01-24 11:17:41"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Database automation completed successfully! âœ¨","timestamp":"2025-01-24 11:17:41"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-24 23:29:31"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-24 23:29:31"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:29:31"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:29:31"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-24 23:29:31"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:30:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:30:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:31:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:31:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:32:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:32:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:33:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:33:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:34:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:34:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:35:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:35:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:36:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:36:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:37:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:37:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:38:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:38:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:39:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:39:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:40:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:40:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:41:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:41:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:42:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:42:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:43:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:43:00"}
+{"level":"error","timestamp":"2025-01-24 23:43:32"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 500 40.413 ms - 348","timestamp":"2025-01-24 23:43:32"}
+{"level":"error","timestamp":"2025-01-24 23:43:32"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 500 4.121 ms - 348","timestamp":"2025-01-24 23:43:32"}
+{"level":"error","timestamp":"2025-01-24 23:43:37"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 500 6.043 ms - 341","timestamp":"2025-01-24 23:43:37"}
+{"level":"error","timestamp":"2025-01-24 23:43:37"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 500 3.881 ms - 341","timestamp":"2025-01-24 23:43:37"}
+{"level":"error","timestamp":"2025-01-24 23:43:37"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 500 5.957 ms - 348","timestamp":"2025-01-24 23:43:37"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:44:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:44:00"}
+{"level":"error","timestamp":"2025-01-24 23:44:27"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 500 10.501 ms - 348","timestamp":"2025-01-24 23:44:27"}
+{"level":"error","timestamp":"2025-01-24 23:44:27"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 500 7.894 ms - 341","timestamp":"2025-01-24 23:44:27"}
+{"level":"error","timestamp":"2025-01-24 23:44:27"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 500 9.049 ms - 341","timestamp":"2025-01-24 23:44:27"}
+{"level":"error","timestamp":"2025-01-24 23:44:27"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 500 8.467 ms - 341","timestamp":"2025-01-24 23:44:27"}
+{"level":"error","timestamp":"2025-01-24 23:44:27"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 500 7.960 ms - 341","timestamp":"2025-01-24 23:44:27"}
+{"level":"error","timestamp":"2025-01-24 23:44:27"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 500 15.602 ms - 348","timestamp":"2025-01-24 23:44:27"}
+{"level":"error","timestamp":"2025-01-24 23:44:27"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 500 11.399 ms - 348","timestamp":"2025-01-24 23:44:27"}
+{"level":"error","timestamp":"2025-01-24 23:44:55"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 500 2.215 ms - 348","timestamp":"2025-01-24 23:44:55"}
+{"level":"error","timestamp":"2025-01-24 23:44:55"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 500 8.562 ms - 341","timestamp":"2025-01-24 23:44:55"}
+{"level":"error","timestamp":"2025-01-24 23:44:55"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 500 32.662 ms - 341","timestamp":"2025-01-24 23:44:55"}
+{"level":"info","message":"Origins updated. Total allowed origins: 2","timestamp":"2025-01-24 23:45:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000","timestamp":"2025-01-24 23:45:00"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Roles seeded successfully","timestamp":"2025-01-24 23:45:22"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Permissions seeded successfully","timestamp":"2025-01-24 23:45:22"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:22"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/academies\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/academies\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/academies\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/academies\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/invitations\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/users\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/permissions\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/permissions\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/system-code\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/system-code\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/plans\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/plans\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/plans\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/plans\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings/profile\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/settings/profile\" to role \"SUPER_ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"SUPER_ADMIN permissions assigned successfully.","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/batches\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/batches\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/batches\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/batches\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/users\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/users\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/users\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/users\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/invitations\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/invitations\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/invitations\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/invitations\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/calendar\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/calendar\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/calendar\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/calendar\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/communication\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/communication\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/communication\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/communication\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/seasonal\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/seasonal\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/monthly\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/monthly\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/weekly\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/weekly\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/assign-weekly\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/assign-weekly\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/website\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/website\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/programs\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/programs\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/programs\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/programs\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/students/list\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/students/signups\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/students/signups\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/students/signups\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/students/signups\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/batches\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/enrollments\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/students\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/target-goals\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"UPDATE /dashboard/settings\" not found. Skipping assignment to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings/profile\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/settings/profile\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings/admins\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/settings/admins\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings/academy\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/settings/academy\" to role \"ADMIN\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"ADMIN permissions assigned successfully.","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"ADD /dashboard/goals\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"UPDATE /dashboard/goals\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"DELETE /dashboard/goals\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/seasonal\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/seasonal\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"UPDATE /dashboard/goals/seasonal\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"DELETE /dashboard/goals/seasonal\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/monthly\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/monthly\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"UPDATE /dashboard/goals/monthly\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"DELETE /dashboard/goals/monthly\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/weekly\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/weekly\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"UPDATE /dashboard/goals/weekly\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"DELETE /dashboard/goals/weekly\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/goals/assign-weekly\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/goals/assign-weekly\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"UPDATE /dashboard/goals/assign-weekly\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[33mwarn\u001b[39m","message":"Permission \"DELETE /dashboard/goals/assign-weekly\" not found. Skipping assignment to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/students\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/students/list\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/students/signups\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/students/signups\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/students/signups\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/students/signups\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/batches\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/enrollments\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/students\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/reports/target-goals\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/settings/profile\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/settings/profile\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/tasks\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/tasks/quizzes\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/tasks/quizzes\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"UPDATE /dashboard/tasks/quizzes\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"DELETE /dashboard/tasks/quizzes\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/calendar\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"VIEW /dashboard/users\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Assigned permission \"ADD /dashboard/users\" to role \"COACH\".","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"COACH permissions assigned successfully.","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"All role permissions assigned successfully.","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"System codes seeded successfully","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Seeding process completed successfully.","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Seed done ✅","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Starting database automation process...","timestamp":"2025-01-24 23:45:07"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Starting: Resetting database","timestamp":"2025-01-24 23:45:07"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Completed: Resetting database","timestamp":"2025-01-24 23:45:15"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Starting: Generating Prisma Client","timestamp":"2025-01-24 23:45:15"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Completed: Generating Prisma Client","timestamp":"2025-01-24 23:45:17"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Starting: Pushing schema changes","timestamp":"2025-01-24 23:45:17"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Completed: Pushing schema changes","timestamp":"2025-01-24 23:45:22"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Starting: Seeding data","timestamp":"2025-01-24 23:45:22"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Completed: Seeding data","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Database automation completed successfully! âœ¨","timestamp":"2025-01-24 23:45:23"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Starting the seeding process","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Password hashed successfully","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Roles created successfully","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Academy created: Chess In Chunks Academy","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Admin created: admin@chessinchunks.com (CIC ID: CIC-ADMIN-001)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Coach created: head.coach@example.com (CIC ID: CIC-COACH-JM001, Role: HEAD_COACH)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Coach created: senior.coach@example.com (CIC ID: CIC-COACH-SE001, Role: SENIOR_COACH)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Batch created: BATCH-2024-01","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Student created: kitten@example.com (CIC ID: CIC-STU-KP001, ChessComId: supercutekittenpuff)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Student created: sashwin@example.com (CIC ID: CIC-STU-SG001, ChessComId: SashwinG)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Student created: ranjhana@example.com (CIC ID: CIC-STU-RR001, ChessComId: Ranjhannaa)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Student created: nive@example.com (CIC ID: CIC-STU-NC001, ChessComId: nive_chitti)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Student created: rishaan@example.com (CIC ID: CIC-STU-RJ001, ChessComId: Rishaan-RJ)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\n=== Final Batch Status ===","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Batch Code: BATCH-2024-01","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Number of coaches: 2","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Number of students: 5","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\n=== Summary of Created Users and Their CIC IDs ===","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\nAdmin:","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"- admin@chessinchunks.com: CIC-ADMIN-001","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\nCoaches:","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"- senior.coach@example.com: CIC-COACH-SE001 (SENIOR_COACH)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"- head.coach@example.com: CIC-COACH-JM001 (HEAD_COACH)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\nStudents:","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"- kitten@example.com: CIC-STU-KP001 (ChessComId: supercutekittenpuff)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"- rishaan@example.com: CIC-STU-RJ001 (ChessComId: Rishaan-RJ)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"- nive@example.com: CIC-STU-NC001 (ChessComId: nive_chitti)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"- sashwin@example.com: CIC-STU-SG001 (ChessComId: SashwinG)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"- ranjhana@example.com: CIC-STU-RR001 (ChessComId: Ranjhannaa)","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\n=== End of Summary ===","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\nSeeding completed successfully","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"All users created with password: password1","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Prisma client disconnected","timestamp":"2025-01-24 23:45:34"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Superadmin created successfully","timestamp":"2025-01-24 23:46:10"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Default academy created successfully","timestamp":"2025-01-24 23:46:10"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-24 23:46:14"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-24 23:46:14"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:46:14"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:46:14"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-24 23:46:14"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 22.232 ms - 2089","timestamp":"2025-01-24 23:46:25"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 24.712 ms - 2005","timestamp":"2025-01-24 23:46:25"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:46:26"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 9.628 ms - 349","timestamp":"2025-01-24 23:46:26"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 9.254 ms - 2005","timestamp":"2025-01-24 23:46:26"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:46:26"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 7.781 ms - 349","timestamp":"2025-01-24 23:46:26"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:46:26"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 8.707 ms - 349","timestamp":"2025-01-24 23:46:26"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:46:26"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 9.326 ms - 349","timestamp":"2025-01-24 23:46:26"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 12.339 ms - 2005","timestamp":"2025-01-24 23:46:26"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:46:26"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 8.612 ms - 349","timestamp":"2025-01-24 23:46:26"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 10.328 ms - 2005","timestamp":"2025-01-24 23:46:26"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:46:26"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 8.633 ms - 349","timestamp":"2025-01-24 23:46:26"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:46:26"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 11.911 ms - 349","timestamp":"2025-01-24 23:46:26"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 12.481 ms - 2005","timestamp":"2025-01-24 23:46:26"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:46:26"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 9.966 ms - 349","timestamp":"2025-01-24 23:46:26"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:46:40"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 9.488 ms - 349","timestamp":"2025-01-24 23:46:40"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:46:40"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 9.851 ms - 349","timestamp":"2025-01-24 23:46:40"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:46:40"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 10.785 ms - 349","timestamp":"2025-01-24 23:46:40"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:46:40"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 11.113 ms - 349","timestamp":"2025-01-24 23:46:40"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 16.404 ms - 2005","timestamp":"2025-01-24 23:46:40"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 15.028 ms - 2005","timestamp":"2025-01-24 23:46:40"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:47:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:47:00"}
+{"level":"info","message":"OPTIONS /api/v1/portal-subscribers 200 0.189 ms - -","timestamp":"2025-01-24 23:47:50"}
+{"level":"info","message":"POST /api/v1/portal-subscribers 201 4620.156 ms - 976","timestamp":"2025-01-24 23:47:54"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:48:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:48:00"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans 200 0.100 ms - -","timestamp":"2025-01-24 23:48:16"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4 200 0.123 ms - -","timestamp":"2025-01-24 23:48:16"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 200 16.187 ms - 178","timestamp":"2025-01-24 23:48:16"}
+{"level":"info","message":"GET /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4 200 8.227 ms - 1026","timestamp":"2025-01-24 23:48:16"}
+{"level":"info","message":"OPTIONS /api/v1/portal-subscribers/43da6890-2203-4f64-92f2-631c5b71c6f4/verify 200 0.089 ms - -","timestamp":"2025-01-24 23:48:27"}
+{"level":"info","message":"POST /api/v1/portal-subscribers/43da6890-2203-4f64-92f2-631c5b71c6f4/verify 200 11.317 ms - 989","timestamp":"2025-01-24 23:48:27"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4/setup-mfa 200 0.087 ms - -","timestamp":"2025-01-24 23:48:44"}
+{"level":"info","message":"POST /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4/setup-mfa 200 3344.983 ms - 85","timestamp":"2025-01-24 23:48:48"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:49:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:49:00"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4/verify-mfa 200 0.092 ms - -","timestamp":"2025-01-24 23:49:32"}
+{"level":"info","message":"POST /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4/verify-mfa 200 13.634 ms - 54","timestamp":"2025-01-24 23:49:32"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4/update-password 200 0.146 ms - -","timestamp":"2025-01-24 23:49:34"}
+{"level":"info","message":"PUT /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4/update-password 200 7.890 ms - 58","timestamp":"2025-01-24 23:49:34"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 5.686 ms - 2005","timestamp":"2025-01-24 23:49:54"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 4.626 ms - 2089","timestamp":"2025-01-24 23:49:54"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 7.325 ms - 2005","timestamp":"2025-01-24 23:49:54"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 7.275 ms - 2089","timestamp":"2025-01-24 23:49:54"}
+{"level":"info","message":"OPTIONS /api/v1/permission 200 0.082 ms - -","timestamp":"2025-01-24 23:49:57"}
+{"level":"info","message":"GET /api/v1/permission 401 4.638 ms - 46","timestamp":"2025-01-24 23:49:57"}
+{"level":"info","message":"OPTIONS /api/v1/notifications 200 0.091 ms - -","timestamp":"2025-01-24 23:49:57"}
+{"level":"info","message":"OPTIONS /api/v1/dashboard 200 0.127 ms - -","timestamp":"2025-01-24 23:49:57"}
+{"level":"info","message":"GET /api/v1/notifications 401 4.513 ms - 46","timestamp":"2025-01-24 23:49:57"}
+{"level":"info","message":"GET /api/v1/dashboard 401 3.400 ms - 46","timestamp":"2025-01-24 23:49:57"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:50:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:50:00"}
+{"level":"info","message":"GET /api/v1/notifications 401 3.659 ms - 46","timestamp":"2025-01-24 23:50:00"}
+{"level":"info","message":"GET /api/v1/dashboard 401 4.806 ms - 46","timestamp":"2025-01-24 23:50:00"}
+{"level":"info","message":"GET /api/v1/permission 401 3.523 ms - 46","timestamp":"2025-01-24 23:50:00"}
+{"level":"info","message":"OPTIONS /api/v1/auth/login-with-password 200 0.161 ms - -","timestamp":"2025-01-24 23:50:18"}
+{"level":"info","message":"POST /api/v1/auth/login-with-password 200 104.833 ms - 498","timestamp":"2025-01-24 23:50:19"}
+{"level":"info","message":"OPTIONS /api/v1/notifications 200 0.158 ms - -","timestamp":"2025-01-24 23:50:19"}
+{"level":"info","message":"OPTIONS /api/v1/dashboard 200 0.097 ms - -","timestamp":"2025-01-24 23:50:19"}
+{"level":"info","message":"OPTIONS /api/v1/permission 200 0.116 ms - -","timestamp":"2025-01-24 23:50:19"}
+{"level":"info","message":"GET /api/v1/notifications 304 9.950 ms - -","timestamp":"2025-01-24 23:50:19"}
+{"level":"info","message":"GET /api/v1/permission 200 9.806 ms - 939","timestamp":"2025-01-24 23:50:19"}
+{"level":"info","message":"GET /api/v1/dashboard 200 21.374 ms - 115","timestamp":"2025-01-24 23:50:19"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/all-academies?page=1&limit=10&query= 200 0.090 ms - -","timestamp":"2025-01-24 23:50:20"}
+{"level":"info","message":"GET /api/v1/superadmin/all-academies?page=1&limit=10&query= 200 15.427 ms - 384","timestamp":"2025-01-24 23:50:20"}
+{"level":"info","message":"GET /api/v1/superadmin/all-academies?page=1&limit=10&query= 304 11.702 ms - -","timestamp":"2025-01-24 23:50:25"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans?page=1&limit=1000&query=&tier=undefined&type=undefined&sortBy=undefined&sortOrder=undefined 200 0.076 ms - -","timestamp":"2025-01-24 23:50:28"}
+{"level":"info","message":"GET /api/v1/superadmin/plans?page=1&limit=1000&query=&tier=undefined&type=undefined&sortBy=undefined&sortOrder=undefined 200 4.677 ms - 180","timestamp":"2025-01-24 23:50:28"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans 200 1.581 ms - -","timestamp":"2025-01-24 23:50:50"}
+{"level":"info","message":"POST /api/v1/superadmin/plans 201 2029.007 ms - 391","timestamp":"2025-01-24 23:50:52"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans?page=1&limit=1000&query=&tier=undefined&type=undefined&sortBy=undefined&sortOrder=undefined 200 0.107 ms - -","timestamp":"2025-01-24 23:50:52"}
+{"level":"info","message":"GET /api/v1/superadmin/plans?page=1&limit=1000&query=&tier=undefined&type=undefined&sortBy=undefined&sortOrder=undefined 200 3.581 ms - 652","timestamp":"2025-01-24 23:50:52"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans 200 0.074 ms - -","timestamp":"2025-01-24 23:50:58"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 200 3.535 ms - 650","timestamp":"2025-01-24 23:50:58"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4 200 0.082 ms - -","timestamp":"2025-01-24 23:50:58"}
+{"level":"info","message":"GET /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4 200 3.811 ms - 1062","timestamp":"2025-01-24 23:50:58"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:51:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:51:00"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 7.503 ms - 2005","timestamp":"2025-01-24 23:51:28"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans 200 0.081 ms - -","timestamp":"2025-01-24 23:51:29"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 304 4.933 ms - -","timestamp":"2025-01-24 23:51:29"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4 200 0.181 ms - -","timestamp":"2025-01-24 23:51:29"}
+{"level":"info","message":"GET /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4 304 6.740 ms - -","timestamp":"2025-01-24 23:51:29"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 6.950 ms - 2005","timestamp":"2025-01-24 23:51:29"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 6.612 ms - 2005","timestamp":"2025-01-24 23:51:31"}
+{"level":"info","message":"GET /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4 304 4.153 ms - -","timestamp":"2025-01-24 23:51:32"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 304 11.076 ms - -","timestamp":"2025-01-24 23:51:32"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:52:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:52:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:53:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:53:00"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 10.153 ms - 2005","timestamp":"2025-01-24 23:53:51"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans 200 0.126 ms - -","timestamp":"2025-01-24 23:53:53"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 304 4.759 ms - -","timestamp":"2025-01-24 23:53:53"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4 200 0.123 ms - -","timestamp":"2025-01-24 23:53:53"}
+{"level":"info","message":"GET /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4 304 5.003 ms - -","timestamp":"2025-01-24 23:53:53"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:54:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:54:00"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 6.347 ms - 2005","timestamp":"2025-01-24 23:54:07"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans 200 0.114 ms - -","timestamp":"2025-01-24 23:54:14"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 304 4.842 ms - -","timestamp":"2025-01-24 23:54:14"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4 200 0.086 ms - -","timestamp":"2025-01-24 23:54:14"}
+{"level":"info","message":"GET /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4 304 4.632 ms - -","timestamp":"2025-01-24 23:54:14"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:55:01"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:55:01"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:56:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:56:00"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-24 23:56:12"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-24 23:56:12"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:56:12"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:56:12"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-24 23:56:12"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 24.186 ms - 2005","timestamp":"2025-01-24 23:56:23"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 8.460 ms - 2089","timestamp":"2025-01-24 23:56:24"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 7.485 ms - 2089","timestamp":"2025-01-24 23:56:24"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 10.954 ms - 2005","timestamp":"2025-01-24 23:56:24"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 7.136 ms - 2089","timestamp":"2025-01-24 23:56:24"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 6.688 ms - 2005","timestamp":"2025-01-24 23:56:24"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 6.630 ms - 2089","timestamp":"2025-01-24 23:56:24"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 5.444 ms - 2089","timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 5.555 ms - 2089","timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 9.248 ms - 2005","timestamp":"2025-01-24 23:56:29"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 7.049 ms - 349","timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 9.637 ms - 2005","timestamp":"2025-01-24 23:56:29"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 6.615 ms - 349","timestamp":"2025-01-24 23:56:29"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 6.897 ms - 349","timestamp":"2025-01-24 23:56:29"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 6.276 ms - 349","timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 9.601 ms - 2005","timestamp":"2025-01-24 23:56:29"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 5.293 ms - 349","timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 8.818 ms - 2005","timestamp":"2025-01-24 23:56:29"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 7.575 ms - 349","timestamp":"2025-01-24 23:56:29"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 7.727 ms - 349","timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 8.293 ms - 2005","timestamp":"2025-01-24 23:56:29"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 5.665 ms - 349","timestamp":"2025-01-24 23:56:29"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans 200 0.154 ms - -","timestamp":"2025-01-24 23:56:49"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 304 10.436 ms - -","timestamp":"2025-01-24 23:56:49"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4 200 0.185 ms - -","timestamp":"2025-01-24 23:56:49"}
+{"level":"info","message":"GET /api/v1/student-signups/43da6890-2203-4f64-92f2-631c5b71c6f4 304 7.838 ms - -","timestamp":"2025-01-24 23:56:49"}
+{"level":"info","message":"OPTIONS /api/v1/portal-subscribers/43da6890-2203-4f64-92f2-631c5b71c6f4/verify 200 0.102 ms - -","timestamp":"2025-01-24 23:56:55"}
+{"level":"error","statusCode":400,"timestamp":"2025-01-24 23:56:55"}
+{"level":"info","message":"POST /api/v1/portal-subscribers/43da6890-2203-4f64-92f2-631c5b71c6f4/verify 400 14.775 ms - 405","timestamp":"2025-01-24 23:56:55"}
+{"level":"error","statusCode":400,"timestamp":"2025-01-24 23:56:57"}
+{"level":"info","message":"POST /api/v1/portal-subscribers/43da6890-2203-4f64-92f2-631c5b71c6f4/verify 400 4.400 ms - 405","timestamp":"2025-01-24 23:56:57"}
+{"level":"error","statusCode":400,"timestamp":"2025-01-24 23:56:57"}
+{"level":"info","message":"POST /api/v1/portal-subscribers/43da6890-2203-4f64-92f2-631c5b71c6f4/verify 400 3.679 ms - 405","timestamp":"2025-01-24 23:56:57"}
+{"level":"error","statusCode":400,"timestamp":"2025-01-24 23:56:57"}
+{"level":"info","message":"POST /api/v1/portal-subscribers/43da6890-2203-4f64-92f2-631c5b71c6f4/verify 400 3.959 ms - 405","timestamp":"2025-01-24 23:56:57"}
+{"level":"error","statusCode":400,"timestamp":"2025-01-24 23:56:58"}
+{"level":"info","message":"POST /api/v1/portal-subscribers/43da6890-2203-4f64-92f2-631c5b71c6f4/verify 400 3.743 ms - 405","timestamp":"2025-01-24 23:56:58"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:57:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:57:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:58:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:58:00"}
+{"level":"info","message":"OPTIONS /api/v1/portal-subscribers 200 0.127 ms - -","timestamp":"2025-01-24 23:58:15"}
+{"level":"info","message":"POST /api/v1/portal-subscribers 201 5576.430 ms - 981","timestamp":"2025-01-24 23:58:21"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans 200 0.097 ms - -","timestamp":"2025-01-24 23:58:34"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 304 4.848 ms - -","timestamp":"2025-01-24 23:58:34"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/8d901f5a-3978-48e3-8fd3-6a791827aae7 200 0.084 ms - -","timestamp":"2025-01-24 23:58:34"}
+{"level":"info","message":"GET /api/v1/student-signups/8d901f5a-3978-48e3-8fd3-6a791827aae7 200 4.490 ms - 1031","timestamp":"2025-01-24 23:58:34"}
+{"level":"info","message":"OPTIONS /api/v1/portal-subscribers/8d901f5a-3978-48e3-8fd3-6a791827aae7/verify 200 0.080 ms - -","timestamp":"2025-01-24 23:58:43"}
+{"level":"info","message":"POST /api/v1/portal-subscribers/8d901f5a-3978-48e3-8fd3-6a791827aae7/verify 200 10.272 ms - 994","timestamp":"2025-01-24 23:58:43"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/8d901f5a-3978-48e3-8fd3-6a791827aae7/update-password 200 0.075 ms - -","timestamp":"2025-01-24 23:58:52"}
+{"level":"info","message":"PUT /api/v1/student-signups/8d901f5a-3978-48e3-8fd3-6a791827aae7/update-password 200 13.425 ms - 58","timestamp":"2025-01-24 23:58:52"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-24 23:59:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-24 23:59:00"}
+{"level":"info","message":"Running expired signups check cron job","timestamp":"2025-01-25 00:00:00"}
+{"level":"info","message":"Running cleanup cron job","timestamp":"2025-01-25 00:00:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:00:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:00:00"}
+{"level":"info","message":"Processed 0 expired signups","timestamp":"2025-01-25 00:00:00"}
+{"clientVersion":"5.20.0","level":"error","message":"Error in cleanup cron job: \nInvalid `db.userSignup.deleteMany()` invocation in\n/home/whynotparit/Desktop/work/chessinchunks/backend/src/cron/studentSignup.cron.js:24:49\n\n  21 const thirtyDaysAgo = new Date();\n  22 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);\n  23 \n→ 24 const cleanupResult = await db.userSignup.deleteMany({\n       where: {\n         signupStatus: \"EXPIRED\",\n                       ~~~~~~~~~\n         updatedAt: {\n           lt: new Date(\"2024-12-25T18:30:00.298Z\")\n         }\n       }\n     })\n\nInvalid value for argument `signupStatus`. Expected SIGNUP_STATUS.","name":"PrismaClientValidationError","stack":"PrismaClientValidationError: \nInvalid `db.userSignup.deleteMany()` invocation in\n/home/whynotparit/Desktop/work/chessinchunks/backend/src/cron/studentSignup.cron.js:24:49\n\n  21 const thirtyDaysAgo = new Date();\n  22 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);\n  23 \n→ 24 const cleanupResult = await db.userSignup.deleteMany({\n       where: {\n         signupStatus: \"EXPIRED\",\n                       ~~~~~~~~~\n         updatedAt: {\n           lt: new Date(\"2024-12-25T18:30:00.298Z\")\n         }\n       }\n     })\n\nInvalid value for argument `signupStatus`. Expected SIGNUP_STATUS.\n    at Dn (/home/whynotparit/Desktop/work/chessinchunks/backend/node_modules/@prisma/client/runtime/library.js:114:8082)\n    at Mn.handleRequestError (/home/whynotparit/Desktop/work/chessinchunks/backend/node_modules/@prisma/client/runtime/library.js:121:7396)\n    at Mn.handleAndLogRequestError (/home/whynotparit/Desktop/work/chessinchunks/backend/node_modules/@prisma/client/runtime/library.js:121:7061)\n    at Mn.request (/home/whynotparit/Desktop/work/chessinchunks/backend/node_modules/@prisma/client/runtime/library.js:121:6745)\n    at async l (/home/whynotparit/Desktop/work/chessinchunks/backend/node_modules/@prisma/client/runtime/library.js:130:9633)\n    at async Task._execution (/home/whynotparit/Desktop/work/chessinchunks/backend/src/cron/studentSignup.cron.js:24:29)","timestamp":"2025-01-25 00:00:00"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 13.703 ms - 2005","timestamp":"2025-01-25 00:00:45"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans 200 0.187 ms - -","timestamp":"2025-01-25 00:00:47"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 304 50.755 ms - -","timestamp":"2025-01-25 00:00:47"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/8d901f5a-3978-48e3-8fd3-6a791827aae7 200 0.139 ms - -","timestamp":"2025-01-25 00:00:47"}
+{"level":"info","message":"GET /api/v1/student-signups/8d901f5a-3978-48e3-8fd3-6a791827aae7 200 20.049 ms - 1069","timestamp":"2025-01-25 00:00:47"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:01:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:01:00"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/8d901f5a-3978-48e3-8fd3-6a791827aae7/update-password 200 0.097 ms - -","timestamp":"2025-01-25 00:01:27"}
+{"level":"info","message":"PUT /api/v1/student-signups/8d901f5a-3978-48e3-8fd3-6a791827aae7/update-password 200 20.608 ms - 58","timestamp":"2025-01-25 00:01:27"}
+{"level":"info","message":"OPTIONS /api/v1/portal-subscribers/subscription/checkout 200 0.085 ms - -","timestamp":"2025-01-25 00:01:33"}
+{"level":"info","message":"POST /api/v1/portal-subscribers/subscription/checkout 200 935.166 ms - 457","timestamp":"2025-01-25 00:01:34"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:02:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:02:00"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 5.816 ms - 2005","timestamp":"2025-01-25 00:02:06"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans 200 0.075 ms - -","timestamp":"2025-01-25 00:02:42"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 304 4.859 ms - -","timestamp":"2025-01-25 00:02:42"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/8d901f5a-3978-48e3-8fd3-6a791827aae7 200 0.081 ms - -","timestamp":"2025-01-25 00:02:42"}
+{"level":"info","message":"GET /api/v1/student-signups/8d901f5a-3978-48e3-8fd3-6a791827aae7 200 4.139 ms - 1069","timestamp":"2025-01-25 00:02:42"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:03:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:03:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:04:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:04:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:05:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:05:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:06:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:06:00"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 6.117 ms - 2005","timestamp":"2025-01-25 00:06:20"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 10.467 ms - 2005","timestamp":"2025-01-25 00:06:22"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:07:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:07:00"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 4.277 ms - 2005","timestamp":"2025-01-25 00:07:39"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 13.977 ms - 2089","timestamp":"2025-01-25 00:07:39"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 5.986 ms - 2089","timestamp":"2025-01-25 00:07:39"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 7.529 ms - 2005","timestamp":"2025-01-25 00:07:39"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 11.039 ms - 2005","timestamp":"2025-01-25 00:07:40"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 29.566 ms - 2089","timestamp":"2025-01-25 00:07:40"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:08:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:08:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:09:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:09:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:10:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:10:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:11:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:11:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:12:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:12:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:13:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:13:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:14:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:14:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:15:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:15:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:16:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:16:00"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 11.510 ms - 2005","timestamp":"2025-01-25 00:16:24"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 4.006 ms - 2089","timestamp":"2025-01-25 00:16:25"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 5.426 ms - 2005","timestamp":"2025-01-25 00:16:25"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 11.197 ms - 2089","timestamp":"2025-01-25 00:16:25"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 5.511 ms - 2089","timestamp":"2025-01-25 00:16:25"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 7.128 ms - 2005","timestamp":"2025-01-25 00:16:25"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 5.487 ms - 2089","timestamp":"2025-01-25 00:16:25"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:17:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:17:00"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-25 00:18:20"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-25 00:18:20"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:18:20"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:18:20"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-25 00:18:20"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 23.301 ms - 2005","timestamp":"2025-01-25 00:18:46"}
+{"level":"info","message":"OPTIONS /api/v1/permission 200 0.277 ms - -","timestamp":"2025-01-25 00:18:47"}
+{"level":"info","message":"GET /api/v1/permission 304 21.244 ms - -","timestamp":"2025-01-25 00:18:47"}
+{"level":"info","message":"OPTIONS /api/v1/notifications 200 0.291 ms - -","timestamp":"2025-01-25 00:18:47"}
+{"level":"info","message":"OPTIONS /api/v1/dashboard 200 0.137 ms - -","timestamp":"2025-01-25 00:18:47"}
+{"level":"info","message":"GET /api/v1/notifications 304 12.118 ms - -","timestamp":"2025-01-25 00:18:47"}
+{"level":"info","message":"GET /api/v1/dashboard 304 31.220 ms - -","timestamp":"2025-01-25 00:18:47"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/all-academies?page=1&limit=10&query= 200 0.101 ms - -","timestamp":"2025-01-25 00:18:49"}
+{"level":"info","message":"GET /api/v1/superadmin/all-academies?page=1&limit=10&query= 304 18.948 ms - -","timestamp":"2025-01-25 00:18:49"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:19:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:19:00"}
+{"level":"info","message":"OPTIONS /api/v1/auth/login-with-password 200 0.170 ms - -","timestamp":"2025-01-25 00:19:06"}
+{"level":"error","statusCode":401,"timestamp":"2025-01-25 00:19:06"}
+{"level":"info","message":"POST /api/v1/auth/login-with-password 401 94.119 ms - 354","timestamp":"2025-01-25 00:19:06"}
+{"level":"info","message":"POST /api/v1/auth/login-with-password 200 94.555 ms - 887","timestamp":"2025-01-25 00:19:10"}
+{"level":"info","message":"OPTIONS /api/v1/notifications 200 0.139 ms - -","timestamp":"2025-01-25 00:19:10"}
+{"level":"info","message":"OPTIONS /api/v1/dashboard 200 0.119 ms - -","timestamp":"2025-01-25 00:19:10"}
+{"level":"info","message":"OPTIONS /api/v1/permission 200 0.105 ms - -","timestamp":"2025-01-25 00:19:10"}
+{"level":"info","message":"GET /api/v1/notifications 200 9.900 ms - 2","timestamp":"2025-01-25 00:19:10"}
+{"level":"info","message":"GET /api/v1/permission 200 9.961 ms - 2903","timestamp":"2025-01-25 00:19:10"}
+{"level":"info","message":"GET /api/v1/dashboard 200 24.348 ms - 96","timestamp":"2025-01-25 00:19:10"}
+{"level":"info","message":"GET /api/v1/notifications 304 7.803 ms - -","timestamp":"2025-01-25 00:19:14"}
+{"level":"info","message":"GET /api/v1/permission 304 8.402 ms - -","timestamp":"2025-01-25 00:19:14"}
+{"level":"info","message":"GET /api/v1/dashboard 304 19.516 ms - -","timestamp":"2025-01-25 00:19:14"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs?page=1&limit=10&search= 200 0.081 ms - -","timestamp":"2025-01-25 00:19:16"}
+{"level":"info","message":"GET /api/v1/academy-programs?page=1&limit=10&search= 200 17.227 ms - 66","timestamp":"2025-01-25 00:19:16"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs 200 0.079 ms - -","timestamp":"2025-01-25 00:19:27"}
+{"level":"error","timestamp":"2025-01-25 00:19:27"}
+{"level":"info","message":"POST /api/v1/academy-programs 500 27.762 ms - 582","timestamp":"2025-01-25 00:19:27"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs?page=1&limit=10&search= 200 0.073 ms - -","timestamp":"2025-01-25 00:19:27"}
+{"level":"info","message":"GET /api/v1/academy-programs?page=1&limit=10&search= 200 12.166 ms - 674","timestamp":"2025-01-25 00:19:27"}
+{"level":"info","message":"OPTIONS /api/v1/notifications 200 0.082 ms - -","timestamp":"2025-01-25 00:19:38"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs?page=1&limit=10&search= 200 0.125 ms - -","timestamp":"2025-01-25 00:19:38"}
+{"level":"info","message":"OPTIONS /api/v1/permission 200 0.079 ms - -","timestamp":"2025-01-25 00:19:38"}
+{"level":"info","message":"GET /api/v1/notifications 304 7.875 ms - -","timestamp":"2025-01-25 00:19:38"}
+{"level":"info","message":"GET /api/v1/permission 304 9.152 ms - -","timestamp":"2025-01-25 00:19:38"}
+{"level":"info","message":"GET /api/v1/academy-programs?page=1&limit=10&search= 304 14.095 ms - -","timestamp":"2025-01-25 00:19:38"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs 200 0.109 ms - -","timestamp":"2025-01-25 00:19:51"}
+{"level":"error","timestamp":"2025-01-25 00:19:51"}
+{"level":"info","message":"POST /api/v1/academy-programs 500 23.619 ms - 582","timestamp":"2025-01-25 00:19:51"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs?page=1&limit=10&search= 200 0.069 ms - -","timestamp":"2025-01-25 00:19:51"}
+{"level":"info","message":"GET /api/v1/academy-programs?page=1&limit=10&search= 200 11.585 ms - 1282","timestamp":"2025-01-25 00:19:51"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:20:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:20:00"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-25 00:20:19"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-25 00:20:19"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:20:19"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:20:19"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-25 00:20:19"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-25 00:20:32"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-25 00:20:32"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:20:32"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:20:32"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-25 00:20:32"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-25 00:20:39"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-25 00:20:39"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:20:39"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:20:39"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-25 00:20:39"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-25 00:20:59"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-25 00:20:59"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:20:59"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:20:59"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-25 00:20:59"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:21:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:21:00"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-25 00:21:06"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-25 00:21:06"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:21:06"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:21:06"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-25 00:21:06"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/7f321761-613c-4b84-a06d-cb6c3865e539 200 0.787 ms - -","timestamp":"2025-01-25 00:21:11"}
+{"level":"info","message":"DELETE /api/v1/academy-programs/7f321761-613c-4b84-a06d-cb6c3865e539 204 30.160 ms - -","timestamp":"2025-01-25 00:21:11"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs?page=1&limit=10&search= 200 0.081 ms - -","timestamp":"2025-01-25 00:21:11"}
+{"level":"info","message":"GET /api/v1/academy-programs?page=1&limit=10&search= 200 14.869 ms - 674","timestamp":"2025-01-25 00:21:11"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/faeeaf04-6e64-4296-a947-3471d1cf536e 200 0.205 ms - -","timestamp":"2025-01-25 00:21:14"}
+{"level":"info","message":"DELETE /api/v1/academy-programs/faeeaf04-6e64-4296-a947-3471d1cf536e 204 21.685 ms - -","timestamp":"2025-01-25 00:21:14"}
+{"level":"info","message":"GET /api/v1/academy-programs?page=1&limit=10&search= 200 9.235 ms - 66","timestamp":"2025-01-25 00:21:14"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs 200 0.087 ms - -","timestamp":"2025-01-25 00:21:24"}
+{"level":"info","message":"POST /api/v1/academy-programs 201 2908.526 ms - 665","timestamp":"2025-01-25 00:21:27"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs?page=1&limit=10&search= 200 0.094 ms - -","timestamp":"2025-01-25 00:21:27"}
+{"level":"info","message":"GET /api/v1/academy-programs?page=1&limit=10&search= 200 10.967 ms - 772","timestamp":"2025-01-25 00:21:27"}
+{"level":"info","message":"OPTIONS /api/v1/permission/roles 200 0.084 ms - -","timestamp":"2025-01-25 00:21:36"}
+{"level":"info","message":"GET /api/v1/permission/roles 200 8.547 ms - 29973","timestamp":"2025-01-25 00:21:36"}
+{"level":"info","message":"OPTIONS /api/v1/permission 200 0.119 ms - -","timestamp":"2025-01-25 00:21:47"}
+{"level":"info","message":"PUT /api/v1/permission 200 55.016 ms - 12","timestamp":"2025-01-25 00:21:47"}
+{"level":"info","message":"PUT /api/v1/permission 200 21.826 ms - 12","timestamp":"2025-01-25 00:21:47"}
+{"level":"info","message":"PUT /api/v1/permission 200 7.888 ms - 11","timestamp":"2025-01-25 00:21:47"}
+{"level":"info","message":"PUT /api/v1/permission 200 5.967 ms - 11","timestamp":"2025-01-25 00:21:47"}
+{"level":"info","message":"OPTIONS /api/v1/permission/roles 200 0.085 ms - -","timestamp":"2025-01-25 00:21:47"}
+{"level":"info","message":"GET /api/v1/permission 200 9.050 ms - 939","timestamp":"2025-01-25 00:21:47"}
+{"level":"info","message":"GET /api/v1/permission/roles 200 8.138 ms - 31930","timestamp":"2025-01-25 00:21:47"}
+{"level":"info","message":"OPTIONS /api/v1/notifications 200 0.093 ms - -","timestamp":"2025-01-25 00:21:49"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs?page=1&limit=10&search= 200 0.122 ms - -","timestamp":"2025-01-25 00:21:49"}
+{"level":"info","message":"OPTIONS /api/v1/permission 200 0.106 ms - -","timestamp":"2025-01-25 00:21:49"}
+{"level":"info","message":"GET /api/v1/notifications 304 7.628 ms - -","timestamp":"2025-01-25 00:21:49"}
+{"level":"info","message":"GET /api/v1/permission 200 9.025 ms - 3281","timestamp":"2025-01-25 00:21:49"}
+{"level":"info","message":"GET /api/v1/academy-programs?page=1&limit=10&search= 304 18.511 ms - -","timestamp":"2025-01-25 00:21:49"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups?page=1&limit=10&search= 200 0.116 ms - -","timestamp":"2025-01-25 00:21:50"}
+{"level":"info","message":"GET /api/v1/student-signups?page=1&limit=10&search= 200 12.987 ms - 2","timestamp":"2025-01-25 00:21:50"}
+{"level":"info","message":"OPTIONS /api/v1/batch/options 200 0.108 ms - -","timestamp":"2025-01-25 00:21:52"}
+{"level":"info","message":"GET /api/v1/batch/options 200 17.254 ms - 3451","timestamp":"2025-01-25 00:21:52"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:22:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:22:00"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups 200 0.145 ms - -","timestamp":"2025-01-25 00:22:47"}
+{"level":"info","message":"POST /api/v1/student-signups 201 5142.424 ms - 2059","timestamp":"2025-01-25 00:22:52"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1/verify-email 200 0.178 ms - -","timestamp":"2025-01-25 00:22:52"}
+{"level":"info","message":"POST /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1/verify-email 200 10.600 ms - 1082","timestamp":"2025-01-25 00:22:52"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups?page=1&limit=10&search= 200 0.106 ms - -","timestamp":"2025-01-25 00:22:52"}
+{"level":"info","message":"GET /api/v1/student-signups?page=1&limit=10&search= 200 14.753 ms - 2089","timestamp":"2025-01-25 00:22:52"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:23:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:23:00"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 0.156 ms - -","timestamp":"2025-01-25 00:23:11"}
+{"level":"info","message":"GET /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 4.892 ms - 2114","timestamp":"2025-01-25 00:23:11"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 200 0.094 ms - -","timestamp":"2025-01-25 00:23:11"}
+{"level":"info","message":"GET /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 200 3.757 ms - 708","timestamp":"2025-01-25 00:23:11"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 0.063 ms - -","timestamp":"2025-01-25 00:23:18"}
+{"level":"info","message":"PUT /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 8.311 ms - 2087","timestamp":"2025-01-25 00:23:18"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1/update-password 200 0.087 ms - -","timestamp":"2025-01-25 00:23:25"}
+{"level":"info","message":"PUT /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1/update-password 200 13.460 ms - 58","timestamp":"2025-01-25 00:23:25"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:24:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:24:00"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 0.098 ms - -","timestamp":"2025-01-25 00:24:04"}
+{"level":"info","message":"GET /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 5.637 ms - 2124","timestamp":"2025-01-25 00:24:04"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 200 0.122 ms - -","timestamp":"2025-01-25 00:24:04"}
+{"level":"info","message":"GET /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 304 3.422 ms - -","timestamp":"2025-01-25 00:24:04"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1/update-password 200 0.070 ms - -","timestamp":"2025-01-25 00:24:14"}
+{"level":"info","message":"PUT /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1/update-password 200 12.784 ms - 58","timestamp":"2025-01-25 00:24:14"}
+{"level":"info","message":"PUT /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1/update-password 200 12.428 ms - 58","timestamp":"2025-01-25 00:24:19"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:25:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:25:00"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-25 00:25:19"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-25 00:25:19"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:25:19"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:25:19"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-25 00:25:19"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 0.766 ms - -","timestamp":"2025-01-25 00:25:25"}
+{"level":"info","message":"GET /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 10.372 ms - 2124","timestamp":"2025-01-25 00:25:25"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 200 0.201 ms - -","timestamp":"2025-01-25 00:25:25"}
+{"level":"info","message":"GET /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 304 5.382 ms - -","timestamp":"2025-01-25 00:25:25"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1/update-password 200 0.083 ms - -","timestamp":"2025-01-25 00:25:29"}
+{"level":"info","message":"PUT /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1/update-password 200 19.327 ms - 58","timestamp":"2025-01-25 00:25:29"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:26:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:26:00"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-25 00:26:29"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-25 00:26:29"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:26:29"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:26:29"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-25 00:26:29"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 0.674 ms - -","timestamp":"2025-01-25 00:26:33"}
+{"level":"info","message":"GET /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 10.388 ms - 2124","timestamp":"2025-01-25 00:26:33"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 200 0.113 ms - -","timestamp":"2025-01-25 00:26:34"}
+{"level":"info","message":"GET /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 304 5.873 ms - -","timestamp":"2025-01-25 00:26:34"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:27:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:27:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:28:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:28:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:29:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:29:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:30:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:30:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:31:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:31:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:32:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:32:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:33:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:33:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:34:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:34:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:35:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:35:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:36:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:36:00"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1/update-password 200 2.098 ms - -","timestamp":"2025-01-25 00:36:11"}
+{"level":"info","message":"PUT /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1/update-password 200 103.301 ms - 58","timestamp":"2025-01-25 00:36:11"}
+{"level":"info","message":"OPTIONS /api/v1/batch/options 200 0.175 ms - -","timestamp":"2025-01-25 00:36:25"}
+{"level":"info","message":"GET /api/v1/batch/options 304 63.999 ms - -","timestamp":"2025-01-25 00:36:25"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs?page=1&limit=10&search= 200 0.179 ms - -","timestamp":"2025-01-25 00:36:26"}
+{"level":"info","message":"GET /api/v1/academy-programs?page=1&limit=10&search= 304 23.566 ms - -","timestamp":"2025-01-25 00:36:26"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs 200 0.111 ms - -","timestamp":"2025-01-25 00:36:40"}
+{"level":"info","message":"POST /api/v1/academy-programs 201 2413.874 ms - 668","timestamp":"2025-01-25 00:36:42"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs?page=1&limit=10&search= 200 0.134 ms - -","timestamp":"2025-01-25 00:36:42"}
+{"level":"info","message":"GET /api/v1/academy-programs?page=1&limit=10&search= 200 15.056 ms - 1482","timestamp":"2025-01-25 00:36:42"}
+{"level":"info","message":"OPTIONS /api/v1/notifications 200 0.095 ms - -","timestamp":"2025-01-25 00:36:45"}
+{"level":"info","message":"OPTIONS /api/v1/permission 200 0.085 ms - -","timestamp":"2025-01-25 00:36:45"}
+{"level":"info","message":"GET /api/v1/notifications 304 11.823 ms - -","timestamp":"2025-01-25 00:36:45"}
+{"level":"info","message":"GET /api/v1/permission 304 26.383 ms - -","timestamp":"2025-01-25 00:36:45"}
+{"level":"info","message":"GET /api/v1/academy-programs?page=1&limit=10&search= 304 38.737 ms - -","timestamp":"2025-01-25 00:36:45"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 0.089 ms - -","timestamp":"2025-01-25 00:36:51"}
+{"level":"info","message":"GET /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 10.194 ms - 2124","timestamp":"2025-01-25 00:36:51"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 200 0.119 ms - -","timestamp":"2025-01-25 00:36:51"}
+{"level":"info","message":"GET /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 200 5.954 ms - 1418","timestamp":"2025-01-25 00:36:51"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:37:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:37:00"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/checkout 200 0.081 ms - -","timestamp":"2025-01-25 00:37:36"}
+{"level":"info","message":"POST /api/v1/student-signups/checkout 200 648.696 ms - 457","timestamp":"2025-01-25 00:37:36"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 0.087 ms - -","timestamp":"2025-01-25 00:37:59"}
+{"level":"info","message":"GET /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 304 8.570 ms - -","timestamp":"2025-01-25 00:37:59"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 200 0.090 ms - -","timestamp":"2025-01-25 00:37:59"}
+{"level":"info","message":"GET /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 304 6.690 ms - -","timestamp":"2025-01-25 00:37:59"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:38:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:38:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:39:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:39:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:40:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:40:00"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/checkout 200 0.081 ms - -","timestamp":"2025-01-25 00:40:19"}
+{"level":"info","message":"POST /api/v1/student-signups/checkout 200 1213.662 ms - 457","timestamp":"2025-01-25 00:40:20"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 200 0.074 ms - -","timestamp":"2025-01-25 00:40:25"}
+{"level":"info","message":"GET /api/v1/student-signups/b98d3924-39dd-42ea-945c-a1bcea90baf1 304 3.271 ms - -","timestamp":"2025-01-25 00:40:25"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 200 0.064 ms - -","timestamp":"2025-01-25 00:40:25"}
+{"level":"info","message":"GET /api/v1/academy-programs/academy/054ea55e-c492-4d57-9ba0-85d63cc7bbf9 304 4.525 ms - -","timestamp":"2025-01-25 00:40:25"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:41:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:41:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:42:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:42:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:43:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:43:00"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:44:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:44:00"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 28.804 ms - 2005","timestamp":"2025-01-25 00:44:09"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 37.462 ms - 2089","timestamp":"2025-01-25 00:44:10"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 4.678 ms - 2005","timestamp":"2025-01-25 00:44:11"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 5.933 ms - 2005","timestamp":"2025-01-25 00:44:11"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 12.649 ms - 2089","timestamp":"2025-01-25 00:44:11"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/home 200 4.984 ms - 2089","timestamp":"2025-01-25 00:44:11"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-25 00:44:11"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 7.331 ms - 349","timestamp":"2025-01-25 00:44:11"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 11.366 ms - 2005","timestamp":"2025-01-25 00:44:11"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-25 00:44:11"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 8.979 ms - 349","timestamp":"2025-01-25 00:44:11"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-25 00:44:11"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 9.968 ms - 349","timestamp":"2025-01-25 00:44:11"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 10.300 ms - 2005","timestamp":"2025-01-25 00:44:11"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-25 00:44:11"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 10.401 ms - 349","timestamp":"2025-01-25 00:44:11"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-25 00:44:12"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 5.445 ms - 349","timestamp":"2025-01-25 00:44:12"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 9.263 ms - 2005","timestamp":"2025-01-25 00:44:12"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-25 00:44:12"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach1.jpg 404 7.293 ms - 349","timestamp":"2025-01-25 00:44:12"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-25 00:44:12"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 6.912 ms - 349","timestamp":"2025-01-25 00:44:12"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 7.253 ms - 2005","timestamp":"2025-01-25 00:44:12"}
+{"level":"error","statusCode":404,"timestamp":"2025-01-25 00:44:12"}
+{"level":"info","message":"GET /api/v1/academy/domain/localhost:3000/pages/coach2.jpg 404 5.431 ms - 349","timestamp":"2025-01-25 00:44:12"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:45:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:45:00"}
+{"level":"info","message":"OPTIONS /api/v1/portal-subscribers 200 0.095 ms - -","timestamp":"2025-01-25 00:45:10"}
+{"level":"info","message":"POST /api/v1/portal-subscribers 201 4851.586 ms - 971","timestamp":"2025-01-25 00:45:14"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans 200 0.074 ms - -","timestamp":"2025-01-25 00:45:42"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/34af4e41-59af-4bc1-a648-c8dada130507 200 0.121 ms - -","timestamp":"2025-01-25 00:45:42"}
+{"level":"info","message":"GET /api/v1/student-signups/34af4e41-59af-4bc1-a648-c8dada130507 200 4.464 ms - 1021","timestamp":"2025-01-25 00:45:42"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 304 92.826 ms - -","timestamp":"2025-01-25 00:45:42"}
+{"level":"info","message":"OPTIONS /api/v1/portal-subscribers/34af4e41-59af-4bc1-a648-c8dada130507/verify 200 0.084 ms - -","timestamp":"2025-01-25 00:45:49"}
+{"level":"info","message":"POST /api/v1/portal-subscribers/34af4e41-59af-4bc1-a648-c8dada130507/verify 200 14.172 ms - 984","timestamp":"2025-01-25 00:45:49"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/34af4e41-59af-4bc1-a648-c8dada130507/update-password 200 0.075 ms - -","timestamp":"2025-01-25 00:45:55"}
+{"level":"info","message":"PUT /api/v1/student-signups/34af4e41-59af-4bc1-a648-c8dada130507/update-password 200 14.810 ms - 58","timestamp":"2025-01-25 00:45:55"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:46:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:46:00"}
+{"level":"info","message":"OPTIONS /api/v1/portal-subscribers/subscription/checkout 200 0.095 ms - -","timestamp":"2025-01-25 00:46:01"}
+{"level":"info","message":"POST /api/v1/portal-subscribers/subscription/checkout 200 986.963 ms - 457","timestamp":"2025-01-25 00:46:02"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans 200 0.074 ms - -","timestamp":"2025-01-25 00:46:07"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 304 6.088 ms - -","timestamp":"2025-01-25 00:46:07"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/34af4e41-59af-4bc1-a648-c8dada130507 200 0.099 ms - -","timestamp":"2025-01-25 00:46:07"}
+{"level":"info","message":"GET /api/v1/student-signups/34af4e41-59af-4bc1-a648-c8dada130507 200 4.558 ms - 1059","timestamp":"2025-01-25 00:46:07"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 10.407 ms - 2005","timestamp":"2025-01-25 00:46:38"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:47:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:47:00"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/plans 200 0.085 ms - -","timestamp":"2025-01-25 00:47:12"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 304 74.211 ms - -","timestamp":"2025-01-25 00:47:13"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/34af4e41-59af-4bc1-a648-c8dada130507 200 0.104 ms - -","timestamp":"2025-01-25 00:47:13"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 26.782 ms - 2005","timestamp":"2025-01-25 00:47:13"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 136.499 ms - 2005","timestamp":"2025-01-25 00:47:14"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 86.164 ms - 2005","timestamp":"2025-01-25 00:47:14"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 193.099 ms - 2005","timestamp":"2025-01-25 00:47:14"}
+{"level":"info","message":"GET /api/v1/student-signups/34af4e41-59af-4bc1-a648-c8dada130507 304 140.198 ms - -","timestamp":"2025-01-25 00:47:18"}
+{"level":"info","message":"GET /api/v1/superadmin/plans 304 169.698 ms - -","timestamp":"2025-01-25 00:47:18"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:48:01"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:48:01"}
+{"level":"info","message":"GET /api/v1/navigation/domain/localhost:3000 200 61.927 ms - 2005","timestamp":"2025-01-25 00:48:57"}
+{"level":"info","message":"Origins updated. Total allowed origins: 6","timestamp":"2025-01-25 00:49:00"}
+{"level":"info","message":"Allowed origins: http://localhost:3001, http://localhost:3000, http://chess-in-chunks.localhost:3001, http://chess-in-chunks.localhost:3000, http://chessinchunks.localhost:3001, http://chessinchunks.localhost:3000","timestamp":"2025-01-25 00:49:00"}
