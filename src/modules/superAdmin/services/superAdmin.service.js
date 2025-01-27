@@ -23,7 +23,14 @@ const logger = require('../../../utils/logger');
 const sendMail = require('../../../utils/sendEmail');
 
 const inviteAcademyAdminHandler = async (data, loggedInUser, logoFile) => {
-  const { firstName, lastName, email, academyName, contactNumber } = data;
+  const {
+    firstName,
+    lastName,
+    email,
+    academyName,
+    contactNumber,
+    discountPercentage,
+  } = data;
 
   const existingUser = await db.user.findUnique({
     where: { email },
@@ -72,6 +79,7 @@ const inviteAcademyAdminHandler = async (data, loggedInUser, logoFile) => {
       phoneNumber: contactNumber || '',
       logoUrl,
       status: 'INQUIRY',
+      discountPercentage: parseFloat(discountPercentage),
     },
   });
 
@@ -144,7 +152,7 @@ const inviteAcademyAdminHandler = async (data, loggedInUser, logoFile) => {
           },
           {
             item: 'Step 2',
-            description: 'Choose your academy plan (Bronze, Silver, or Gold)',
+            description: 'Choose your academy plan with available discounts',
           },
           {
             item: 'Step 3',
@@ -475,6 +483,11 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
         _count: {
           select: { batches: true, admins: true },
         },
+        signup: {
+          select: {
+            discountPercentage: true,
+          },
+        },
         batches: {
           select: {
             _count: {
@@ -528,8 +541,6 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
       (acc, batch) => acc + batch._count.students,
       0
     );
-
-    'studentCount', academy.batches;
 
     const coachesCount = academy.batches.reduce(
       (acc, batch) => acc + batch._count.coaches,
@@ -768,7 +779,23 @@ const selectAcademyPlanHandler = async (signupId, planId, requestedDomain) => {
 
 const fetchAllPlansHandler = async (filters = {}, page = 1, limit = 10) => {
   try {
-    const { search, sortBy = 'createdAt', sortOrder = 'desc' } = filters;
+    const {
+      search,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      signupId,
+    } = filters;
+
+    let discountPercentage = 0;
+
+    if (signupId) {
+      const signup = await db.academySignup.findUnique({
+        where: { id: signupId },
+        select: { discountPercentage: true },
+      });
+
+      discountPercentage = signup?.discountPercentage || 0;
+    }
 
     const where = {
       AND: [
@@ -816,12 +843,24 @@ const fetchAllPlansHandler = async (filters = {}, page = 1, limit = 10) => {
       },
     });
 
+    const plansWithDiscount = plans.map((plan) => {
+      let discountedPrice = null;
+      if (discountPercentage > 0) {
+        discountedPrice = plan.academyPrice * (1 - discountPercentage / 100);
+      }
+      return {
+        ...plan,
+        discountedPrice: discountedPrice?.toFixed(2) || null,
+        discountPercentage: discountPercentage,
+      };
+    });
+
     const totalPages = Math.ceil(totalCount / limit);
     const hasNextPage = page < totalPages;
     const hasPreviousPage = page > 1;
 
     return {
-      plans,
+      plans: plansWithDiscount,
       pagination: {
         currentPage: page,
         totalPages,
@@ -902,18 +941,32 @@ const createCheckoutSessionHandler = async (
   domain,
   token
 ) => {
-  const plan = await db.plan.findUnique({
-    where: { id: planId },
-    select: {
-      id: true,
-      name: true,
-      academyPrice: true,
-      academyStripePlanId: true,
-    },
-  });
+  const [plan, signup] = await Promise.all([
+    db.plan.findUnique({ where: { id: planId } }),
+    db.academySignup.findUnique({ where: { id: signupId } }),
+  ]);
 
-  if (!plan) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Plan not found');
+  if (!plan || !signup)
+    throw new ApiError(httpStatus.NOT_FOUND, 'Plan or signup not found');
+
+  let discounts = [];
+
+  if (signup.discountPercentage > 0) {
+    let coupon;
+    const coupons = await stripe.coupons.list({
+      percent_off: signup.discountPercentage,
+    });
+    coupon =
+      coupons.data[0] ||
+      (await stripe.coupons.create({
+        percent_off: signup.discountPercentage,
+        duration: 'forever',
+        name: `${signup.discountPercentage}% Academy Discount`,
+      }));
+    const promotionCode = await stripe.promotionCodes.create({
+      coupon: coupon.id,
+    });
+    discounts.push({ promotion_code: promotionCode.id });
   }
 
   if (!plan.academyStripePlanId) {
@@ -932,6 +985,7 @@ const createCheckoutSessionHandler = async (
         quantity: 1,
       },
     ],
+    discounts,
     success_url: `${
       config.frontendUrl
     }/accept-invite?success=true&type=CREATE_ACADEMY&name=${encodeURIComponent(

@@ -2,6 +2,7 @@ const express = require('express');
 const eventController = require('../controllers/event.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 const checkPermission = require('../../../middlewares/checkPermission');
+const checkRole = require('../../../middlewares/checkRole');
 
 const eventRouter = express.Router();
 
@@ -11,6 +12,37 @@ const eventRouter = express.Router();
  *   name: Events
  *   description: Endpoints for managing events
  */
+
+/**
+ * @swagger
+ * /student:
+ *   get:
+ *     summary: Get all events for student's academy
+ *     description: Fetch all events for the student's academy.
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of events retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Event'
+ *       401:
+ *         description: Unauthorized - Invalid or missing JWT token
+ *       403:
+ *         description: Forbidden - User is not a student
+ */
+eventRouter
+  .route('/student')
+  .get(
+    checkJWT,
+    checkRole(['STUDENT']),
+    eventController.fetchAcademyEventsHandler
+  );
 
 /**
  * @swagger

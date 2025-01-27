@@ -45,8 +45,6 @@ const fetchAllStudentsByBatchId = catchAsync(async (req, res) => {
 
   query = cleanParam(query);
 
-  'CONTROLLER QUERY', req.query;
-
   const allStudents = await studentService.fetchAllStudentsByBatchId(batchId, {
     page,
     limit,
@@ -56,8 +54,6 @@ const fetchAllStudentsByBatchId = catchAsync(async (req, res) => {
 });
 
 const moveStudentToBatchHandler = catchAsync(async (req, res) => {
-  'BODY', req.body;
-
   const updatedStudent = await studentService.moveStudentToBatchHandler(
     req.body.studentId,
     req.body.batchId,
@@ -67,12 +63,18 @@ const moveStudentToBatchHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(updatedStudent);
 });
 
+const getBatchmatesHandler = catchAsync(async (req, res) => {
+  const batchmates = await studentService.getBatchmatesHandler(req.user);
+  res.status(httpStatus.OK).send(batchmates);
+});
+
 const studentController = {
   inviteStudentHandler,
   verifyStudentHandler,
   fetchAllStudentsHandler,
   fetchAllStudentsByBatchId,
   moveStudentToBatchHandler,
+  getBatchmatesHandler,
 };
 
 module.exports = studentController;

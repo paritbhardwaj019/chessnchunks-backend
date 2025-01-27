@@ -1,0 +1,6 @@
+version: '2'
+authtoken: 1flMMQ0papBHkuf50NTRyKIsgbm_7uiFMT2VcT6nMDpU4oVw
+tunnels:
+  webapp:
+    addr: 5000
+    proto: http

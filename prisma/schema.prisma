@@ -99,6 +99,8 @@ model User {
   modifiedBatches Batch[]            @relation("ModifiedBatches")
   batchHistory    UserBatchHistory[]
 
+  completedUserSignups UserSignup[] @relation("CompletedUserSignup")
+
   roleId  String
   role    Role     @relation(fields: [roleId], references: [id])
   profile Profile?
@@ -208,7 +210,8 @@ model Batch {
   warningMailSent Boolean   @default(false)
   waitlistCount       Int       @default(0)
 
-
+  assignedUserSignups UserSignup[] @relation("BatchAssignedUserSignups")
+  
   academyId String
   academy   Academy @relation(fields: [academyId], references: [id])
 
@@ -799,6 +802,8 @@ model AcademySignup {
   paymentAmount Float?
   paymentDate   DateTime?
 
+  discountPercentage Float? @default(0)
+
   academy Academy?
 
   createdAt DateTime @default(now())
@@ -888,7 +893,7 @@ model UserSignup {
   state        String?
   country      String?
   zipCode      String?
-  chessComId   String? @unique
+  chessComId   String? 
   lichessId    String?
   uscfId       String?
   password     String?
@@ -897,8 +902,14 @@ model UserSignup {
 
   invitation Invitation?
 
+  assignedToBatchId String?
+  assignedToBatch   Batch?  @relation("BatchAssignedUserSignups", fields: [assignedToBatchId], references: [id])
+
   batchInterestId String?
   interestedBatch Batch?  @relation("BatchInterest", fields: [batchInterestId], references: [id])
+
+  completedById String?
+  completedBy   User?   @relation("CompletedUserSignup", fields: [completedById], references: [id])
 
   reservationTime   DateTime?
   reservationExpiry DateTime?
@@ -1010,6 +1021,9 @@ model StudentQuizAttempt {
   user   User   @relation(fields: [userId], references: [id])
 
   answers StudentQuizAnswer[]
+
+  obtainedMarks Float?
+  totalMarks    Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

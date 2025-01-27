@@ -30,6 +30,7 @@ CREATE TABLE `users` (
     `subRole` ENUM('HEAD_COACH', 'SENIOR_COACH', 'JUNIOR_COACH', 'PUZZLE_MASTER', 'PUZZLE_MASTER_SCHOLAR') NULL,
     `roleId` VARCHAR(191) NOT NULL,
     `adminRole` ENUM('MASTER_ADMIN', 'ACADEMY_ADMIN') NULL,
+    `stripeCustomerId` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -141,7 +142,7 @@ CREATE TABLE `codes` (
     `email` VARCHAR(191) NOT NULL,
     `code` VARCHAR(191) NOT NULL,
     `expiresAt` DATETIME(3) NOT NULL,
-    `type` ENUM('FORGOT_PASSWORD', 'LOGIN_WITHOUT_PASSWORD', 'ADMIN_SETUP') NOT NULL,
+    `type` ENUM('FORGOT_PASSWORD', 'LOGIN_WITHOUT_PASSWORD', 'ADMIN_SETUP', 'MFA_LOGIN') NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -152,6 +153,9 @@ CREATE TABLE `subscriptions` (
     `userId` VARCHAR(191) NOT NULL,
     `planId` VARCHAR(191) NOT NULL,
     `academyId` VARCHAR(191) NULL,
+    `customer` VARCHAR(191) NULL,
+    `items` JSON NULL,
+    `metadata` JSON NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -341,7 +345,7 @@ CREATE TABLE `email_verifications` (
     `id` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
     `otp` VARCHAR(191) NOT NULL,
-    `type` ENUM('FORGOT_PASSWORD', 'LOGIN_WITHOUT_PASSWORD', 'ADMIN_SETUP') NOT NULL,
+    `type` ENUM('FORGOT_PASSWORD', 'LOGIN_WITHOUT_PASSWORD', 'ADMIN_SETUP', 'MFA_LOGIN') NOT NULL,
     `expiresAt` DATETIME(3) NOT NULL,
     `verified` BOOLEAN NOT NULL DEFAULT false,
     `verifiedAt` DATETIME(3) NULL,
@@ -402,6 +406,7 @@ CREATE TABLE `plans` (
 
     UNIQUE INDEX `plans_academyStripePlanId_key`(`academyStripePlanId`),
     UNIQUE INDEX `plans_subscriberStripePlanId_key`(`subscriberStripePlanId`),
+    INDEX `plans_planId_idx`(`planId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -485,6 +490,7 @@ CREATE TABLE `academy_signups` (
     `paymentStatus` ENUM('PENDING', 'COMPLETED', 'FAILED') NOT NULL DEFAULT 'PENDING',
     `paymentAmount` DOUBLE NULL,
     `paymentDate` DATETIME(3) NULL,
+    `discountPercentage` DOUBLE NULL DEFAULT 0,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -601,11 +607,12 @@ CREATE TABLE `quiz_questions` (
     `id` VARCHAR(191) NOT NULL,
     `questionCode` VARCHAR(191) NOT NULL,
     `questionText` VARCHAR(191) NOT NULL,
-    `type` ENUM('MULTIPLE_CHOICE', 'TRUE_FALSE', 'SHORT_ANSWER', 'LONG_ANSWER', 'MATCHING') NOT NULL,
+    `type` ENUM('MULTIPLE_CHOICE', 'TRUE_FALSE', 'SHORT_ANSWER', 'LONG_ANSWER', 'FILL_IN_THE_BLANKS') NOT NULL,
     `marks` DOUBLE NOT NULL,
     `orderIndex` INTEGER NOT NULL,
     `options` JSON NOT NULL,
     `correctAnswer` VARCHAR(191) NOT NULL,
+    `wordLimit` INTEGER NULL,
     `quizId` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
@@ -622,6 +629,7 @@ CREATE TABLE `student_quiz_attempts` (
     `score` DOUBLE NULL,
     `status` ENUM('NOT_STARTED', 'IN_PROGRESS', 'COMPLETED') NOT NULL,
     `taskId` VARCHAR(191) NOT NULL,
+    `quizId` VARCHAR(191) NOT NULL,
     `userId` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
@@ -941,6 +949,9 @@ ALTER TABLE `quiz_questions` ADD CONSTRAINT `quiz_questions_quizId_fkey` FOREIGN
 
 -- AddForeignKey
 ALTER TABLE `student_quiz_attempts` ADD CONSTRAINT `student_quiz_attempts_taskId_fkey` FOREIGN KEY (`taskId`) REFERENCES `tasks`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `student_quiz_attempts` ADD CONSTRAINT `student_quiz_attempts_quizId_fkey` FOREIGN KEY (`quizId`) REFERENCES `quizs`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `student_quiz_attempts` ADD CONSTRAINT `student_quiz_attempts_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

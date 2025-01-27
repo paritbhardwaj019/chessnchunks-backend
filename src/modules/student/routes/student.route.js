@@ -513,4 +513,83 @@ studentRouter.patch(
   studentController.moveStudentToBatchHandler
 );
 
+/**
+ * @swagger
+ * /students/batchmates:
+ *   get:
+ *     summary: Get batchmates of the logged-in student
+ *     description: Retrieve a list of all students who share the same batches as the logged-in student.
+ *     tags: [Students]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of batchmates retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       profile:
+ *                         type: object
+ *                         properties:
+ *                           firstName:
+ *                             type: string
+ *                           middleName:
+ *                             type: string
+ *                           lastName:
+ *                             type: string
+ *                           dateOfBirth:
+ *                             type: string
+ *                             format: date-time
+ *                           phoneNumber:
+ *                             type: string
+ *                           parentName:
+ *                             type: string
+ *                           parentEmail:
+ *                             type: string
+ *                           chessComId:
+ *                             type: string
+ *                           lichessId:
+ *                             type: string
+ *                           uscfId:
+ *                             type: string
+ *                           imageUrl:
+ *                             type: string
+ *                       studentOfBatches:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                             batchCode:
+ *                               type: string
+ *                             description:
+ *                               type: string
+ *                             currentClass:
+ *                               type: string
+ *                             currentLevel:
+ *                               type: string
+ *       401:
+ *         description: Unauthorized - Invalid or missing JWT token
+ *       404:
+ *         description: Student not found or not enrolled in any batches
+ */
+studentRouter.get(
+  '/batchmates',
+  checkJWT,
+  checkRole(['STUDENT']),
+  studentController.getBatchmatesHandler
+);
+
 module.exports = studentRouter;

@@ -5,12 +5,20 @@ const userService = require('../services/user.service');
 const catchAsync = require('../../../utils/catchAsync');
 
 const fetchAllUsersHandler = catchAsync(async (req, res) => {
-  const { page, limit, query } = _.pick(req.query, ['page', 'limit', 'query']);
+  const { page, limit, query, roles } = _.pick(req.query, [
+    'page',
+    'limit',
+    'query',
+    'roles',
+  ]);
+
+  const rolesArray = roles ? roles.split(',') : [];
 
   const allUsers = await userService.fetchAllUsersHandler(
     page,
     limit,
     query,
+    rolesArray,
     req.user
   );
 

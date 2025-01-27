@@ -723,8 +723,77 @@ const moveStudentToBatchHandler = async (studentId, fromBatchId, toBatchId) => {
   return response;
 };
 
-module.exports = {
-  moveStudentToBatchHandler,
+const getBatchmatesHandler = async (loggedInUser) => {
+  const student = await db.user.findUnique({
+    where: { id: loggedInUser.id },
+    include: {
+      studentOfBatches: {
+        select: { id: true },
+      },
+      role: true,
+      assignedToAcademy: {
+        select: { id: true },
+      },
+    },
+  });
+
+  if (!student) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Student not found');
+  }
+
+  if (student.role.name !== 'STUDENT') {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'User is not a student');
+  }
+
+  const batchIds = student.studentOfBatches.map((batch) => batch.id);
+
+  if (batchIds.length === 0) {
+    return { data: [] };
+  }
+
+  const batchmates = await db.user.findMany({
+    where: {
+      studentOfBatches: {
+        some: {
+          id: { in: batchIds },
+        },
+      },
+      assignedToAcademyId: student.assignedToAcademy?.id,
+      id: { not: loggedInUser.id },
+      role: { name: 'STUDENT' },
+    },
+    include: {
+      profile: {
+        select: {
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          dateOfBirth: true,
+          phoneNumber: true,
+          parentName: true,
+          parentEmail: true,
+          chessComId: true,
+          lichessId: true,
+          uscfId: true,
+          imageUrl: true,
+        },
+      },
+      studentOfBatches: {
+        select: {
+          id: true,
+          batchCode: true,
+          description: true,
+          currentClass: true,
+          currentLevel: true,
+        },
+        where: {
+          id: { in: batchIds },
+        },
+      },
+    },
+  });
+
+  return batchmates;
 };
 
 const studentService = {
@@ -735,6 +804,7 @@ const studentService = {
   moveStudentToBatchHandler,
   createStudentInvitation,
   sendInvitationEmail,
+  getBatchmatesHandler,
 };
 
 module.exports = studentService;

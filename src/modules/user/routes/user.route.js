@@ -11,7 +11,7 @@ const userRouter = express.Router();
 userRouter.get(
   '/all-users',
   checkJWT,
-  checkPermission('view', '/dashboard/users'),
+  checkRole(['SUPER_ADMIN']),
   userController.fetchAllUsersHandler
 );
 

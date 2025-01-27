@@ -377,8 +377,6 @@ const createSignupHandler = async (data, academyId) => {
     );
   }
 
-  'CHESS COM ID', chessComId;
-
   if (chessComId) {
     await validateChessComUsername(chessComId);
   }
@@ -890,6 +888,7 @@ const studentSignupService = {
   setupMFAHandler,
   verifyMFAHandler,
   generateMFALoginOTP,
+  validateChessComUsername,
 };
 
 module.exports = studentSignupService;

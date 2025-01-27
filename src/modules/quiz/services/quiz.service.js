@@ -123,33 +123,29 @@ const getQuizByTaskId = async (taskId) => {
 };
 
 const startQuizAttempt = async (quizId, userId) => {
+  const existingAttempt = await db.studentQuizAttempt.findFirst({
+    where: {
+      userId,
+      quizId,
+      status: 'IN_PROGRESS',
+    },
+  });
+
+  if (existingAttempt) {
+    return null;
+  }
+
   const quiz = await db.quiz.findUnique({
     where: { id: quizId },
-    include: {
-      task: true,
-    },
+    include: { task: true },
   });
 
-  'QUIZ', quiz;
-
-  if (!quiz) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Quiz not found');
-  }
-
-  if (!quiz.task) {
+  if (!quiz?.task) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      'Quiz is not assigned to any task'
+      'Quiz is not assigned to any active task'
     );
   }
-
-  await db.studentQuizAttempt.findFirst({
-    where: {
-      quizId,
-      userId,
-      status: { not: 'COMPLETED' },
-    },
-  });
 
   return db.studentQuizAttempt.create({
     data: {
@@ -160,16 +156,12 @@ const startQuizAttempt = async (quizId, userId) => {
       status: 'IN_PROGRESS',
     },
     include: {
-      quiz: true,
-      task: true,
-      user: {
-        include: {
-          profile: true,
-        },
-      },
+      quiz: { include: { questions: true } },
+      user: { include: { profile: true } },
     },
   });
 };
+
 const submitQuizAnswer = async (attemptId, questionId, answer) => {
   const attempt = await db.studentQuizAttempt.findUnique({
     where: { id: attemptId },
@@ -207,44 +199,72 @@ const submitQuizAnswer = async (attemptId, questionId, answer) => {
   });
 };
 
-const completeQuizAttempt = async (attemptId) => {
-  const attempt = await db.studentQuizAttempt.findUnique({
-    where: { id: attemptId },
-    include: {
-      answers: true,
-      task: {
-        include: {
-          quizzes: {
-            include: {
-              questions: true,
-            },
+const completeQuizAttempt = async (attemptId, answers) => {
+  return db.$transaction(async (prisma) => {
+    const attempt = await prisma.studentQuizAttempt.findUnique({
+      where: { id: attemptId },
+      include: {
+        quiz: { include: { questions: true } },
+      },
+    });
+
+    if (!attempt || attempt.status === 'COMPLETED') {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid quiz attempt');
+    }
+
+    const totalMarks = attempt.quiz.questions.reduce(
+      (sum, q) => sum + q.marks,
+      0
+    );
+    let obtainedMarks = 0;
+
+    const answerRecords = answers.map((answer) => {
+      const question = attempt.quiz.questions.find(
+        (q) => q.id === answer.questionId
+      );
+      if (!question) {
+        throw new ApiError(
+          httpStatus.BAD_REQUEST,
+          `Invalid question ID: ${answer.questionId}`
+        );
+      }
+
+      const isCorrect = question.correctAnswer === answer.answerText;
+      const marks = isCorrect ? question.marks : 0;
+      obtainedMarks += marks;
+
+      return {
+        attemptId,
+        questionId: answer.questionId,
+        answerText: answer.answerText,
+        isCorrect,
+        marksObtained: marks,
+      };
+    });
+
+    await prisma.studentQuizAnswer.createMany({
+      data: answerRecords,
+    });
+
+    const percentageScore = (obtainedMarks / totalMarks) * 100;
+
+    return prisma.studentQuizAttempt.update({
+      where: { id: attemptId },
+      data: {
+        status: 'COMPLETED',
+        endTime: new Date(),
+        obtainedMarks,
+        totalMarks,
+        score: percentageScore,
+      },
+      include: {
+        answers: {
+          include: {
+            question: true,
           },
         },
       },
-    },
-  });
-
-  if (!attempt) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Attempt not found');
-  }
-
-  const totalMarks = attempt.task.quizzes[0].questions.reduce(
-    (sum, q) => sum + q.marks,
-    0
-  );
-  const obtainedMarks = attempt.answers.reduce(
-    (sum, a) => sum + (a.marksObtained || 0),
-    0
-  );
-  const percentage = (obtainedMarks / totalMarks) * 100;
-
-  return db.studentQuizAttempt.update({
-    where: { id: attemptId },
-    data: {
-      status: 'COMPLETED',
-      endTime: new Date(),
-      score: percentage,
-    },
+    });
   });
 };
 
@@ -395,11 +415,42 @@ const listQuizzes = async (
   return formattedQuizzes;
 };
 
-const getQuizById = async (quizId) => {
+const getQuizById = async (quizId, userId = null) => {
   const quiz = await db.quiz.findUnique({
     where: { id: quizId },
     include: {
-      task: true,
+      task: {
+        include: {
+          assignedToAcademy: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          assignedToUser: {
+            select: {
+              id: true,
+              profile: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+          assignedToBatch: {
+            select: {
+              id: true,
+              batchCode: true,
+              academy: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      },
       createdBy: {
         select: {
           id: true,
@@ -409,12 +460,34 @@ const getQuizById = async (quizId) => {
       },
       questions: {
         orderBy: { orderIndex: 'asc' },
+        include: {
+          studentAnswers: {
+            where: userId ? { attempt: { userId } } : undefined,
+            include: {
+              attempt: {
+                include: {
+                  user: {
+                    include: {
+                      profile: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       studentQuizAttempts: {
+        where: userId ? { userId } : undefined,
         include: {
           user: {
             include: {
               profile: true,
+            },
+          },
+          answers: {
+            include: {
+              question: true,
             },
           },
         },
@@ -425,13 +498,56 @@ const getQuizById = async (quizId) => {
     },
   });
 
-  'QUIZ', quiz;
-
   if (!quiz) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Quiz not found');
   }
 
-  return quiz;
+  const totalMarks = quiz.questions.reduce((sum, q) => sum + q.marks, 0);
+  const totalAttempts = quiz.studentQuizAttempts.length;
+
+  const averageScore =
+    totalAttempts > 0
+      ? quiz.studentQuizAttempts.reduce((sum, a) => sum + (a.score || 0), 0) /
+        totalAttempts
+      : 0;
+
+  const formattedQuiz = {
+    ...quiz,
+    statistics: {
+      totalQuestions: quiz.questions.length,
+      totalMarks,
+      passingScore: quiz.passingScore,
+      totalAttempts,
+      averageScore: parseFloat(averageScore.toFixed(2)),
+    },
+    attempts: quiz.studentQuizAttempts.map((attempt) => ({
+      ...attempt,
+      percentage: parseFloat(
+        ((attempt.obtainedMarks / attempt.totalMarks) * 100).toFixed(2)
+      ),
+      isPassed:
+        (attempt.obtainedMarks / attempt.totalMarks) * 100 >= quiz.passingScore,
+      duration: attempt.endTime
+        ? Math.round(
+            (new Date(attempt.endTime).getTime() -
+              new Date(attempt.startTime).getTime()) /
+              60000
+          )
+        : null,
+    })),
+    questions: quiz.questions.map((question) => ({
+      ...question,
+      studentAnswers: question.studentAnswers.map((answer) => ({
+        ...answer,
+        isCorrect: answer.isCorrect,
+        marksObtained: answer.marksObtained,
+        student: answer.attempt.user.profile,
+        attemptId: answer.attemptId,
+      })),
+    })),
+  };
+
+  return formattedQuiz;
 };
 
 const updateQuiz = async (quizId, data) => {
@@ -680,56 +796,25 @@ const assignQuizWithTask = async (data, loggedInUser) => {
 };
 
 const getQuizWithResults = async (quizId) => {
-  const quiz = await db.quiz.findUnique({
+  return db.quiz.findUnique({
     where: { id: quizId },
     include: {
-      task: {
+      questions: { orderBy: { orderIndex: 'asc' } },
+      studentQuizAttempts: {
         include: {
-          studentQuizAttempts: {
+          user: {
+            include: { profile: true },
+          },
+          answers: {
             include: {
-              user: {
-                select: {
-                  id: true,
-                  profile: {
-                    select: {
-                      firstName: true,
-                      lastName: true,
-                    },
-                  },
-                },
-              },
-              answers: {
-                include: {
-                  question: true,
-                },
-              },
-            },
-            orderBy: {
-              startTime: 'desc',
+              question: true,
             },
           },
         },
-      },
-      questions: {
-        orderBy: {
-          orderIndex: 'asc',
-        },
-      },
-      createdBy: {
-        select: {
-          id: true,
-          email: true,
-          profile: true,
-        },
+        orderBy: { startTime: 'desc' },
       },
     },
   });
-
-  if (!quiz) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Quiz not found');
-  }
-
-  return quiz;
 };
 
 const getStudentQuizAttempts = async (userId) => {

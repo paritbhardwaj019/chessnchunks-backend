@@ -60,11 +60,13 @@ const fetchAllPlansHandler = catchAsync(async (req, res) => {
     limit = 10,
     type,
     search,
-  } = _.pick(req.query, ['page', 'limit', 'type', 'search']);
+    signupId,
+  } = _.pick(req.query, ['page', 'limit', 'type', 'search', 'signupId']);
 
   const filters = {
     type,
     search,
+    signupId,
   };
 
   const plans = await superAdminService.fetchAllPlansHandler(

@@ -160,7 +160,7 @@ const getSingleAcademyForUser = async (loggedInUser) => {
 
   if (user.role.name === 'ADMIN') {
     academyIds = user.adminOfAcademies.map((academy) => academy.id);
-  } else if (user.role.name === 'COACH') {
+  } else if (user.role.name === 'COACH' || user.role.name === 'STUDENT') {
     academyIds = [user.assignedToAcademy.id];
   } else {
     throw new ApiError(

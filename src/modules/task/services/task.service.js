@@ -127,7 +127,6 @@ const getAllTasks = async (loggedInUser) => {
       OR: [
         { assignedToUserId: loggedInUser.id },
         { assignedToBatchId: { in: batchIds } },
-        { assignedToAcademyId: null },
       ],
     };
   }

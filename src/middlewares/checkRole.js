@@ -12,8 +12,6 @@ const checkRole = (roles) => async (req, res, next) => {
 
     const { role, id } = decoded;
 
-    '---ROLE---', role;
-
     if (!roles.includes(role)) {
       return res.status(httpStatus.UNAUTHORIZED).json({
         message: 'Unauthorized access!',
@@ -45,7 +43,6 @@ const checkRole = (roles) => async (req, res, next) => {
     }
 
     req.user = { ...user, role: user.role.name };
-    'USER ROLE', { ...user, role: user.role.name };
 
     next();
   } catch (error) {

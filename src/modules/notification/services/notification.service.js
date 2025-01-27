@@ -1,4 +1,5 @@
 const db = require('../../../database/prisma');
+const logger = require('../../../utils/logger');
 
 const createEventNotificationHandler = async (data, loggedInUser) => {
   const academyUsers = await db.user.findMany({
@@ -69,11 +70,44 @@ const markAllAsReadHandler = async (loggedInUser) => {
   });
 };
 
+const createMessageNotificationHandler = async (message, sender) => {
+  try {
+    const notificationMessage = `New message from ${sender.profile.firstName} ${sender.profile.lastName}`;
+
+    const notificationData = {
+      message: notificationMessage,
+      user: { connect: { id: message.receiverId } },
+      isRead: false,
+    };
+
+    if (message.batchId) {
+      notificationData.batch = { connect: { id: message.batchId } };
+
+      const batch = await db.batch.findUnique({
+        where: { id: message.batchId },
+        select: { academyId: true },
+      });
+
+      if (batch?.academyId) {
+        notificationData.academy = { connect: { id: batch.academyId } };
+      }
+    }
+
+    return await db.notification.create({
+      data: notificationData,
+    });
+  } catch (error) {
+    logger.error('Failed to create message notification:', error);
+    throw new Error('Failed to create message notification');
+  }
+};
+
 const notificationService = {
   createEventNotificationHandler,
   fetchAllNotificationsHandler,
   markAsReadHandler,
   markAllAsReadHandler,
+  createMessageNotificationHandler,
 };
 
 module.exports = notificationService;

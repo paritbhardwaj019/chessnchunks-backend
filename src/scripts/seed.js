@@ -28,9 +28,37 @@ const routes = [
     actions: ['view', 'add', 'update', 'delete'],
   },
   {
+    name: 'Platform Users',
+    path: '/dashboard/platform-users',
+    actions: ['view', 'add', 'update', 'delete'],
+    subRoutes: [],
+  },
+  {
     name: 'Users',
     path: '/dashboard/users',
-    actions: ['view', 'add', 'update', 'delete'],
+    actions: ['view'],
+    subRoutes: [
+      {
+        name: 'List Students',
+        path: '/dashboard/users/students',
+        actions: ['view'],
+      },
+      {
+        name: 'List Coaches',
+        path: '/dashboard/users/coaches',
+        actions: ['view'],
+      },
+      {
+        name: 'Student Signups',
+        path: '/dashboard/users/student-signups',
+        actions: ['view', 'add', 'update', 'delete'],
+      },
+      {
+        name: 'Coach Signups',
+        path: '/dashboard/users/coach-signups',
+        actions: ['view', 'add', 'update', 'delete'],
+      },
+    ],
   },
   {
     name: 'Invitations',
@@ -459,12 +487,15 @@ async function assignSuperAdminPermissions() {
       actions: ['view', 'add', 'update', 'delete'],
     },
     { path: '/dashboard/invitations', actions: ['view'] },
-    { path: '/dashboard/users', actions: ['view'] },
     { path: '/dashboard/permissions', actions: ['view', 'update'] },
     { path: '/dashboard/system-code', actions: ['view', 'add'] },
     { path: '/dashboard/plans', actions: ['view', 'add', 'update', 'delete'] },
     { path: '/dashboard/settings', actions: ['view'] },
     { path: '/dashboard/settings/profile', actions: ['view', 'update'] },
+    {
+      path: '/dashboard/platform-users',
+      actions: ['view', 'add', 'update', 'delete'],
+    },
   ];
 
   await assignRolePermissions('SUPER_ADMIN', superAdminPermissions);
@@ -482,10 +513,6 @@ async function assignAdminPermissions() {
       actions: ['view', 'add', 'update', 'delete'],
     },
     { path: '/dashboard/users', actions: ['view', 'add', 'update', 'delete'] },
-    {
-      path: '/dashboard/invitations',
-      actions: ['view', 'add', 'update', 'delete'],
-    },
     {
       path: '/dashboard/calendar',
       actions: ['view', 'add', 'update', 'delete'],
@@ -518,6 +545,18 @@ async function assignAdminPermissions() {
     { path: '/dashboard/settings/profile', actions: ['view', 'update'] },
     { path: '/dashboard/settings/admins', actions: ['view', 'update'] },
     { path: '/dashboard/settings/academy', actions: ['view', 'update'] },
+    {
+      path: '/dashboard/users',
+      actions: ['view'],
+    },
+    {
+      path: '/dashboard/users/coaches',
+      actions: ['view'],
+    },
+    {
+      path: '/dashboard/users/coach-signups',
+      actions: ['view', 'add', 'update', 'delete'],
+    },
   ];
 
   await assignRolePermissions('ADMIN', adminPermissions);
@@ -568,6 +607,18 @@ async function assignCoachPermissions() {
     },
     { path: '/dashboard/calendar', actions: ['view'] },
     { path: '/dashboard/users', actions: ['view', 'add'] },
+    {
+      path: '/dashboard/users',
+      actions: ['view'],
+    },
+    {
+      path: '/dashboard/users/students',
+      actions: ['view'],
+    },
+    {
+      path: '/dashboard/users/student-signups',
+      actions: ['view', 'add', 'update', 'delete'],
+    },
   ];
 
   await assignRolePermissions('COACH', coachPermissions);

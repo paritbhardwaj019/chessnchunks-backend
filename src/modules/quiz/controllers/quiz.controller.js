@@ -51,7 +51,11 @@ const submitQuizAnswerHandler = catchAsync(async (req, res) => {
  */
 const completeQuizAttemptHandler = catchAsync(async (req, res) => {
   const { attemptId } = _.pick(req.params, ['attemptId']);
-  const result = await quizService.completeQuizAttempt(attemptId);
+
+  const result = await quizService.completeQuizAttempt(
+    attemptId,
+    req.body.answers
+  );
   res.status(httpStatus.OK).send(result);
 });
 

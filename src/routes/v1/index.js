@@ -30,6 +30,7 @@ const studentReportRouter = require('../../modules/studentReport/routes/studentR
 const studentSignupRouter = require('../../modules/studentSignup/routes/studentSignup.route');
 const superAdminRouter = require('../../modules/superAdmin/routes/superAdmin.route');
 const userRouter = require('../../modules/user/routes/user.route');
+const coachSignupRouter = require('../../modules/coach-signups/routes/coachSignup.route');
 
 const router = express.Router();
 
@@ -64,5 +65,6 @@ router.use('/reports/students', studentReportRouter);
 router.use('/admins', adminRouter);
 router.use('/portal-subscribers', portalSubscriberRouter);
 router.use('/student-profile', studentProfileRouter);
+router.use('/coach-signup', coachSignupRouter);
 
 module.exports = router;

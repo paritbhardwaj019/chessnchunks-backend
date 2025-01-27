@@ -6,6 +6,18 @@ const checkRole = require('../../../middlewares/checkRole');
 const quizRouter = express.Router();
 
 /**
+ * @route   PATCH /api/quiz/complete/:attemptId
+ * @desc    Complete a quiz attempt
+ * @access  Protected (STUDENT)
+ */
+quizRouter.patch(
+  '/complete/:attemptId',
+  checkJWT,
+  checkRole(['STUDENT']),
+  quizController.completeQuizAttemptHandler
+);
+
+/**
  * @route   GET /api/quiz/id/:quizId
  * @desc    Get quiz details by Quiz ID
  * @access  Protected (ADMIN, COACH, STUDENT)
@@ -106,18 +118,6 @@ quizRouter.post(
   checkJWT,
   checkRole(['STUDENT']),
   quizController.submitQuizAnswerHandler
-);
-
-/**
- * @route   PATCH /api/quiz/complete/:attemptId
- * @desc    Complete a quiz attempt
- * @access  Protected (STUDENT)
- */
-quizRouter.patch(
-  '/complete/:attemptId',
-  checkJWT,
-  checkRole(['STUDENT']),
-  quizController.completeQuizAttemptHandler
 );
 
 /**

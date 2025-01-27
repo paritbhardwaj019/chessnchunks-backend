@@ -43,10 +43,6 @@ async function updateOrigins() {
     });
 
     cachedOrigins = newOrigins;
-    logger.info(
-      `Origins updated. Total allowed origins: ${cachedOrigins.size}`
-    );
-    logger.info(`Allowed origins: ${Array.from(cachedOrigins).join(', ')}`);
     return Array.from(cachedOrigins);
   } catch (error) {
     logger.error(`Failed to update origins: ${error.message}`);

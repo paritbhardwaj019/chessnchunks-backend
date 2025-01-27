@@ -27,7 +27,13 @@ const {
 } = require('../../student/services/student.service');
 const logger = require('../../../utils/logger');
 
-const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
+const fetchAllUsersHandler = async (
+  page,
+  limit,
+  query,
+  roles,
+  loggedInUser
+) => {
   const numberPage = Number(page) || 1;
   const numberLimit = Number(limit) || 10;
   const skip = (numberPage - 1) * numberLimit;
@@ -41,6 +47,12 @@ const fetchAllUsersHandler = async (page, limit, query, loggedInUser) => {
       { profile: { lastName: { contains: query } } },
     ],
   };
+
+  if (roles && roles.length > 0) {
+    baseFilter.role = {
+      name: { in: roles },
+    };
+  }
 
   const selectFields = {
     id: true,

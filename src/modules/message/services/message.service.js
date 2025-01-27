@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const db = require('../../../database/prisma');
 const ApiError = require('../../../utils/apiError');
 const logger = require('../../../utils/logger');
+const notificationService = require('../../notification/services/notification.service');
 
 const sendBroadcastMessage = async ({
   senderId,
@@ -45,6 +46,16 @@ const sendBroadcastMessage = async ({
     throw new ApiError(httpStatus.NOT_FOUND, 'No students found in the batch');
   }
 
+  const sender = await db.user.findUnique({
+    where: { id: senderId },
+    include: { profile: true },
+  });
+
+  if (!sender) {
+    logger.error(`Sender not found: ${senderId}`);
+    throw new ApiError(httpStatus.NOT_FOUND, 'Sender not found');
+  }
+
   logger.info(`Creating messages for ${recipients.length} recipients`);
   const messagesData = recipients.map((recipient) => ({
     senderId,
@@ -54,9 +65,18 @@ const sendBroadcastMessage = async ({
     batchId,
   }));
 
-  await db.message.createMany({
-    data: messagesData,
-  });
+  const createdMessages = await Promise.all(
+    messagesData.map((data) => db.message.create({ data }))
+  );
+
+  await Promise.all(
+    createdMessages.map(async (message) => {
+      await notificationService.createMessageNotificationHandler(
+        message,
+        sender
+      );
+    })
+  );
 
   logger.info(`Messages sent by user: ${senderId} for batch: ${batchId}`);
   return { success: true, recipients: recipients.map((r) => r.id) };
@@ -98,10 +118,23 @@ const sendMessage = async ({ senderId, receiverId, content }) => {
     },
   });
 
+  // Fetch sender details
+  const sender = await db.user.findUnique({
+    where: { id: senderId },
+    include: { profile: true },
+  });
+
+  if (!sender) {
+    logger.error(`Sender not found: ${senderId}`);
+    throw new ApiError(httpStatus.NOT_FOUND, 'Sender not found');
+  }
+
+  // Create notification
+  await notificationService.createMessageNotificationHandler(message, sender);
+
   logger.info(`Message sent from User: ${senderId} to User: ${receiverId}`);
   return message;
 };
-
 const getMessages = async (userId, conversationWith) => {
   const messages = await db.message.findMany({
     where: {
@@ -208,6 +241,7 @@ const getConversations = async (userId) => {
           email: user.email,
           firstName: user.profile.firstName,
           lastName: user.profile.lastName,
+          image: user.profile.imageUrl,
           lastMessage: latestMessage.content,
           lastMessageTime: latestMessage.createdAt,
         };
