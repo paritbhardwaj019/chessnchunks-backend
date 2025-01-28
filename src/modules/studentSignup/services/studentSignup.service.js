@@ -552,9 +552,9 @@ const confirmSignupHandler = async (id, userId) => {
 };
 
 const fetchAllSignupsHandler = async (filters = {}) => {
-  const where = {};
-
-  'FILTERS', filters;
+  let where = {
+    userRole: 'STUDENT',
+  };
 
   if (filters.academyId) {
     where.academyId = filters.academyId;
@@ -566,6 +566,14 @@ const fetchAllSignupsHandler = async (filters = {}) => {
 
   if (filters.stage) {
     where.signupStage = filters.stage;
+  }
+
+  if (filters.search) {
+    where.OR = [
+      { firstName: { contains: filters.search } },
+      { lastName: { contains: filters.search } },
+      { email: { contains: filters.search } },
+    ];
   }
 
   const signups = await db.userSignup.findMany({

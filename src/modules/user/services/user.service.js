@@ -1049,9 +1049,7 @@ const updateProfileHandler = async (id, data, loggedInUser) => {
     ...(imageUrl && { imageUrl }),
   };
 
-  const userUpdateData = {
-    ...(status && { status }),
-  };
+  const userUpdateData = {};
 
   try {
     if (user.profile) {

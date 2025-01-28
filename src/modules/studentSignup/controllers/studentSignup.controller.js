@@ -77,6 +77,7 @@ const fetchAllSignups = catchAsync(async (req, res) => {
     'academyId',
     'status',
     'stage',
+    'search',
   ]);
 
   const academyId = await getAndValidateAcademy(req.user);

@@ -34,6 +34,8 @@ const createBatchHandler = async (data, loggedInUser) => {
 
   const batchCode = await generateBatchCode(db);
 
+  console.log('END DATE', endDate);
+
   const batch = await db.batch.create({
     data: {
       studentCapacity: Number(studentCapacity),
@@ -142,10 +144,13 @@ const updateBatchHandler = async (id, data, loggedInUser) => {
     ...(data.currentLevel !== undefined && { currentLevel: data.currentLevel }),
     ...(data.batchDay !== undefined && { batchDay: data.batchDay }),
     ...(data.startTime !== undefined && { startTime: data.startTime }),
-    ...(data.endDate !== undefined && { endDate: new Date(data.endDate) }),
     ...(data.isActive !== undefined && { isActive: data.isActive }),
     modifiedBy: loggedInUser.id,
   });
+
+  if (data.endDate !== undefined && data.endDate !== '' && data.endDate) {
+    updateData.endDate = new Date(data.endDate);
+  }
 
   if (data.coaches?.length) {
     await validateHeadCoach(db, data.coaches);
