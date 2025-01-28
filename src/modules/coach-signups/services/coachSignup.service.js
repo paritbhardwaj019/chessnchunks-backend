@@ -172,17 +172,13 @@ async function updateCoachSignup(signupId, data) {
     }
   }
 
-  if (data.password) {
-    const saltRounds = 10;
-    data.password = await hashPassword(data.password, saltRounds);
-  }
-
   const updateData = {
     ...data,
     ...(data.dateOfBirth && { dateOfBirth: new Date(data.dateOfBirth) }),
   };
 
   delete updateData.assignBatchId;
+  delete updateData.code;
 
   const updatedSignup = await db.userSignup.update({
     where: { id: signupId },
@@ -253,12 +249,7 @@ async function verifyCoachSignupOTP(email, otp) {
   return updatedSignup;
 }
 
-async function completeCoachSignup(
-  signupId,
-  password,
-  profileData,
-  loggedInUser
-) {
+async function completeCoachSignup(signupId, password, loggedInUser) {
   const signup = await db.userSignup.findUnique({
     where: { id: signupId },
     include: { academy: true },
@@ -268,22 +259,63 @@ async function completeCoachSignup(
     throw new ApiError(httpStatus.NOT_FOUND, 'Signup not found');
   }
 
+  const mandatoryFields = [
+    'firstName',
+    'lastName',
+    'phoneNumber',
+    'dateOfBirth',
+    'addressLine1',
+    'city',
+    'state',
+    'country',
+  ];
+  for (const field of mandatoryFields) {
+    if (!signup[field]) {
+      throw new ApiError(httpStatus.BAD_REQUEST, `${field} is required`);
+    }
+  }
+
+  // Hash the password if provided
+  let hashedPassword;
+  if (password) {
+    const saltRounds = 10;
+    hashedPassword = await hashPassword(password, saltRounds);
+  }
+
+  const userCode = await generateSystemCode(SYSTEM_CODE_MODULE.USER);
+
   const user = await db.user.create({
     data: {
       email: signup.email,
+      password: hashedPassword,
       status: USER_STATUS.ACTIVE,
       subRole: signup.coachType || COACH_ROLE.HEAD_COACH,
       role: { connect: { name: ROLE.COACH } },
-      academy: signup.academyId
+      assignedToAcademy: signup.academyId
         ? { connect: { id: signup.academyId } }
         : undefined,
       profile: {
         create: {
-          chessComId: profileData.chessComId || null,
-          lichessId: profileData.lichessId || null,
-          uscfId: profileData.uscfId || null,
+          firstName: signup.firstName,
+          lastName: signup.lastName,
+          middleName: signup.middleName || null,
+          dateOfBirth: new Date(signup.dateOfBirth),
+          phoneNumber: signup.phoneNumber,
+          addressLine1: signup.addressLine1,
+          addressLine2: signup.addressLine2 || null,
+          city: signup.city,
+          state: signup.state,
+          country: signup.country,
+          parentName: signup.parentName || null,
+          parentEmail: signup.parentEmail || null,
+          chessComId: signup.chessComId || null,
+          lichessId: signup.lichessId || null,
+          uscfId: signup.uscfId || null,
+          imageUrl: signup.imageUrl || null,
+          cicId: signup.cicId || null,
         },
       },
+      code: userCode,
     },
     include: { profile: true },
   });
@@ -307,6 +339,7 @@ async function completeCoachSignup(
 
   return user;
 }
+
 async function getCoachSignupById(signupId) {
   if (!signupId) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Signup ID is required');
