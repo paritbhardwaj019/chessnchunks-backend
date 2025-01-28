@@ -141,6 +141,8 @@ model Profile {
   imageUrl     String?
   cicId String? @unique
 
+  thoughts    String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

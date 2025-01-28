@@ -958,7 +958,6 @@ const updateProfileHandler = async (id, data, loggedInUser) => {
     );
   }
 
-  // Handle file upload if there's a profile image
   let imageUrl = null;
   if (data.profileImage) {
     try {
@@ -970,7 +969,6 @@ const updateProfileHandler = async (id, data, loggedInUser) => {
       });
       imageUrl = uploadResult.url;
 
-      // Delete old profile image if it exists
       if (user.profile?.imageUrl) {
         const oldImagePublicId = user.profile.imageUrl
           .split('/')
@@ -986,14 +984,12 @@ const updateProfileHandler = async (id, data, loggedInUser) => {
         `Profile image upload failed - ${error.message}`
       );
     } finally {
-      // Clean up the temporary file
       if (data.profileImage.path) {
         fs.unlinkSync(data.profileImage.path);
       }
     }
   }
 
-  // Extract profile-specific fields
   const {
     firstName,
     lastName,
@@ -1011,10 +1007,9 @@ const updateProfileHandler = async (id, data, loggedInUser) => {
     chessComId,
     lichessId,
     uscfId,
-    status,
+    thoughts,
   } = data;
 
-  // Validate chess.com ID if provided
   if (chessComId) {
     const existingUserWithChessComId = await db.profile.findFirst({
       where: {
@@ -1050,6 +1045,7 @@ const updateProfileHandler = async (id, data, loggedInUser) => {
     ...(chessComId && { chessComId }),
     ...(lichessId && { lichessId }),
     ...(uscfId && { uscfId }),
+    ...(thoughts && { thoughts }),
     ...(imageUrl && { imageUrl }),
   };
 

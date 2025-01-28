@@ -3,7 +3,7 @@ const logger = require('../utils/logger');
 
 (async function () {
   try {
-    await ngrok.authtoken('1flMMQ0papBHkuf50NTRyKIsgbm_7uiFMT2VcT6nMDpU4oVw');
+    await ngrok.authtoken('2sEwKAQJJa8LDRtlSvHp97gW92B_5PcLisAZ47GSFAbtcs7b5');
 
     const url = await ngrok.connect({
       proto: 'http',

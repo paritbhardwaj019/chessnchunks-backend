@@ -75,7 +75,6 @@ const createMonthlyGoalHandler = async (data) => {
 };
 
 const getSeasonalGoalsForOptions = async (batchId) => {
-  'BATCH ID', batchId;
   const seasonalGoals = await db.seasonalGoal.findMany({
     where: {
       batchId,
@@ -671,6 +670,50 @@ const getAllAssignedWeeklyGoals = async (page, limit, query, loggedInUser) => {
   };
 };
 
+const getWeeklyGoalsForStudentHandler = async (loggedInUser) => {
+  const weeklyGoals = await db.studentWeeklyGoal.findMany({
+    where: {
+      student: {
+        id: loggedInUser.id,
+      },
+    },
+    include: {
+      weeklyGoal: {
+        include: {
+          target: true,
+          monthlyGoal: {
+            include: {
+              seasonalGoal: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const formattedGoals = weeklyGoals.map((goal) => ({
+    id: goal.id,
+    weeklyGoalId: goal.weeklyGoalId,
+    startDate: goal.weeklyGoal.startDate,
+    endDate: goal.weeklyGoal.endDate,
+    target: goal.weeklyGoal.target,
+    monthlyGoal: {
+      id: goal.weeklyGoal.monthlyGoal.id,
+      code: goal.weeklyGoal.monthlyGoal.code,
+      startDate: goal.weeklyGoal.monthlyGoal.startDate,
+      endDate: goal.weeklyGoal.monthlyGoal.endDate,
+      seasonalGoal: {
+        id: goal.weeklyGoal.monthlyGoal.seasonalGoal.id,
+        code: goal.weeklyGoal.monthlyGoal.seasonalGoal.code,
+        startDate: goal.weeklyGoal.monthlyGoal.seasonalGoal.startDate,
+        endDate: goal.weeklyGoal.monthlyGoal.seasonalGoal.endDate,
+      },
+    },
+  }));
+
+  return formattedGoals;
+};
+
 const goalService = {
   createSeasonalGoalHandler,
   createMonthlyGoalHandler,
@@ -685,6 +728,7 @@ const goalService = {
   getMonthlyGoalsForOptions,
   getWeeklyGoalsForOptions,
   getAllAssignedWeeklyGoals,
+  getWeeklyGoalsForStudentHandler,
 };
 
 module.exports = goalService;

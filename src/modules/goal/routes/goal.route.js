@@ -15,6 +15,82 @@ const goalRouter = express.Router();
 
 /**
  * @swagger
+ * /goals/weekly-goals/student:
+ *   get:
+ *     summary: Fetch weekly goals for the logged-in student
+ *     description: Retrieve a list of weekly goals assigned to the logged-in student.
+ *     tags: [Goals]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of weekly goals retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   weeklyGoalId:
+ *                     type: string
+ *                   startDate:
+ *                     type: string
+ *                     format: date-time
+ *                   endDate:
+ *                     type: string
+ *                     format: date-time
+ *                   target:
+ *                     type: object
+ *                     properties:
+ *                       noOfGames:
+ *                         type: number
+ *                       minReviews:
+ *                         type: number
+ *                       midReviews:
+ *                         type: number
+ *                       maxReviews:
+ *                         type: number
+ *                   monthlyGoal:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       code:
+ *                         type: string
+ *                       startDate:
+ *                         type: string
+ *                         format: date-time
+ *                       endDate:
+ *                         type: string
+ *                         format: date-time
+ *                       seasonalGoal:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           code:
+ *                             type: string
+ *                           startDate:
+ *                             type: string
+ *                             format: date-time
+ *                           endDate:
+ *                             type: string
+ *                             format: date-time
+ *       401:
+ *         description: Unauthorized - Invalid or missing JWT token
+ */
+goalRouter.get(
+  '/weekly-goals/student',
+  checkJWT,
+  checkRole(['STUDENT']),
+  goalController.getWeeklyGoalsForStudentHandler
+);
+
+/**
+ * @swagger
  * /goals/assign-goal-to-batch:
  *   post:
  *     summary: Assign a weekly goal to a batch

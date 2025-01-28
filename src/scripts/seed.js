@@ -557,6 +557,14 @@ async function assignAdminPermissions() {
       path: '/dashboard/users/coach-signups',
       actions: ['view', 'add', 'update', 'delete'],
     },
+    {
+      path: '/dashboard/users/students',
+      actions: ['view'],
+    },
+    {
+      path: '/dashboard/users/student-signups',
+      actions: ['view', 'add', 'update', 'delete'],
+    },
   ];
 
   await assignRolePermissions('ADMIN', adminPermissions);

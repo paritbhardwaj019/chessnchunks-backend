@@ -136,6 +136,13 @@ const getAllAssignedWeeklyGoalsHandler = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(assignedWeeklyGoals);
 });
 
+const getWeeklyGoalsForStudentHandler = catchAsync(async (req, res) => {
+  const weeklyGoals = await goalService.getWeeklyGoalsForStudentHandler(
+    req.user
+  );
+  res.status(httpStatus.OK).send(weeklyGoals);
+});
+
 const goalController = {
   assignWeeklyGoalHandler,
   createSeasonalGoalHandler,
@@ -151,6 +158,7 @@ const goalController = {
   generateStudentPDFReportHandler,
   fetchAllWeeklyGoalsHandler,
   getAllAssignedWeeklyGoalsHandler,
+  getWeeklyGoalsForStudentHandler,
 };
 
 module.exports = goalController;

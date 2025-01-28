@@ -5,8 +5,8 @@ const { Server } = require('socket.io');
 const app = require('./app');
 const config = require('./config');
 const db = require('./database/prisma');
-const logger = require('./utils/logger');
 const messageService = require('./modules/message/services/message.service');
+const logger = require('./utils/logger');
 
 let httpServer;
 

@@ -172,6 +172,11 @@ async function updateCoachSignup(signupId, data) {
     }
   }
 
+  if (data.password) {
+    const saltRounds = 10;
+    data.password = await hashPassword(data.password, saltRounds);
+  }
+
   const updateData = {
     ...data,
     ...(data.dateOfBirth && { dateOfBirth: new Date(data.dateOfBirth) }),
@@ -254,10 +259,6 @@ async function completeCoachSignup(
   profileData,
   loggedInUser
 ) {
-  if (!signupId || !password || !profileData || !loggedInUser) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Missing required parameters');
-  }
-
   const signup = await db.userSignup.findUnique({
     where: { id: signupId },
     include: { academy: true },
@@ -266,15 +267,6 @@ async function completeCoachSignup(
   if (!signup) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Signup not found');
   }
-
-  if (signup.signupStage !== REGISTRATION_STAGE.POST_ACTIVATION) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      'Signup is not ready for completion'
-    );
-  }
-
-  const hashedPassword = await hashPassword(password, 12);
 
   const user = await db.user.create({
     data: {
@@ -287,25 +279,11 @@ async function completeCoachSignup(
         : undefined,
       profile: {
         create: {
-          firstName: profileData.firstName,
-          lastName: profileData.lastName,
-          middleName: profileData.middleName || null,
-          dateOfBirth: profileData.dateOfBirth
-            ? new Date(profileData.dateOfBirth)
-            : null,
-          phoneNumber: profileData.phoneNumber,
-          addressLine1: profileData.addressLine1,
-          addressLine2: profileData.addressLine2 || null,
-          city: profileData.city,
-          state: profileData.state,
-          country: profileData.country,
-          zipCode: profileData.zipCode,
           chessComId: profileData.chessComId || null,
           lichessId: profileData.lichessId || null,
           uscfId: profileData.uscfId || null,
         },
       },
-      password: hashedPassword,
     },
     include: { profile: true },
   });
