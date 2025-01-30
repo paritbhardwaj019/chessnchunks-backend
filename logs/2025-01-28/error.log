@@ -97,3 +97,8 @@
 {"level":"error","statusCode":404,"timestamp":"2025-01-28 16:38:57"}
 {"level":"error","statusCode":404,"timestamp":"2025-01-28 16:38:57"}
 {"level":"error","statusCode":404,"timestamp":"2025-01-28 16:38:57"}
+{"code":"ECONNREFUSED","level":"\u001b[31merror\u001b[39m","message":"Error starting ngrok tunnels: connect ECONNREFUSED 127.0.0.1:4040","name":"RequestError","stack":"RequestError: connect ECONNREFUSED 127.0.0.1:4040\n    at ClientRequest.<anonymous> (/home/whynotparit/Desktop/work/chessinchunks/backend/node_modules/got/dist/source/core/index.js:970:111)\n    at Object.onceWrapper (node:events:633:26)\n    at ClientRequest.emit (node:events:530:35)\n    at origin.emit (/home/whynotparit/Desktop/work/chessinchunks/backend/node_modules/@szmarczak/http-timer/dist/source/index.js:43:20)\n    at emitErrorEvent (node:_http_client:101:11)\n    at Socket.socketErrorListener (node:_http_client:504:5)\n    at Socket.emit (node:events:518:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","timestamp":"2025-01-28 22:09:50","timings":{"error":1738082390256,"phases":{"total":1,"wait":0},"socket":1738082390255,"start":1738082390255}}
+{"level":"error","statusCode":400,"timestamp":"2025-01-28 22:40:15"}
+{"level":"error","message":"Admin verification failed: 400","timestamp":"2025-01-28 22:45:11"}
+{"level":"error","statusCode":400,"timestamp":"2025-01-28 22:56:42"}
+{"level":"error","message":"Admin verification failed: 400","timestamp":"2025-01-28 23:00:04"}

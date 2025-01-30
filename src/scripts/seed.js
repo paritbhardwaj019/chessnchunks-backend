@@ -156,6 +156,12 @@ const routes = [
     subRoutes: [],
   },
   {
+    name: 'System Configurations',
+    path: '/dashboard/system-config',
+    actions: ['view', 'add', 'update', 'delete'],
+    subRoutes: [],
+  },
+  {
     name: 'Reports',
     path: '/dashboard/reports',
     actions: ['view'],
@@ -416,7 +422,6 @@ async function assignRolePermissions(roleName, permissions) {
       }
     }
 
-    // Assign permissions for subRoutes if any
     if (route.subRoutes && route.subRoutes.length > 0) {
       for (const subRoute of route.subRoutes) {
         for (const action of subRoute.actions) {
@@ -496,6 +501,10 @@ async function assignSuperAdminPermissions() {
       path: '/dashboard/platform-users',
       actions: ['view', 'add', 'update', 'delete'],
     },
+    {
+      path: '/dashboard/system-config',
+      actions: ['view', 'add', 'update', 'delete'],
+    },
   ];
 
   await assignRolePermissions('SUPER_ADMIN', superAdminPermissions);
@@ -565,6 +574,10 @@ async function assignAdminPermissions() {
       path: '/dashboard/users/student-signups',
       actions: ['view', 'add', 'update', 'delete'],
     },
+    {
+      path: '/dashboard/system-config',
+      actions: ['view'],
+    },
   ];
 
   await assignRolePermissions('ADMIN', adminPermissions);
@@ -627,24 +640,55 @@ async function assignCoachPermissions() {
       path: '/dashboard/users/student-signups',
       actions: ['view', 'add', 'update', 'delete'],
     },
+    {
+      path: '/dashboard/system-config',
+      actions: ['view'],
+    },
   ];
 
   await assignRolePermissions('COACH', coachPermissions);
   logger.info('COACH permissions assigned successfully.');
 }
 
+async function assignStudentPermissions() {
+  const studentPermissions = [
+    { path: '/dashboard', actions: ['view'] },
+    { path: '/dashboard/goals', actions: ['view'] },
+    { path: '/dashboard/reports', actions: ['view'] },
+    { path: '/dashboard/settings/profile', actions: ['view', 'update'] },
+    {
+      path: '/dashboard/system-config',
+      actions: ['view'],
+    },
+  ];
+
+  await assignRolePermissions('STUDENT', studentPermissions);
+  logger.info('STUDENT permissions assigned successfully.');
+}
+
+async function assignSubscriberPermissions() {
+  const subscriberPermissions = [
+    { path: '/dashboard', actions: ['view'] },
+    { path: '/dashboard/settings/profile', actions: ['view', 'update'] },
+    {
+      path: '/dashboard/system-config',
+      actions: ['view'],
+    },
+  ];
+
+  await assignRolePermissions('SUBSCRIBER', subscriberPermissions);
+  logger.info('SUBSCRIBER permissions assigned successfully.');
+}
+
 /**
  * Setup Role Permissions by assigning permissions to each role.
  */
 async function setupRolePermissions() {
-  // Assign SUPER_ADMIN specific permissions
   await assignSuperAdminPermissions();
-
-  // Assign ADMIN specific permissions
   await assignAdminPermissions();
-
-  // Assign COACH specific permissions
   await assignCoachPermissions();
+  await assignStudentPermissions();
+  await assignSubscriberPermissions();
 
   logger.info('All role permissions assigned successfully.');
 }
@@ -661,6 +705,100 @@ async function seedAndAssignPermissions() {
 }
 
 /**
+ * Seed System Configurations into the database.
+ */
+async function seedSystemConfigs() {
+  const systemConfigs = [
+    {
+      type: 'PROGRAM_TYPE',
+      code: 'P1',
+      label: 'P1 - Coaching',
+      description: 'Coaching Program',
+      order: 1,
+      isActive: true,
+    },
+    {
+      type: 'PROGRAM_TYPE',
+      code: 'P2',
+      label: 'P2 - In person Tournaments',
+      description: 'In-person Tournaments Program',
+      order: 2,
+      isActive: true,
+    },
+    {
+      type: 'PROGRAM_TYPE',
+      code: 'P3',
+      label: 'P3 - Chess Camps',
+      description: 'Chess Camps Program',
+      order: 3,
+      isActive: true,
+    },
+    {
+      type: 'PROGRAM_TYPE',
+      code: 'P4',
+      label: 'P4 - Online Tournaments',
+      description: 'Online Tournaments Program',
+      order: 4,
+      isActive: true,
+    },
+    {
+      type: 'QUESTION_TYPE',
+      code: 'MCQ',
+      label: 'Multiple Choice',
+      description: 'Multiple Choice Question',
+      order: 1,
+      isActive: true,
+    },
+    {
+      type: 'QUESTION_TYPE',
+      code: 'TRUE_FALSE',
+      label: 'True/False',
+      description: 'True or False Question',
+      order: 2,
+      isActive: true,
+    },
+    {
+      type: 'QUESTION_TYPE',
+      code: 'FILL_BLANKS',
+      label: 'Fill in the Blanks',
+      description: 'Fill in the Blanks Question',
+      order: 3,
+      isActive: true,
+    },
+    {
+      type: 'QUESTION_TYPE',
+      code: 'SHORT_ANSWER',
+      label: 'Short Answer',
+      description: 'Short Answer Question',
+      order: 4,
+      isActive: true,
+    },
+    {
+      type: 'QUESTION_TYPE',
+      code: 'LONG_ANSWER',
+      label: 'Long Answer',
+      description: 'Long Answer Question',
+      order: 5,
+      isActive: true,
+    },
+  ];
+
+  for (const config of systemConfigs) {
+    await prisma.systemConfig.upsert({
+      where: {
+        type_code: {
+          type: config.type,
+          code: config.code,
+        },
+      },
+      update: { ...config },
+      create: config,
+    });
+  }
+  logger.info('System configurations seeded successfully');
+}
+
+/**
  * Main function to run the seeding process.
  */
 async function main() {
@@ -668,6 +806,7 @@ async function main() {
     await seedRoles();
     await seedAndAssignPermissions();
     await seedSystemCodes();
+    await seedSystemConfigs();
     logger.info('Seeding process completed successfully.');
   } catch (error) {
     logger.error('Error during seeding process:', error);

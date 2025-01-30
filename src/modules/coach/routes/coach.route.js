@@ -22,4 +22,11 @@ coachRouter.get(
   coachController.fetchAllCoachesHandler
 );
 
+coachRouter.get(
+  '/coaches',
+  checkJWT,
+  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  coachController.fetchPaginatedCoachesHandler
+);
+
 module.exports = coachRouter;

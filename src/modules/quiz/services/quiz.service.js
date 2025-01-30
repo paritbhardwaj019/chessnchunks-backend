@@ -229,7 +229,12 @@ const completeQuizAttempt = async (attemptId, answers) => {
         );
       }
 
-      const isCorrect = question.correctAnswer === answer.answerText;
+      // Convert both answers to lowercase strings for comparison
+      const studentAnswer = String(answer.answerText).toLowerCase();
+      const correctAnswer = String(question.correctAnswer).toLowerCase();
+
+      // Check if answers match exactly, including when both are "false"
+      const isCorrect = studentAnswer === correctAnswer;
       const marks = isCorrect ? question.marks : 0;
       obtainedMarks += marks;
 

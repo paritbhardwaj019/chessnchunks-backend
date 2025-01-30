@@ -408,8 +408,6 @@ const verifyResetPasswordHandler = async (data) => {
 
   const { id, email } = decoded;
 
-  'DECODED', decoded;
-
   const user = await db.user.findUnique({
     where: { id, email },
     select: { id: true, email: true, password: true },
@@ -556,23 +554,50 @@ const loginWithCicIdHandler = async (data, host) => {
 };
 
 const checkMfaStatusHandler = async (data) => {
-  const { email, password } = data;
+  const { email, cicId, password } = data;
 
-  const user = await db.user.findUnique({
-    where: {
-      email,
-    },
-    select: {
-      id: true,
-      email: true,
-      password: true,
-      mfaEnabled: true,
-      status: true,
-    },
-  });
+  let user;
 
-  if (!user || !user.password) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
+  if (cicId) {
+    const profile = await db.profile.findUnique({
+      where: {
+        cicId: cicId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            password: true,
+            mfaEnabled: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    if (!profile || !profile.user || !profile.user.password) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
+    }
+
+    user = profile.user;
+  } else {
+    user = await db.user.findUnique({
+      where: {
+        email,
+      },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        mfaEnabled: true,
+        status: true,
+      },
+    });
+
+    if (!user || !user.password) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'User not found!');
+    }
   }
 
   if (user.status === 'INACTIVE') {

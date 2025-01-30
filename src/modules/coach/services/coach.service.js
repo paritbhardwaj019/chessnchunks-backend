@@ -429,10 +429,131 @@ const fetchAllCoachesHandler = async (loggedInUser) => {
   return coaches;
 };
 
+const fetchPaginatedCoachesHandler = async (loggedInUser, options = {}) => {
+  const {
+    page = 1,
+    limit = 10,
+    search = '',
+    orderBy = 'createdAt',
+    order = 'desc',
+  } = options;
+
+  const skip = (page - 1) * limit;
+
+  const selectFields = {
+    id: true,
+    email: true,
+    subRole: true,
+    createdAt: true,
+    profile: {
+      select: {
+        firstName: true,
+        middleName: true,
+        lastName: true,
+      },
+    },
+    assignedToAcademy: {
+      select: {
+        id: true,
+        name: true,
+      },
+    },
+    coachOfBatches: {
+      select: {
+        id: true,
+        batchCode: true,
+        currentClass: true,
+        currentLevel: true,
+        academy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    },
+  };
+
+  const searchFilter = search
+    ? {
+        OR: [
+          {
+            email: {
+              contains: search,
+            },
+          },
+          {
+            profile: {
+              OR: [
+                { firstName: { contains: search } },
+                { lastName: { contains: search } },
+              ],
+            },
+          },
+        ],
+      }
+    : {};
+
+  const coachRole = await db.role.findUnique({
+    where: {
+      name: 'COACH',
+    },
+  });
+
+  if (!coachRole) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Coach role not found');
+  }
+
+  let whereClause = {
+    roleId: coachRole.id,
+    ...searchFilter,
+  };
+
+  if (loggedInUser.role === 'ADMIN') {
+    const academy = await getSingleAcademyForUser(loggedInUser);
+    whereClause.assignedToAcademyId = academy.id;
+  } else if (loggedInUser.role === 'COACH') {
+    whereClause.id = loggedInUser.id;
+  } else if (loggedInUser.role !== 'SUPER_ADMIN') {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'You do not have permission to view coaches'
+    );
+  }
+
+  const [coaches, totalCount] = await Promise.all([
+    db.user.findMany({
+      where: whereClause,
+      select: selectFields,
+      skip,
+      take: limit,
+      orderBy: {
+        [orderBy]: order,
+      },
+    }),
+    db.user.count({
+      where: whereClause,
+    }),
+  ]);
+
+  const totalPages = Math.ceil(totalCount / limit);
+
+  return {
+    data: coaches,
+    pagination: {
+      page: Number(page),
+      limit: Number(limit),
+      totalCount,
+      totalPages,
+    },
+  };
+};
+
 const coachService = {
   inviteCoachHandler,
   verifyCoachInvitationHandler,
   fetchAllCoachesHandler,
+  fetchPaginatedCoachesHandler,
 };
 
 module.exports = coachService;

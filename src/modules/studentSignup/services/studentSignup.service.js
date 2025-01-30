@@ -203,7 +203,7 @@ const generateMFALoginOTP = async (email) => {
   };
 };
 
-const updatePasswordHandler = async (id, newPassword) => {
+const updatePasswordHandler = async (id, newPassword, cicId) => {
   if (!id) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');
   }
@@ -225,7 +225,10 @@ const updatePasswordHandler = async (id, newPassword) => {
 
   const updatedUser = await db.userSignup.update({
     where: { id },
-    data: { password: newPassword },
+    data: {
+      password: newPassword,
+      cicId: cicId,
+    },
     select: { id: true, email: true },
   });
 
@@ -286,7 +289,7 @@ const sendSignupEmail = async (signup, otp) => {
 
   const domain = getDomainFromAdmin(signup.academy.domain);
 
-  const ACTIVATION_URL = `${domain}/complete-signup?token=${token}&id=${signup.id}`;
+  const ACTIVATION_URL = `${domain}/complete-signup?type=STUDENT&token=${token}&id=${signup.id}`;
 
   const mailGenerator = new Mailgen({
     theme: 'default',

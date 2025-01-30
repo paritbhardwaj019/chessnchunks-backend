@@ -7,6 +7,33 @@ const authRouter = express.Router();
 
 /**
  * @swagger
+ * /auth/login-with-cicid:
+ *   post:
+ *     summary: Login with CIC ID
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cicId:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Unauthorized
+ */
+authRouter
+  .route('/login-with-cicid')
+  .post(authController.loginWithCicIdHandler);
+
+/**
+ * @swagger
  * /auth/check-mfa:
  *   post:
  *     summary: Check MFA status for a user
@@ -29,31 +56,6 @@ const authRouter = express.Router();
  *         description: Unauthorized
  */
 authRouter.post('/check-mfa', authController.checkMfaStatusHandler);
-
-/**
- * @swagger
- * /auth/login-with-cicid:
- *   post:
- *     summary: Login with CIC ID
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               cicId:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Login successful
- *       401:
- *         description: Unauthorized
- */
-authRouter.post('/login-with-cicid', authController.loginWithCicIdHandler);
 
 /**
  * @swagger

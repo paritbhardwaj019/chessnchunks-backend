@@ -34,8 +34,6 @@ const createBatchHandler = async (data, loggedInUser) => {
 
   const batchCode = await generateBatchCode(db);
 
-  console.log('END DATE', endDate);
-
   const batch = await db.batch.create({
     data: {
       studentCapacity: Number(studentCapacity),

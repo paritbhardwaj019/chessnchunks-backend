@@ -201,43 +201,52 @@ model Batch {
   description     String?
   studentCapacity Int
   warningCutoff   Int
-  currentClass    String
-  startLevel      String
-  currentLevel    String
-  batchDay        String
+  
+  classTypeId     String
+  classType       SystemConfig @relation("ClassTypes", fields: [classTypeId], references: [id])
+  
+  startLevelId    String
+  startLevel      SystemConfig @relation("StartBatchLevels", fields: [startLevelId], references: [id])
+   
+  currentLevelId  String
+  currentLevel    SystemConfig @relation("CurrentBatchLevels", fields: [currentLevelId], references: [id])
+  
+  batchDayId      String
+  batchDay        SystemConfig @relation("BatchDays", fields: [batchDayId], references: [id])
+  
   startTime       String
   startDate       DateTime
   endDate         DateTime?
   isActive        Boolean   @default(true)
   warningMailSent Boolean   @default(false)
-  waitlistCount       Int       @default(0)
-
+  waitlistCount   Int       @default(0)
+  
   assignedUserSignups UserSignup[] @relation("BatchAssignedUserSignups")
   
-  academyId String
-  academy   Academy @relation(fields: [academyId], references: [id])
-
-  coaches  User[] @relation("BatchCoaches")
-  students User[] @relation("BatchStudents")
-
-  seasonalGoals SeasonalGoal[]
-  monthlyGoals  MonthlyGoal[]
-  weeklyGoals   WeeklyGoal[]
-  assignedTasks Task[]         @relation("AssignedToBatch")
-  channels      Channel[]
-  messages      Message[]
-
+  academyId       String
+  academy         Academy   @relation(fields: [academyId], references: [id])
+  
+  coaches         User[]    @relation("BatchCoaches")
+  students        User[]    @relation("BatchStudents")
+  
+  seasonalGoals   SeasonalGoal[]
+  monthlyGoals    MonthlyGoal[]
+  weeklyGoals     WeeklyGoal[]
+  assignedTasks   Task[]    @relation("AssignedToBatch")
+  channels        Channel[]
+  messages        Message[]
+  
   batchHistory    UserBatchHistory[]
   interestedUsers UserSignup[]       @relation("BatchInterest")
-
-  createdBy      String
-  createdByUser  User   @relation("CreatedBatches", fields: [createdBy], references: [id])
-  modifiedBy     String
-  modifiedByUser User   @relation("ModifiedBatches", fields: [modifiedBy], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  
+  createdBy       String
+  createdByUser   User     @relation("CreatedBatches", fields: [createdBy], references: [id])
+  modifiedBy      String
+  modifiedByUser  User     @relation("ModifiedBatches", fields: [modifiedBy], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
   @@map("batches")
 }
 
@@ -683,43 +692,42 @@ model Plan {
 }
 
 model AcademyProgram {
-  id          String           @id @default(uuid())
-  name        String
-  description String?
-  type        PROGRAM_TYPE
-  seasonPrice Float          
-  monthlyPrice Float          
-  yearlyDiscountPercentage Float  
-  programId String @unique
-
-  academyId String
-  academy   Academy @relation(fields: [academyId], references: [id])
-
-  isActive  Boolean  @default(true)
-  isSignUpFee Boolean @default(false)
-
-  creditPoints Int?               @default(0)
-  condition    PROGRAM_CONDITION?
-
-  discountRules  Json?
-  discountAmount Float?
-
-  latePaymentFees Float?
-  dueDate         DateTime?
-
+  id                      String    @id @default(uuid())
+  name                    String
+  description             String?
+  programId              String    @unique
+  seasonPrice            Float
+  monthlyPrice           Float
+  yearlyDiscountPercentage Float
+  
+  programTypeId          String?
+  programType            SystemConfig? @relation("ProgramTypes", fields: [programTypeId], references: [id])
+  
+  academyId              String
+  academy                Academy   @relation(fields: [academyId], references: [id])
+  
+  isActive               Boolean   @default(true)
+  isSignUpFee           Boolean   @default(false)
+  
+  creditPoints           Int?      @default(0)
+  
+  discountRules          Json?
+  discountAmount         Float?
+  latePaymentFees       Float?
+  dueDate               DateTime?
+  
   cartItems             CartItem[]
   studentSubscriptions  StudentSubscription[]
   studentProgramCredits StudentProgramCredit[]
-
-  // Updated Stripe fields
-  stripeProgramId String? @unique
-  stripeMonthlyPriceId String? @unique
-  stripeSeasonalPriceId String? @unique
-  stripeYearlyPriceId String? @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  
+  stripeProgramId       String?   @unique
+  stripeMonthlyPriceId  String?   @unique
+  stripeSeasonalPriceId String?   @unique
+  stripeYearlyPriceId   String?   @unique
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
   @@map("academy_programs")
 }
 
@@ -985,24 +993,27 @@ model Quiz {
 }
 
 model QuizQuestion {
-  id            String        @id @default(uuid())
-  questionCode  String        @unique
-  questionText  String       
-  type          QUESTION_TYPE
+  id            String    @id @default(uuid())
+  questionCode  String    @unique
+  questionText  String
+  
+  typeId        String
+  type          SystemConfig @relation("QuestionTypes", fields: [typeId], references: [id])
+  
   marks         Float
   orderIndex    Int
   options       Json
   correctAnswer String
-  wordLimit     Int?          
-
+  wordLimit     Int?
+  
   quizId        String
-  quiz          Quiz          @relation(fields: [quizId], references: [id])
-
+  quiz          Quiz     @relation(fields: [quizId], references: [id])
+  
   studentAnswers StudentQuizAnswer[]
-
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
   @@map("quiz_questions")
 }
 
@@ -1155,4 +1166,46 @@ model SignupOTP  {
   verified  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum CONFIG_TYPE {
+  PROGRAM_TYPE
+  PROGRAM_CONDITION
+  QUESTION_TYPE
+  BATCH_LEVEL
+  CLASS_TYPE
+  BATCH_DAY
+  CHESS_TITLE
+  COACH_ROLE
+  PAYMENT_METHOD
+  DISCOUNT_TYPE
+  NOTIFICATION_TYPE
+}
+
+model SystemConfig {
+  id          String    @id @default(uuid())
+  type        CONFIG_TYPE
+  code        String      
+  label       String
+  description String?
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  programs            AcademyProgram[] @relation("ProgramTypes")
+  quizQuestions      QuizQuestion[]   @relation("QuestionTypes")
+
+  startBatchLevels Batch[] @relation("StartBatchLevels")
+  currentBatchLevels Batch[] @relation("CurrentBatchLevels")
+  batchClassTypes  Batch[] @relation("ClassTypes")
+  batchDays        Batch[] @relation("BatchDays")
+  
+  parentId    String?
+  parent      SystemConfig?  @relation("ConfigHierarchy", fields: [parentId], references: [id])
+  children    SystemConfig[] @relation("ConfigHierarchy")
+  
+  @@unique([type, code])
+  @@map("system_configs")
 }

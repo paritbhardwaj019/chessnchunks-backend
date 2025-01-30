@@ -183,12 +183,13 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
-      const { programId, signupId, type, planId } = session.metadata;
+
+      const { programId, type, planId, userEmail } = session.metadata;
 
       if (type === 'PORTAL_SUBSCRIPTION') {
         try {
           const signup = await db.userSignup.findFirst({
-            where: { id: signupId },
+            where: { email: userEmail },
           });
 
           if (!signup) {
@@ -300,7 +301,7 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
         }
       } else {
         const signup = await db.userSignup.findFirst({
-          where: { email: signupId },
+          where: { email: userEmail },
           include: {
             interestedBatch: true,
           },

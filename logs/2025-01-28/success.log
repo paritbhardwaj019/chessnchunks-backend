@@ -1268,3 +1268,174 @@
 {"level":"info","message":"GET /api/v1/user/profile/caf0dba5-1bc0-47b3-927d-5e3299441935 304 36.027 ms - -","timestamp":"2025-01-28 16:39:15"}
 {"level":"info","message":"OPTIONS /api/v1/auth/login-with-cicid 200 0.209 ms - -","timestamp":"2025-01-28 16:39:29"}
 {"level":"info","message":"POST /api/v1/auth/login-with-cicid 200 276.378 ms - 498","timestamp":"2025-01-28 16:39:29"}
+{"code":"ECONNREFUSED","level":"\u001b[31merror\u001b[39m","message":"Error starting ngrok tunnels: connect ECONNREFUSED 127.0.0.1:4040","name":"RequestError","stack":"RequestError: connect ECONNREFUSED 127.0.0.1:4040\n    at ClientRequest.<anonymous> (/home/whynotparit/Desktop/work/chessinchunks/backend/node_modules/got/dist/source/core/index.js:970:111)\n    at Object.onceWrapper (node:events:633:26)\n    at ClientRequest.emit (node:events:530:35)\n    at origin.emit (/home/whynotparit/Desktop/work/chessinchunks/backend/node_modules/@szmarczak/http-timer/dist/source/index.js:43:20)\n    at emitErrorEvent (node:_http_client:101:11)\n    at Socket.socketErrorListener (node:_http_client:504:5)\n    at Socket.emit (node:events:518:28)\n    at emitErrorNT (node:internal/streams/destroy:169:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)","timestamp":"2025-01-28 22:09:50","timings":{"error":1738082390256,"phases":{"total":1,"wait":0},"socket":1738082390255,"start":1738082390255}}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-28 22:09:50"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-28 22:09:50"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-28 22:09:50"}
+{"level":"info","message":"OPTIONS /api/v1/permission 200 1.284 ms - -","timestamp":"2025-01-28 22:10:08"}
+{"level":"info","message":"GET /api/v1/permission 304 42.973 ms - -","timestamp":"2025-01-28 22:10:08"}
+{"level":"info","message":"OPTIONS /api/v1/notifications 200 0.477 ms - -","timestamp":"2025-01-28 22:10:09"}
+{"level":"info","message":"OPTIONS /api/v1/dashboard 200 0.179 ms - -","timestamp":"2025-01-28 22:10:09"}
+{"level":"info","message":"GET /api/v1/notifications 304 15.448 ms - -","timestamp":"2025-01-28 22:10:09"}
+{"level":"info","message":"GET /api/v1/dashboard 304 33.264 ms - -","timestamp":"2025-01-28 22:10:09"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/all-academies?page=1&limit=10&query= 200 0.225 ms - -","timestamp":"2025-01-28 22:10:11"}
+{"level":"info","message":"GET /api/v1/superadmin/all-academies?page=1&limit=10&query= 200 40.357 ms - 474","timestamp":"2025-01-28 22:10:11"}
+{"level":"info","message":"OPTIONS /api/v1/permission 200 0.170 ms - -","timestamp":"2025-01-28 22:10:18"}
+{"level":"info","message":"GET /api/v1/permission 304 15.004 ms - -","timestamp":"2025-01-28 22:10:18"}
+{"level":"info","message":"OPTIONS /api/v1/notifications 200 0.202 ms - -","timestamp":"2025-01-28 22:10:18"}
+{"level":"info","message":"OPTIONS /api/v1/dashboard 200 0.198 ms - -","timestamp":"2025-01-28 22:10:18"}
+{"level":"info","message":"GET /api/v1/notifications 304 11.161 ms - -","timestamp":"2025-01-28 22:10:18"}
+{"level":"info","message":"GET /api/v1/dashboard 200 37.030 ms - 96","timestamp":"2025-01-28 22:10:18"}
+{"level":"info","message":"OPTIONS /api/v1/student/all-students 200 0.218 ms - -","timestamp":"2025-01-28 22:10:21"}
+{"level":"info","message":"GET /api/v1/student/all-students 304 50.618 ms - -","timestamp":"2025-01-28 22:10:21"}
+{"level":"info","message":"OPTIONS /api/v1/coach-signup?page=1&limit=10&search= 200 0.289 ms - -","timestamp":"2025-01-28 22:10:23"}
+{"level":"info","message":"GET /api/v1/coach-signup?page=1&limit=10&search= 304 42.779 ms - -","timestamp":"2025-01-28 22:10:23"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups?page=1&limit=10&search= 200 0.487 ms - -","timestamp":"2025-01-28 22:10:24"}
+{"level":"info","message":"GET /api/v1/student-signups?page=1&limit=10&search= 304 28.046 ms - -","timestamp":"2025-01-28 22:10:24"}
+{"level":"info","message":"OPTIONS /api/v1/batch/options 200 0.265 ms - -","timestamp":"2025-01-28 22:10:25"}
+{"level":"info","message":"GET /api/v1/batch/options 200 21.388 ms - 4119","timestamp":"2025-01-28 22:10:25"}
+{"level":"info","message":"GET /api/v1/student-signups?page=1&limit=10&search= 304 23.814 ms - -","timestamp":"2025-01-28 22:10:26"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups 200 0.250 ms - -","timestamp":"2025-01-28 22:11:23"}
+{"level":"info","message":"POST /api/v1/student-signups 201 6600.252 ms - 2045","timestamp":"2025-01-28 22:11:30"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/94c8731f-8c56-408f-b7cc-cff9ff6021ce/verify-email 200 0.170 ms - -","timestamp":"2025-01-28 22:11:30"}
+{"level":"info","message":"POST /api/v1/student-signups/94c8731f-8c56-408f-b7cc-cff9ff6021ce/verify-email 200 23.031 ms - 1134","timestamp":"2025-01-28 22:11:30"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups?page=1&limit=10&search= 200 0.271 ms - -","timestamp":"2025-01-28 22:11:30"}
+{"level":"info","message":"GET /api/v1/student-signups?page=1&limit=10&search= 200 19.541 ms - 4201","timestamp":"2025-01-28 22:11:30"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/94c8731f-8c56-408f-b7cc-cff9ff6021ce/reserve 200 0.207 ms - -","timestamp":"2025-01-28 22:12:45"}
+{"level":"info","message":"POST /api/v1/student-signups/94c8731f-8c56-408f-b7cc-cff9ff6021ce/reserve 200 24.563 ms - 1157","timestamp":"2025-01-28 22:12:45"}
+{"level":"info","message":"OPTIONS /api/v1/notifications 200 0.304 ms - -","timestamp":"2025-01-28 22:12:50"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups?page=1&limit=10&search= 200 0.156 ms - -","timestamp":"2025-01-28 22:12:50"}
+{"level":"info","message":"OPTIONS /api/v1/permission 200 0.232 ms - -","timestamp":"2025-01-28 22:12:50"}
+{"level":"info","message":"GET /api/v1/notifications 304 22.121 ms - -","timestamp":"2025-01-28 22:12:50"}
+{"level":"info","message":"GET /api/v1/permission 304 25.469 ms - -","timestamp":"2025-01-28 22:12:50"}
+{"level":"info","message":"GET /api/v1/student-signups?page=1&limit=10&search= 200 37.754 ms - 4224","timestamp":"2025-01-28 22:12:50"}
+{"level":"info","message":"OPTIONS /api/v1/coach-signup?page=1&limit=10&search= 200 0.274 ms - -","timestamp":"2025-01-28 22:13:30"}
+{"level":"info","message":"GET /api/v1/coach-signup?page=1&limit=10&search= 304 27.016 ms - -","timestamp":"2025-01-28 22:13:30"}
+{"level":"info","message":"OPTIONS /api/v1/batch/options 200 0.189 ms - -","timestamp":"2025-01-28 22:13:31"}
+{"level":"info","message":"GET /api/v1/batch/options 304 24.060 ms - -","timestamp":"2025-01-28 22:13:31"}
+{"level":"info","message":"OPTIONS /api/v1/coach-signup?page=1&limit=10&search= 200 0.179 ms - -","timestamp":"2025-01-28 22:16:25"}
+{"level":"info","message":"GET /api/v1/coach-signup?page=1&limit=10&search= 304 25.675 ms - -","timestamp":"2025-01-28 22:16:25"}
+{"level":"info","message":"GET /api/v1/coach-signup?page=1&limit=10&search= 304 22.636 ms - -","timestamp":"2025-01-28 22:16:29"}
+{"level":"info","message":"OPTIONS /api/v1/coach-signup?page=1&limit=10&search= 200 0.161 ms - -","timestamp":"2025-01-28 22:16:31"}
+{"level":"info","message":"GET /api/v1/coach-signup?page=1&limit=10&search= 304 22.848 ms - -","timestamp":"2025-01-28 22:16:31"}
+{"level":"info","message":"GET /api/v1/coach-signup?page=1&limit=10&search= 304 22.852 ms - -","timestamp":"2025-01-28 22:16:34"}
+{"level":"info","message":"OPTIONS /api/v1/permission 200 0.082 ms - -","timestamp":"2025-01-28 22:39:25"}
+{"level":"info","message":"GET /api/v1/permission 304 9.486 ms - -","timestamp":"2025-01-28 22:39:25"}
+{"level":"info","message":"OPTIONS /api/v1/notifications 200 0.148 ms - -","timestamp":"2025-01-28 22:39:25"}
+{"level":"info","message":"OPTIONS /api/v1/dashboard 200 0.129 ms - -","timestamp":"2025-01-28 22:39:25"}
+{"level":"info","message":"GET /api/v1/notifications 304 10.400 ms - -","timestamp":"2025-01-28 22:39:25"}
+{"level":"info","message":"GET /api/v1/dashboard 304 18.512 ms - -","timestamp":"2025-01-28 22:39:25"}
+{"level":"info","message":"OPTIONS /api/v1/superadmin/all-academies?page=1&limit=10&query= 200 0.250 ms - -","timestamp":"2025-01-28 22:39:28"}
+{"level":"info","message":"GET /api/v1/superadmin/all-academies?page=1&limit=10&query= 304 26.700 ms - -","timestamp":"2025-01-28 22:39:28"}
+{"level":"info","message":"OPTIONS /api/v1/permission 200 0.272 ms - -","timestamp":"2025-01-28 22:39:34"}
+{"level":"info","message":"GET /api/v1/permission 304 20.276 ms - -","timestamp":"2025-01-28 22:39:34"}
+{"level":"info","message":"OPTIONS /api/v1/notifications 200 0.370 ms - -","timestamp":"2025-01-28 22:39:34"}
+{"level":"info","message":"OPTIONS /api/v1/dashboard 200 0.584 ms - -","timestamp":"2025-01-28 22:39:34"}
+{"level":"info","message":"GET /api/v1/notifications 304 21.013 ms - -","timestamp":"2025-01-28 22:39:34"}
+{"level":"info","message":"GET /api/v1/dashboard 304 57.737 ms - -","timestamp":"2025-01-28 22:39:35"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups?page=1&limit=10&search= 200 0.154 ms - -","timestamp":"2025-01-28 22:39:38"}
+{"level":"info","message":"GET /api/v1/student-signups?page=1&limit=10&search= 304 30.638 ms - -","timestamp":"2025-01-28 22:39:38"}
+{"level":"info","message":"OPTIONS /api/v1/batch/options 200 0.262 ms - -","timestamp":"2025-01-28 22:39:40"}
+{"level":"info","message":"GET /api/v1/batch/options 304 30.467 ms - -","timestamp":"2025-01-28 22:39:40"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups 200 0.206 ms - -","timestamp":"2025-01-28 22:40:15"}
+{"level":"error","statusCode":400,"timestamp":"2025-01-28 22:40:15"}
+{"level":"info","message":"POST /api/v1/student-signups 400 568.326 ms - 698","timestamp":"2025-01-28 22:40:15"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups 200 0.156 ms - -","timestamp":"2025-01-28 22:40:36"}
+{"level":"info","message":"POST /api/v1/student-signups 201 4354.833 ms - 2041","timestamp":"2025-01-28 22:40:41"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/f95f7a7e-baac-4ba1-bfc5-b1dd6271a3f9/verify-email 200 0.192 ms - -","timestamp":"2025-01-28 22:40:41"}
+{"level":"info","message":"POST /api/v1/student-signups/f95f7a7e-baac-4ba1-bfc5-b1dd6271a3f9/verify-email 200 25.119 ms - 1130","timestamp":"2025-01-28 22:40:41"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups?page=1&limit=10&search= 200 0.252 ms - -","timestamp":"2025-01-28 22:40:41"}
+{"level":"info","message":"GET /api/v1/student-signups?page=1&limit=10&search= 200 31.585 ms - 6294","timestamp":"2025-01-28 22:40:41"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/f95f7a7e-baac-4ba1-bfc5-b1dd6271a3f9 200 0.083 ms - -","timestamp":"2025-01-28 22:41:28"}
+{"level":"info","message":"GET /api/v1/student-signups/f95f7a7e-baac-4ba1-bfc5-b1dd6271a3f9 200 5.523 ms - 2096","timestamp":"2025-01-28 22:41:28"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/academy/d4bfb857-5b71-4d52-b0bd-68d7c540af34 200 0.084 ms - -","timestamp":"2025-01-28 22:41:28"}
+{"level":"info","message":"GET /api/v1/academy-programs/academy/d4bfb857-5b71-4d52-b0bd-68d7c540af34 200 10.764 ms - 2","timestamp":"2025-01-28 22:41:28"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/f95f7a7e-baac-4ba1-bfc5-b1dd6271a3f9 200 0.155 ms - -","timestamp":"2025-01-28 22:41:39"}
+{"level":"info","message":"GET /api/v1/student-signups/f95f7a7e-baac-4ba1-bfc5-b1dd6271a3f9 304 10.572 ms - -","timestamp":"2025-01-28 22:41:39"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/academy/d4bfb857-5b71-4d52-b0bd-68d7c540af34 200 0.232 ms - -","timestamp":"2025-01-28 22:41:40"}
+{"level":"info","message":"GET /api/v1/academy-programs/academy/d4bfb857-5b71-4d52-b0bd-68d7c540af34 304 4.772 ms - -","timestamp":"2025-01-28 22:41:40"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/f95f7a7e-baac-4ba1-bfc5-b1dd6271a3f9 200 0.174 ms - -","timestamp":"2025-01-28 22:41:53"}
+{"level":"info","message":"PUT /api/v1/student-signups/f95f7a7e-baac-4ba1-bfc5-b1dd6271a3f9 200 24.026 ms - 2069","timestamp":"2025-01-28 22:41:53"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/f95f7a7e-baac-4ba1-bfc5-b1dd6271a3f9/update-password 200 0.290 ms - -","timestamp":"2025-01-28 22:42:04"}
+{"level":"info","message":"PUT /api/v1/student-signups/f95f7a7e-baac-4ba1-bfc5-b1dd6271a3f9/update-password 200 21.674 ms - 58","timestamp":"2025-01-28 22:42:04"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs?page=1&limit=10&search= 200 0.166 ms - -","timestamp":"2025-01-28 22:42:08"}
+{"level":"info","message":"GET /api/v1/academy-programs?page=1&limit=10&search= 304 33.026 ms - -","timestamp":"2025-01-28 22:42:08"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs 200 0.140 ms - -","timestamp":"2025-01-28 22:42:24"}
+{"level":"info","message":"POST /api/v1/academy-programs 201 2025.209 ms - 664","timestamp":"2025-01-28 22:42:26"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs?page=1&limit=10&search= 200 0.219 ms - -","timestamp":"2025-01-28 22:42:27"}
+{"level":"info","message":"GET /api/v1/academy-programs?page=1&limit=10&search= 200 40.973 ms - 771","timestamp":"2025-01-28 22:42:27"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/f95f7a7e-baac-4ba1-bfc5-b1dd6271a3f9 200 0.283 ms - -","timestamp":"2025-01-28 22:42:34"}
+{"level":"info","message":"GET /api/v1/student-signups/f95f7a7e-baac-4ba1-bfc5-b1dd6271a3f9 200 11.193 ms - 2106","timestamp":"2025-01-28 22:42:35"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/academy/d4bfb857-5b71-4d52-b0bd-68d7c540af34 200 0.216 ms - -","timestamp":"2025-01-28 22:42:35"}
+{"level":"info","message":"GET /api/v1/academy-programs/academy/d4bfb857-5b71-4d52-b0bd-68d7c540af34 200 7.442 ms - 707","timestamp":"2025-01-28 22:42:35"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/checkout 200 0.195 ms - -","timestamp":"2025-01-28 22:42:40"}
+{"level":"info","message":"POST /api/v1/student-signups/checkout 200 588.073 ms - 457","timestamp":"2025-01-28 22:42:41"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-28 22:43:26"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-28 22:43:26"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-28 22:43:26"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Ngrok tunnels started successfully!","timestamp":"2025-01-28 22:43:29"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Ngrok URL: https://d53a-2405-201-6820-78f9-9d6d-a49c-8fd3-80ae.ngrok-free.app","timestamp":"2025-01-28 22:43:29"}
+{"level":"info","message":"POST /api/v1/webhook/stripe/student 400 26.292 ms - 48","timestamp":"2025-01-28 22:45:11"}
+{"level":"error","message":"Admin verification failed: 400","timestamp":"2025-01-28 22:45:11"}
+{"level":"info","message":"POST /api/v1/webhook/stripe 200 8.331 ms - 17","timestamp":"2025-01-28 22:45:11"}
+{"level":"info","message":"OPTIONS /api/v1/student/all-students 200 0.375 ms - -","timestamp":"2025-01-28 22:45:36"}
+{"level":"info","message":"GET /api/v1/student/all-students 304 62.979 ms - -","timestamp":"2025-01-28 22:45:36"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups?page=1&limit=10&search= 200 0.242 ms - -","timestamp":"2025-01-28 22:45:39"}
+{"level":"info","message":"GET /api/v1/student-signups?page=1&limit=10&search= 200 35.136 ms - 6304","timestamp":"2025-01-28 22:45:39"}
+{"level":"info","message":"POST /api/v1/webhook/stripe/student 400 17.597 ms - 48","timestamp":"2025-01-28 22:47:05"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-28 22:47:42"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-28 22:47:42"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-28 22:47:42"}
+{"level":"info","message":"POST /api/v1/webhook/stripe/student 400 31.007 ms - 48","timestamp":"2025-01-28 22:47:55"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-28 22:48:51"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-28 22:48:51"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-28 22:48:51"}
+{"level":"info","message":"POST /api/v1/webhook/stripe/student 400 51.584 ms - 48","timestamp":"2025-01-28 22:48:56"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-28 22:49:24"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-28 22:49:24"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-28 22:49:24"}
+{"level":"info","message":"POST /api/v1/webhook/stripe/student 400 31.065 ms - 48","timestamp":"2025-01-28 22:49:35"}
+{"level":"info","message":"POST /api/v1/webhook/stripe/student 400 27.069 ms - 48","timestamp":"2025-01-28 22:52:07"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-28 22:54:42"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-28 22:54:42"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-28 22:54:42"}
+{"level":"info","message":"Database connection successful","timestamp":"2025-01-28 22:55:04"}
+{"level":"info","message":"Server is running on port 5000","timestamp":"2025-01-28 22:55:04"}
+{"level":"info","message":"Initial origins update completed","timestamp":"2025-01-28 22:55:04"}
+{"level":"info","message":"POST /api/v1/webhook/stripe/student 200 405.349 ms - 17","timestamp":"2025-01-28 22:55:16"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups?page=1&limit=10&search= 200 1.404 ms - -","timestamp":"2025-01-28 22:56:05"}
+{"level":"info","message":"GET /api/v1/student-signups?page=1&limit=10&search= 304 140.939 ms - -","timestamp":"2025-01-28 22:56:05"}
+{"level":"info","message":"OPTIONS /api/v1/batch/options 200 2.272 ms - -","timestamp":"2025-01-28 22:56:07"}
+{"level":"info","message":"GET /api/v1/batch/options 304 175.478 ms - -","timestamp":"2025-01-28 22:56:07"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups 200 0.380 ms - -","timestamp":"2025-01-28 22:56:41"}
+{"level":"error","statusCode":400,"timestamp":"2025-01-28 22:56:42"}
+{"level":"info","message":"POST /api/v1/student-signups 400 1630.215 ms - 698","timestamp":"2025-01-28 22:56:42"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups 200 0.183 ms - -","timestamp":"2025-01-28 22:57:59"}
+{"level":"info","message":"POST /api/v1/student-signups 201 5955.547 ms - 2063","timestamp":"2025-01-28 22:58:05"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43afd666-5ed8-4791-b183-98f2262737c7/verify-email 200 0.496 ms - -","timestamp":"2025-01-28 22:58:05"}
+{"level":"info","message":"POST /api/v1/student-signups/43afd666-5ed8-4791-b183-98f2262737c7/verify-email 200 21.069 ms - 1086","timestamp":"2025-01-28 22:58:05"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups?page=1&limit=10&search= 200 0.404 ms - -","timestamp":"2025-01-28 22:58:05"}
+{"level":"info","message":"GET /api/v1/student-signups?page=1&limit=10&search= 200 22.287 ms - 8396","timestamp":"2025-01-28 22:58:05"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43afd666-5ed8-4791-b183-98f2262737c7 200 0.186 ms - -","timestamp":"2025-01-28 22:58:28"}
+{"level":"info","message":"GET /api/v1/student-signups/43afd666-5ed8-4791-b183-98f2262737c7 200 12.338 ms - 2118","timestamp":"2025-01-28 22:58:28"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/academy/d4bfb857-5b71-4d52-b0bd-68d7c540af34 200 0.284 ms - -","timestamp":"2025-01-28 22:58:28"}
+{"level":"info","message":"GET /api/v1/academy-programs/academy/d4bfb857-5b71-4d52-b0bd-68d7c540af34 304 12.322 ms - -","timestamp":"2025-01-28 22:58:28"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43afd666-5ed8-4791-b183-98f2262737c7 200 0.197 ms - -","timestamp":"2025-01-28 22:58:52"}
+{"level":"info","message":"GET /api/v1/student-signups/43afd666-5ed8-4791-b183-98f2262737c7 304 9.133 ms - -","timestamp":"2025-01-28 22:58:52"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/academy/d4bfb857-5b71-4d52-b0bd-68d7c540af34 200 0.196 ms - -","timestamp":"2025-01-28 22:58:52"}
+{"level":"info","message":"GET /api/v1/academy-programs/academy/d4bfb857-5b71-4d52-b0bd-68d7c540af34 304 6.330 ms - -","timestamp":"2025-01-28 22:58:52"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43afd666-5ed8-4791-b183-98f2262737c7 200 0.219 ms - -","timestamp":"2025-01-28 22:58:59"}
+{"level":"info","message":"GET /api/v1/student-signups/43afd666-5ed8-4791-b183-98f2262737c7 304 9.479 ms - -","timestamp":"2025-01-28 22:58:59"}
+{"level":"info","message":"OPTIONS /api/v1/academy-programs/academy/d4bfb857-5b71-4d52-b0bd-68d7c540af34 200 0.233 ms - -","timestamp":"2025-01-28 22:58:59"}
+{"level":"info","message":"GET /api/v1/academy-programs/academy/d4bfb857-5b71-4d52-b0bd-68d7c540af34 304 5.672 ms - -","timestamp":"2025-01-28 22:58:59"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43afd666-5ed8-4791-b183-98f2262737c7 200 0.174 ms - -","timestamp":"2025-01-28 22:59:05"}
+{"level":"info","message":"PUT /api/v1/student-signups/43afd666-5ed8-4791-b183-98f2262737c7 200 17.667 ms - 2091","timestamp":"2025-01-28 22:59:05"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/43afd666-5ed8-4791-b183-98f2262737c7/update-password 200 0.165 ms - -","timestamp":"2025-01-28 22:59:25"}
+{"level":"info","message":"PUT /api/v1/student-signups/43afd666-5ed8-4791-b183-98f2262737c7/update-password 200 19.644 ms - 58","timestamp":"2025-01-28 22:59:25"}
+{"level":"info","message":"OPTIONS /api/v1/student-signups/checkout 200 0.198 ms - -","timestamp":"2025-01-28 22:59:30"}
+{"level":"info","message":"POST /api/v1/student-signups/checkout 200 1350.322 ms - 457","timestamp":"2025-01-28 22:59:31"}
+{"level":"info","message":"Running expired signups check cron job","timestamp":"2025-01-28 23:00:00"}
+{"level":"info","message":"Processed 0 expired signups","timestamp":"2025-01-28 23:00:00"}
+{"level":"error","message":"Admin verification failed: 400","timestamp":"2025-01-28 23:00:04"}
+{"level":"info","message":"POST /api/v1/webhook/stripe 200 3.673 ms - 17","timestamp":"2025-01-28 23:00:04"}
+{"level":"info","message":"POST /api/v1/webhook/stripe/student 400 274.281 ms - 413","timestamp":"2025-01-28 23:00:04"}

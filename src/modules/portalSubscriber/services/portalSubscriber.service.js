@@ -619,8 +619,8 @@ const createCheckoutSessionHandler = async (planId, userEmail) => {
       type: 'PORTAL_SUBSCRIPTION',
     },
     mode: 'payment',
-    success_url: `${config.frontendUrl}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${config.frontendUrl}/subscription/cancel`,
+    success_url: `${config.chessinChunksUrl}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${config.chessinChunksUrl}/subscription/cancel`,
   });
 
   return {

@@ -40,6 +40,7 @@ const updatePasswordHandler = catchAsync(async (req, res) => {
     message: 'Password updated successfully',
   });
 });
+
 const verifyEmailHandler = catchAsync(async (req, res) => {
   const verifiedSignup = await studentSignupService.verifyEmailHandler(
     req.params.id

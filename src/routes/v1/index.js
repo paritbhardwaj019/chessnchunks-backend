@@ -31,6 +31,7 @@ const studentSignupRouter = require('../../modules/studentSignup/routes/studentS
 const superAdminRouter = require('../../modules/superAdmin/routes/superAdmin.route');
 const userRouter = require('../../modules/user/routes/user.route');
 const coachSignupRouter = require('../../modules/coach-signups/routes/coachSignup.route');
+const systemConfigRouter = require('../../modules/systemConfig/routes/systemConfig.route');
 
 const router = express.Router();
 
@@ -66,5 +67,6 @@ router.use('/admins', adminRouter);
 router.use('/portal-subscribers', portalSubscriberRouter);
 router.use('/student-profile', studentProfileRouter);
 router.use('/coach-signup', coachSignupRouter);
+router.use('/system-configs', systemConfigRouter);
 
 module.exports = router;
