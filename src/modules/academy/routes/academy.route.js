@@ -3,6 +3,7 @@ const academyController = require('../controllers/academy.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 const checkRole = require('../../../middlewares/checkRole');
 const uploadFile = require('../../../middlewares/uploadFile');
+const ROLE_CONSTANT = require('../../../constants');
 
 const academyRouter = express.Router();
 
@@ -78,7 +79,7 @@ academyRouter
   .route('/:id/settings')
   .patch(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'ADMIN']),
+    checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN, ROLE_CONSTANT.ROLE.ADMIN]),
     uploadFile.single('logo'),
     academyController.updateAcademySettings
   );
@@ -198,12 +199,12 @@ academyRouter
   .route('/:id')
   .put(
     checkJWT,
-    checkRole(['SUPER_ADMIN']),
+    checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN]),
     academyController.updateAcademyByIdHandler
   )
   .get(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'ADMIN']),
+    checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN, ROLE_CONSTANT.ROLE.ADMIN]),
     academyController.fetchAcademyByIdHandler
   );
 
@@ -500,7 +501,7 @@ academyRouter
   .route('/domain/:domain/pages/:pageId/components/:componentId')
   .put(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'ADMIN']),
+    checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN, ROLE_CONSTANT.ROLE.ADMIN]),
     academyController.updateComponentById
   );
 

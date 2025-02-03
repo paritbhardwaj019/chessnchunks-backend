@@ -1,3 +1,4 @@
+const ROLE_CONSTANT = require('../../../constants');
 const db = require('../../../database/prisma');
 
 const getCurrentSubscription = async (loggedInUser) => {
@@ -10,7 +11,7 @@ const getCurrentSubscription = async (loggedInUser) => {
         include: {
           admins: {
             where: {
-              adminRole: 'ACADEMY_ADMIN',
+              adminRole: ROLE_CONSTANT.ADMIN_ROLE.ACADEMY_ADMIN,
             },
             take: 1,
           },

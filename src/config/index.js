@@ -10,11 +10,8 @@ const config = {
   port: process.env.PORT,
   allowedOrigins:
     process.env.NODE_ENV === 'development'
-      ? ['http://localhost:3000', 'http://localhost:3001']
-      : [
-          'https://chessinchunks-admin.vercel.app',
-          'https://chessnchunks-frontend-888h.vercel.app',
-        ],
+      ? [process.env.FRONTEND_URL, process.env.CHESSINCHUNKS_URL]
+      : [],
   jwt: {
     invitationSecret: process.env.INVITATION_SECRET,
     secret: process.env.JWT_SECRET,

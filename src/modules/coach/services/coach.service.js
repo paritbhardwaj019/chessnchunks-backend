@@ -14,13 +14,14 @@ const sendMail = require('../../../utils/sendEmail');
 const {
   getSingleAcademyForUser,
 } = require('../../academy/services/academy.service');
+const ROLE_CONSTANT = require('../../../constants');
 
 const inviteCoachHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyId: providedAcademyId } = data;
 
   let academyId;
 
-  if (loggedInUser.role === 'SUPER_ADMIN') {
+  if (loggedInUser.role === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     if (!providedAcademyId) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
@@ -131,7 +132,7 @@ const inviteCoachHandler = async (data, loggedInUser) => {
 
   let baseUrl;
 
-  if (data.subRole === 'HEAD_COACH') {
+  if (data.subRole === ROLE_CONSTANT.COACH_ROLE.HEAD_COACH) {
     if (!academy.domain) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
@@ -298,7 +299,7 @@ const verifyCoachInvitationHandler = async (token) => {
     // Get coach role
     const coachRole = await prisma.role.findFirst({
       where: {
-        name: 'COACH',
+        name: ROLE_CONSTANT.ROLE.COACH,
       },
     });
 
@@ -383,11 +384,11 @@ const fetchAllCoachesHandler = async (loggedInUser) => {
 
   const coachRole = await db.role.findUnique({
     where: {
-      name: 'COACH',
+      name: ROLE_CONSTANT.ROLE.COACH,
     },
   });
 
-  if (loggedInUser.role === 'SUPER_ADMIN') {
+  if (loggedInUser.role === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     coaches = await db.user.findMany({
       where: {
         role: {
@@ -396,7 +397,7 @@ const fetchAllCoachesHandler = async (loggedInUser) => {
       },
       select: selectFields,
     });
-  } else if (loggedInUser.role === 'ADMIN') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.ADMIN) {
     const academy = await getSingleAcademyForUser(loggedInUser);
 
     coaches = await db.user.findMany({
@@ -408,7 +409,7 @@ const fetchAllCoachesHandler = async (loggedInUser) => {
       },
       select: selectFields,
     });
-  } else if (loggedInUser.role === 'COACH') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.COACH) {
     coaches = await db.user.findUnique({
       where: { id: loggedInUser.id },
       select: selectFields,
@@ -496,7 +497,7 @@ const fetchPaginatedCoachesHandler = async (loggedInUser, options = {}) => {
 
   const coachRole = await db.role.findUnique({
     where: {
-      name: 'COACH',
+      name: ROLE_CONSTANT.ROLE.COACH,
     },
   });
 
@@ -509,12 +510,12 @@ const fetchPaginatedCoachesHandler = async (loggedInUser, options = {}) => {
     ...searchFilter,
   };
 
-  if (loggedInUser.role === 'ADMIN') {
+  if (loggedInUser.role === ROLE_CONSTANT.ROLE.ADMIN) {
     const academy = await getSingleAcademyForUser(loggedInUser);
     whereClause.assignedToAcademyId = academy.id;
-  } else if (loggedInUser.role === 'COACH') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.COACH) {
     whereClause.id = loggedInUser.id;
-  } else if (loggedInUser.role !== 'SUPER_ADMIN') {
+  } else if (loggedInUser.role !== ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       'You do not have permission to view coaches'

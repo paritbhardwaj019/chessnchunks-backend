@@ -21,6 +21,7 @@ const hashPassword = require('../../../utils/hashPassword');
 const generateDomain = require('../../../utils/generateDomain');
 const logger = require('../../../utils/logger');
 const sendMail = require('../../../utils/sendEmail');
+const ROLE_CONSTANT = require('../../../constants');
 
 const inviteAcademyAdminHandler = async (data, loggedInUser, logoFile) => {
   const {
@@ -292,7 +293,7 @@ const verifyAcademyAdminHandler = async (
   }
 
   const adminRole = await db.role.findUnique({
-    where: { name: 'ADMIN' },
+    where: { name: ROLE_CONSTANT.ROLE.ADMIN },
   });
 
   const academyAdmin = await db.user.create({
@@ -468,7 +469,7 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
 
   let allAcademies = [];
 
-  if (user.role.name === 'SUPER_ADMIN') {
+  if (user.role.name === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     allAcademies = await db.academy.findMany({
       skip: (numberPage - 1) * numberLimit,
       take: numberLimit,
@@ -506,7 +507,7 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
         },
       },
     });
-  } else if (user.role.name === 'ADMIN') {
+  } else if (user.role.name === ROLE_CONSTANT.ROLE.ADMIN) {
     const academyIDs = user.adminOfAcademies.map((el) => el.id);
 
     allAcademies = await db.academy.findMany({
@@ -592,7 +593,7 @@ const fetchAllUsersHandler = async (
     query ? { profile: { lastName: { contains: searchQuery } } } : null,
   ].filter(Boolean);
 
-  if (user.role.name === 'SUPER_ADMIN') {
+  if (user.role.name === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     allUsers = await db.user.findMany({
       skip: (numberPage - 1) * numberLimit,
       take: numberLimit,
@@ -611,7 +612,7 @@ const fetchAllUsersHandler = async (
         },
       },
     });
-  } else if (user.role === 'ADMIN') {
+  } else if (user.role === ROLE_CONSTANT.ROLE.ADMIN) {
     const academyIDs = user.adminOfAcademies.map((el) => el.id);
 
     allUsers = await db.user.findMany({

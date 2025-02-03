@@ -5,13 +5,14 @@ const checkPermission = require('../../../middlewares/checkPermission');
 const checkRole = require('../../../middlewares/checkRole');
 const signupLimiter = require('../../../middlewares/signupLimiter');
 const uploadFile = require('../../../middlewares/uploadFile');
+const ROLE_CONSTANT = require('../../../constants');
 
 const userRouter = express.Router();
 
 userRouter.get(
   '/all-users',
   checkJWT,
-  checkRole(['SUPER_ADMIN']),
+  checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN]),
   userController.fetchAllUsersHandler
 );
 
@@ -46,7 +47,13 @@ userRouter.patch(
 userRouter.put(
   '/profile/:id',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.STUDENT,
+    ROLE_CONSTANT.ROLE.SUBSCRIBER,
+  ]),
   uploadFile.single('profileImage'),
   userController.updateProfileHandler
 );
@@ -54,35 +61,65 @@ userRouter.put(
 userRouter.get(
   '/profile/:id',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.STUDENT,
+    ROLE_CONSTANT.ROLE.SUBSCRIBER,
+  ]),
   userController.fetchProfileByIdHandler
 );
 
 userRouter.patch(
   '/update-password/:id',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'COACH', 'STUDENT', 'ADMIN', 'SUBSCRIBER']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.STUDENT,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.SUBSCRIBER,
+  ]),
   userController.updatePasswordHandler
 );
 
 userRouter.post(
   '/request-email-change',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.STUDENT,
+    ROLE_CONSTANT.ROLE.SUBSCRIBER,
+  ]),
   userController.requestEmailChange
 );
 
 userRouter.post(
   '/verify-email-change',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.STUDENT,
+    ROLE_CONSTANT.ROLE.SUBSCRIBER,
+  ]),
   userController.verifyEmailChange
 );
 
 userRouter.get(
   '/profile-completion/:id',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.STUDENT,
+    ROLE_CONSTANT.ROLE.SUBSCRIBER,
+  ]),
   userController.getProfileCompletionHandler
 );
 

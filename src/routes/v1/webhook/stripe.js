@@ -11,6 +11,7 @@ const { getDomainFromAdmin } = require('../../../utils/getDomainFromAdmin');
 const hashPassword = require('../../../utils/hashPassword');
 const sendMail = require('../../../utils/sendEmail');
 const logger = require('../../../utils/logger');
+const ROLE_CONSTANT = require('../../../constants');
 
 const stripeWebhookRouter = express.Router();
 
@@ -238,7 +239,7 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
             const newCode = `U${(userCount + 1).toString().padStart(5, '0')}`;
 
             const subscriberRole = await prisma.role.findFirst({
-              where: { name: 'SUBSCRIBER' },
+              where: { name: ROLE_CONSTANT.ROLE.SUBSCRIBER },
             });
 
             const user = await prisma.user.create({
@@ -339,7 +340,7 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
           const newCode = `U${(userCount + 1).toString().padStart(5, '0')}`;
 
           const studentRole = await prisma.role.findFirst({
-            where: { name: 'STUDENT' },
+            where: { name: ROLE_CONSTANT.ROLE.STUDENT },
           });
 
           const user = await prisma.user.create({

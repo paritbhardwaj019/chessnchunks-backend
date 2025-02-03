@@ -3,6 +3,7 @@ const goalController = require('../controllers/goal.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 const checkPermission = require('../../../middlewares/checkPermission');
 const checkRole = require('../../../middlewares/checkRole');
+const ROLE_CONSTANT = require('../../../constants');
 
 const goalRouter = express.Router();
 
@@ -85,7 +86,7 @@ const goalRouter = express.Router();
 goalRouter.get(
   '/weekly-goals/student',
   checkJWT,
-  checkRole(['STUDENT']),
+  checkRole([ROLE_CONSTANT.ROLE.STUDENT]),
   goalController.getWeeklyGoalsForStudentHandler
 );
 
@@ -535,7 +536,11 @@ goalRouter.get(
 goalRouter.get(
   '/seasonal-goals/options',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+  ]),
   goalController.getSeasonalGoalsForOptions
 );
 
@@ -574,7 +579,11 @@ goalRouter.get(
 goalRouter.get(
   '/monthly-goals/options',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+  ]),
   goalController.getMonthlyGoalsForOptions
 );
 
@@ -618,7 +627,11 @@ goalRouter.get(
 goalRouter.get(
   '/weekly-goals/options',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+  ]),
   goalController.getWeeklyGoalsForOptions
 );
 
@@ -665,7 +678,11 @@ goalRouter.get(
 goalRouter.post(
   '/generate-student-pdf',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+  ]),
   goalController.generateStudentPDFReportHandler
 );
 
@@ -723,7 +740,7 @@ goalRouter.post(
 goalRouter.get(
   '/student-weekly-goals',
   checkJWT,
-  checkRole(['STUDENT']),
+  checkRole([ROLE_CONSTANT.ROLE.STUDENT]),
   goalController.fetchAllWeeklyGoalsHandler
 );
 
@@ -836,7 +853,11 @@ goalRouter.get(
 goalRouter.get(
   '/assigned-weekly-goals',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+  ]),
   goalController.getAllAssignedWeeklyGoalsHandler
 );
 

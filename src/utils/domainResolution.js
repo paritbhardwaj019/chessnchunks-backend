@@ -1,3 +1,4 @@
+const DOMAIN_CONFIG = require('../config/domains');
 const db = require('../database/prisma');
 
 /**
@@ -6,16 +7,18 @@ const db = require('../database/prisma');
  * @returns {Promise<string>} Resolved academy domain
  */
 const resolveAcademyDomain = async (inputDomain) => {
-  const domain = inputDomain.replace(/^https?:\/\//, '');
+  const domain = inputDomain.replace(
+    new RegExp(`^(${DOMAIN_CONFIG.ALLOWED_PROTOCOLS.join('|')})`),
+    ''
+  );
 
-  if (domain === 'localhost:3000') {
+  const isLocalhost =
+    domain === `${DOMAIN_CONFIG.LOCAL.HOST}:${DOMAIN_CONFIG.LOCAL.PORT}`;
+
+  if (isLocalhost) {
     const defaultAcademy = await db.academy.findFirst({
-      where: {
-        isDefault: true,
-      },
-      select: {
-        domain: true,
-      },
+      where: { isDefault: true },
+      select: { domain: true },
     });
 
     if (!defaultAcademy) {
@@ -25,7 +28,7 @@ const resolveAcademyDomain = async (inputDomain) => {
     return defaultAcademy.domain;
   }
 
-  return `http://${domain.split(':')[0]}.localhost:3001`;
+  return `${DOMAIN_CONFIG.LOCAL.DEFAULT_PROTOCOL}${domain.split(':')[0]}.${DOMAIN_CONFIG.LOCAL.HOST}:${DOMAIN_CONFIG.LOCAL.ACADEMY_PORT}`;
 };
 
 module.exports = { resolveAcademyDomain };

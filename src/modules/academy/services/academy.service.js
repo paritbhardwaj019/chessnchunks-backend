@@ -7,9 +7,10 @@ const {
   uploadToCloudinary,
   deleteFromCloudinary,
 } = require('../../../utils/cloudinary.utils');
+const ROLE_CONSTANT = require('../../../constants');
 
 const updateAcademyByIdHandler = async (data, id, loggedInUser) => {
-  if (loggedInUser.role === 'SUPER_ADMIN') {
+  if (loggedInUser.role === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     const updatedAcademy = await db.academy.update({
       where: {
         id,
@@ -20,7 +21,7 @@ const updateAcademyByIdHandler = async (data, id, loggedInUser) => {
     return {
       updatedAcademy,
     };
-  } else if (loggedInUser.role === 'ADMIN') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.ADMIN) {
     const hasAccess = await db.academy.findFirst({
       where: {
         id,
@@ -56,7 +57,7 @@ const updateAcademyByIdHandler = async (data, id, loggedInUser) => {
 };
 
 const fetchAcademyByIdHandler = async (id, loggedInUser) => {
-  if (loggedInUser.role === 'SUPER_ADMIN') {
+  if (loggedInUser.role === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     const academy = await db.academy.findUnique({
       where: { id },
       include: {
@@ -111,7 +112,7 @@ const fetchAcademyByIdHandler = async (id, loggedInUser) => {
         createdAt: academy.createdAt,
       },
     };
-  } else if (loggedInUser.role === 'ADMIN') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.ADMIN) {
     const academy = await db.academy.findFirst({
       where: {
         id,
@@ -158,9 +159,12 @@ const getSingleAcademyForUser = async (loggedInUser) => {
 
   let academyIds = [];
 
-  if (user.role.name === 'ADMIN') {
+  if (user.role.name === ROLE_CONSTANT.ROLE.ADMIN) {
     academyIds = user.adminOfAcademies.map((academy) => academy.id);
-  } else if (user.role.name === 'COACH' || user.role.name === 'STUDENT') {
+  } else if (
+    user.role.name === ROLE_CONSTANT.ROLE.COACH ||
+    user.role.name === ROLE_CONSTANT.ROLE.STUDENT
+  ) {
     academyIds = [user.assignedToAcademy.id];
   } else {
     throw new ApiError(
@@ -410,7 +414,7 @@ const updateAcademySettings = async (id, data, logoFile, loggedInUser) => {
   }
 
   if (
-    loggedInUser.role !== 'SUPER_ADMIN' &&
+    loggedInUser.role !== ROLE_CONSTANT.ROLE.SUPER_ADMIN &&
     !academy.admins.some((admin) => admin.id === loggedInUser.id)
   ) {
     throw new ApiError(

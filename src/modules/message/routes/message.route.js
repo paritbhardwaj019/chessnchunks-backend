@@ -2,13 +2,18 @@ const express = require('express');
 const messageController = require('../controllers/message.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 const checkRole = require('../../../middlewares/checkRole');
+const ROLE_CONSTANT = require('../../../constants');
 
 const messageRouter = express.Router();
 
 messageRouter.post(
   '/broadcast',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+  ]),
   messageController.sendBroadcastMessage
 );
 

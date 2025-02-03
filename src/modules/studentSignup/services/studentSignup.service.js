@@ -18,6 +18,7 @@ const { generateOTP } = require('../../../utils/generateOTP');
 const generateSystemCode = require('../../../utils/generateSystemCode');
 const { getDomainFromAdmin } = require('../../../utils/getDomainFromAdmin');
 const sendMail = require('../../../utils/sendEmail');
+const ROLE_CONSTANT = require('../../../constants');
 
 const chessAPI = new ChessWebAPI();
 
@@ -556,7 +557,7 @@ const confirmSignupHandler = async (id, userId) => {
 
 const fetchAllSignupsHandler = async (filters = {}) => {
   let where = {
-    userRole: 'STUDENT',
+    userRole: ROLE_CONSTANT.ROLE.STUDENT,
   };
 
   if (filters.academyId) {
@@ -772,7 +773,7 @@ const checkoutSessionHandler = async (
     metadata: {
       programId: programId,
       userEmail,
-      type: 'STUDENT',
+      type: ROLE_CONSTANT.ROLE.STUDENT,
       billingPeriod,
       seasonPrice: program.seasonPrice.toString(),
       monthlyPrice: program.monthlyPrice.toString(),

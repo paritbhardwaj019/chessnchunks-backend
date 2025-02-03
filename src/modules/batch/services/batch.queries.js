@@ -1,11 +1,13 @@
+const ROLE_CONSTANT = require('../../../constants');
+
 const getBatchFilter = (loggedInUser, query = null) => {
   const filter = {};
 
-  if (loggedInUser.role === 'ADMIN') {
+  if (loggedInUser.role === ROLE_CONSTANT.ROLE.ADMIN) {
     filter.academy = {
       admins: { some: { id: loggedInUser.id } },
     };
-  } else if (loggedInUser.role === 'COACH') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.COACH) {
     filter.coaches = { some: { id: loggedInUser.id } };
   }
 

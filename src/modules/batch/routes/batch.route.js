@@ -3,6 +3,7 @@ const batchController = require('../controllers/batch.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 const checkPermission = require('../../../middlewares/checkPermission');
 const checkRole = require('../../../middlewares/checkRole');
+const ROLE_CONSTANT = require('../../../constants');
 
 const batchRouter = express.Router();
 
@@ -63,7 +64,11 @@ const batchRouter = express.Router();
 batchRouter.get(
   '/options',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+  ]),
   batchController.fetchAllBatchesForOptions
 );
 
@@ -174,7 +179,11 @@ batchRouter.get(
 batchRouter.post(
   '/:id/students',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+  ]),
   batchController.addStudentToBatchHandler
 );
 
@@ -285,7 +294,7 @@ batchRouter.post(
 batchRouter.post(
   '/:id/coaches',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN']),
+  checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN, ROLE_CONSTANT.ROLE.ADMIN]),
   batchController.addCoachToBatchHandler
 );
 
@@ -344,7 +353,11 @@ batchRouter.post(
 batchRouter.get(
   '/:id/coaches',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+  ]),
   batchController.getAllCoachesByBatchIdHandler
 );
 
@@ -1054,7 +1067,11 @@ batchRouter
   .route('/:id')
   .get(
     checkJWT,
-    checkRole(['SUPER_ADMIN', 'COACH', 'ADMIN']),
+    checkRole([
+      ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+      ROLE_CONSTANT.ROLE.COACH,
+      ROLE_CONSTANT.ROLE.ADMIN,
+    ]),
     batchController.fetchBatchById
   );
 

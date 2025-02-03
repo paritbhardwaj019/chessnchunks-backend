@@ -1,11 +1,6 @@
+const DOMAIN_CONFIG = require('../config/domains');
 const logger = require('./logger');
 
-/**
- * Switches the port of the given admin domain from 3001 to 3000.
- *
- * @param {string} adminDomain - The admin domain URL (e.g., 'http://chessinchunksreal.localhost:3001').
- * @returns {string|null} - The modified domain with port 3000 (e.g., 'http://chessinchunksreal.localhost:3000') or null if invalid input.
- */
 function getDomainFromAdmin(adminDomain) {
   try {
     const url = new URL(adminDomain);
@@ -13,10 +8,10 @@ function getDomainFromAdmin(adminDomain) {
     const currentPort = url.port;
     let newPort;
 
-    if (currentPort === '3001') {
-      newPort = '3000';
-    } else if (currentPort === '3000') {
-      newPort = '3001';
+    if (currentPort === DOMAIN_CONFIG.LOCAL.ACADEMY_PORT) {
+      newPort = DOMAIN_CONFIG.LOCAL.HOST;
+    } else if (currentPort === DOMAIN_CONFIG.LOCAL.PORT) {
+      newPort = DOMAIN_CONFIG.LOCAL.ACADEMY_PORT;
     } else {
       logger.error(
         `Unexpected port "${currentPort}" in admin domain "${adminDomain}". No port change applied.`

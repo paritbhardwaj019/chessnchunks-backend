@@ -1,5 +1,6 @@
 const httpStatus = require('http-status');
 const ApiError = require('../../../utils/apiError');
+const ROLE_CONSTANT = require('../../../constants');
 
 const validateHeadCoach = async (db, coaches) => {
   if (!coaches || coaches.length < 1) return;
@@ -7,8 +8,8 @@ const validateHeadCoach = async (db, coaches) => {
   const headCoaches = await db.user.findMany({
     where: {
       id: { in: coaches },
-      role: { name: 'COACH' },
-      subRole: 'HEAD_COACH',
+      role: { name: ROLE_CONSTANT.ROLE.COACH },
+      subRole: ROLE_CONSTANT.COACH_ROLE.HEAD_COACH,
     },
     select: { id: true },
   });
@@ -44,7 +45,7 @@ const validateUserAcademy = async (db, userId, role) => {
   });
 
   const academyIds =
-    role === 'COACH'
+    role === ROLE_CONSTANT.ROLE.COACH
       ? userWithAcademies.coachOfBatches.map((batch) => batch.academyId)
       : userWithAcademies.adminOfAcademies.map((academy) => academy.id);
 

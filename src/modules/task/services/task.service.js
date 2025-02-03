@@ -4,6 +4,7 @@ const db = require('../../../database/prisma');
 const ApiError = require('../../../utils/apiError');
 const generateSystemCode = require('../../../utils/generateSystemCode');
 const logger = require('../../../utils/logger');
+const ROLE_CONSTANT = require('../../../constants');
 
 /**
  * Create a new task
@@ -111,7 +112,7 @@ const getAllTasks = async (loggedInUser) => {
 
   const studentRole = await db.role.findFirst({
     where: {
-      name: 'STUDENT',
+      name: ROLE_CONSTANT.ROLE.STUDENT,
     },
   });
 

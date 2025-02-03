@@ -3,6 +3,7 @@ const eventController = require('../controllers/event.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 const checkPermission = require('../../../middlewares/checkPermission');
 const checkRole = require('../../../middlewares/checkRole');
+const ROLE_CONSTANT = require('../../../constants');
 
 const eventRouter = express.Router();
 
@@ -40,7 +41,7 @@ eventRouter
   .route('/student')
   .get(
     checkJWT,
-    checkRole(['STUDENT']),
+    checkRole([ROLE_CONSTANT.ROLE.STUDENT]),
     eventController.fetchAcademyEventsHandler
   );
 

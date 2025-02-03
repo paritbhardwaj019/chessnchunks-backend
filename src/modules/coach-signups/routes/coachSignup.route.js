@@ -2,6 +2,7 @@ const express = require('express');
 const coachSignupController = require('../controllers/coachSignup.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 const checkRole = require('../../../middlewares/checkRole');
+const ROLE_CONSTANT = require('../../../constants');
 
 const coachSignupRouter = express.Router();
 
@@ -48,7 +49,7 @@ const coachSignupRouter = express.Router();
 coachSignupRouter.post(
   '/',
   checkJWT,
-  checkRole(['ADMIN']),
+  checkRole([ROLE_CONSTANT.ROLE.ADMIN]),
   coachSignupController.initiateCoachSignupHandler
 );
 
@@ -292,7 +293,7 @@ coachSignupRouter.get(
 coachSignupRouter.get(
   '/',
   checkJWT,
-  checkRole(['ADMIN', 'MASTER_ADMIN']),
+  checkRole([ROLE_CONSTANT.ROLE.ADMIN, ROLE_CONSTANT.ADMIN_ROLE.MASTER_ADMIN]),
   coachSignupController.fetchAllCoachSignupsHandler
 );
 

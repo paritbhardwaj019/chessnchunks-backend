@@ -9,6 +9,7 @@ const createToken = require('../../../utils/createToken');
 const hashPassword = require('../../../utils/hashPassword');
 const sendMail = require('../../../utils/sendEmail');
 const academyService = require('../../academy/services/academy.service');
+const ROLE_CONSTANT = require('../../../constants');
 
 const mailGenerator = new Mailgen({
   theme: 'default',
@@ -24,7 +25,7 @@ const createAdminHandler = async (data, loggedInUser) => {
     lastName,
     email,
     contactNumber,
-    adminRole = 'ACADEMY_ADMIN',
+    adminRole = ROLE_CONSTANT.ADMIN_ROLE.ACADEMY_ADMIN,
   } = data;
 
   const academy = await academyService.getSingleAcademyForUser(loggedInUser);
@@ -38,10 +39,10 @@ const createAdminHandler = async (data, loggedInUser) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already exists');
   }
 
-  if (adminRole === 'MASTER_ADMIN') {
+  if (adminRole === ROLE_CONSTANT.ADMIN_ROLE.MASTER_ADMIN) {
     const existingMasterAdmin = await db.user.findFirst({
       where: {
-        adminRole: 'MASTER_ADMIN',
+        adminRole: ROLE_CONSTANT.ADMIN_ROLE.MASTER_ADMIN,
         adminOfAcademies: {
           some: { id: academyId },
         },
@@ -57,7 +58,7 @@ const createAdminHandler = async (data, loggedInUser) => {
   }
 
   const adminRoleData = await db.role.findUnique({
-    where: { name: 'ADMIN' },
+    where: { name: ROLE_CONSTANT.ROLE.ADMIN },
   });
 
   if (!adminRoleData) {
@@ -246,14 +247,14 @@ const transferOwnershipHandler = async (data, loggedInUser) => {
         prisma.user.findFirst({
           where: {
             id: fromAdminId,
-            adminRole: 'MASTER_ADMIN',
+            adminRole: ROLE_CONSTANT.ADMIN_ROLE.MASTER_ADMIN,
             adminOfAcademies: { some: { id: academyId } },
           },
         }),
         prisma.user.findFirst({
           where: {
             id: toAdminId,
-            adminRole: 'ACADEMY_ADMIN',
+            adminRole: ROLE_CONSTANT.ADMIN_ROLE.ACADEMY_ADMIN,
             adminOfAcademies: { some: { id: academyId } },
           },
         }),
@@ -266,11 +267,11 @@ const transferOwnershipHandler = async (data, loggedInUser) => {
       await Promise.all([
         prisma.user.update({
           where: { id: fromAdminId },
-          data: { adminRole: 'ACADEMY_ADMIN' },
+          data: { adminRole: ROLE_CONSTANT.ADMIN_ROLE.ACADEMY_ADMIN },
         }),
         prisma.user.update({
           where: { id: toAdminId },
-          data: { adminRole: 'MASTER_ADMIN' },
+          data: { adminRole: ROLE_CONSTANT.ADMIN_ROLE.MASTER_ADMIN },
         }),
       ]);
     });
@@ -286,7 +287,7 @@ const transferOwnershipHandler = async (data, loggedInUser) => {
 
 const fetchAllAdmins = async (loggedInUser, { page, limit, query }) => {
   const filter = {
-    role: { name: 'ADMIN' },
+    role: { name: ROLE_CONSTANT.ROLE.ADMIN },
     adminOfAcademies: {
       some: {
         id: loggedInUser.academyId,
@@ -347,7 +348,7 @@ const deleteAdminHandler = async (id, loggedInUser) => {
   const admin = await db.user.findFirst({
     where: {
       id,
-      adminRole: 'ACADEMY_ADMIN',
+      adminRole: ROLE_CONSTANT.ADMIN_ROLE.ACADEMY_ADMIN,
       adminOfAcademies: {
         some: {
           id: loggedInUser.academyId,

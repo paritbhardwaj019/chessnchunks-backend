@@ -26,6 +26,7 @@ const {
   createStudentInvitation,
 } = require('../../student/services/student.service');
 const logger = require('../../../utils/logger');
+const ROLE_CONSTANT = require('../../../constants');
 
 const fetchAllUsersHandler = async (
   page,
@@ -102,7 +103,7 @@ const fetchAllUsersHandler = async (
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
   }
 
-  if (user.role.name === 'SUPER_ADMIN') {
+  if (user.role.name === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     allUsers = await db.user.findMany({
       skip,
       take,
@@ -112,7 +113,10 @@ const fetchAllUsersHandler = async (
         createdAt: 'desc',
       },
     });
-  } else if (user.role.name === 'ADMIN' || user.role.name === 'COACH') {
+  } else if (
+    user.role.name === ROLE_CONSTANT.ROLE.ADMIN ||
+    user.role.name === ROLE_CONSTANT.ROLE.COACH
+  ) {
     const academy = await getSingleAcademyForUser(loggedInUser);
 
     allUsers = await db.user.findMany({
@@ -134,9 +138,12 @@ const fetchAllUsersHandler = async (
   const usersWithAcademies = allUsers.map((u) => {
     let academy = null;
 
-    if (u.role.name === 'ADMIN') {
+    if (u.role.name === ROLE_CONSTANT.ROLE.ADMIN) {
       academy = u.adminOfAcademies[0];
-    } else if (u.role.name === 'COACH' || u.role.name === 'STUDENT') {
+    } else if (
+      u.role.name === ROLE_CONSTANT.ROLE.COACH ||
+      u.role.name === ROLE_CONSTANT.ROLE.STUDENT
+    ) {
       academy = u.assignedToAcademy;
     }
 
@@ -210,7 +217,7 @@ const signUpSubscriberHandler = async (data) => {
 
   const subscriberRole = await db.role.findFirst({
     where: {
-      name: 'SUBSCRIBER',
+      name: ROLE_CONSTANT.ROLE.SUBSCRIBER,
     },
   });
 
@@ -239,13 +246,16 @@ const createUsersFromXlsx = async (file, loggedInUser) => {
   const user = await validateUser(loggedInUser);
   const academyId = user.adminOfAcademies[0].id;
 
-  const ROLE_MAPPING = { 1: 'COACH', 2: 'STUDENT' };
+  const ROLE_MAPPING = {
+    1: ROLE_CONSTANT.ROLE.COACH,
+    2: ROLE_CONSTANT.ROLE.STUDENT,
+  };
   const COACH_SUB_ROLE_MAPPING = {
-    1: 'HEAD_COACH',
-    2: 'SENIOR_COACH',
-    3: 'JUNIOR_COACH',
-    4: 'PUZZLE_MASTER',
-    5: 'PUZZLE_MASTER_SCHOLAR',
+    1: ROLE_CONSTANT.COACH_ROLE.HEAD_COACH,
+    2: ROLE_CONSTANT.COACH_ROLE.SENIOR_COACH,
+    3: ROLE_CONSTANT.COACH_ROLE.JUNIOR_COACH,
+    4: ROLE_CONSTANT.COACH_ROLE.PUZZLE_MASTER,
+    5: ROLE_CONSTANT.COACH_ROLE.PUZZLE_MASTER_SCHOLAR,
   };
 
   const workbook = xlsx.readFile(file.path);
@@ -289,7 +299,7 @@ const validateUser = async (loggedInUser) => {
   });
 
   if (!user) throw new ApiError(httpStatus.BAD_REQUEST, 'User not found.');
-  if (user.role.name !== 'ADMIN')
+  if (user.role.name !== ROLE_CONSTANT.ROLE.ADMIN)
     throw new ApiError(httpStatus.BAD_REQUEST, 'Insufficient permissions');
   if (!user.adminOfAcademies.length)
     throw new ApiError(httpStatus.BAD_REQUEST, 'No associated academy');
@@ -334,7 +344,7 @@ const processRow = async (
     select: { name: true, domain: true },
   });
 
-  if (role === 'COACH') {
+  if (role === ROLE_CONSTANT.ROLE.COACH) {
     await processCoach(
       row,
       academy,
@@ -406,7 +416,12 @@ const processCoach = async (
     tempPassword,
     ACTIVATION_URL
   );
-  coachesCreated.push({ email, firstName, lastName, role: 'COACH' });
+  coachesCreated.push({
+    email,
+    firstName,
+    lastName,
+    role: ROLE_CONSTANT.ROLE.COACH,
+  });
 };
 
 const processStudent = async (
@@ -459,7 +474,7 @@ const processStudent = async (
       email,
       firstName,
       lastName,
-      role: 'STUDENT',
+      role: ROLE_CONSTANT.ROLE.STUDENT,
       invitationId: studentInvitation.id,
     });
   } catch (error) {
@@ -580,8 +595,8 @@ const updateUserHandler = async (id, userData, loggedInUser) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
   }
 
-  if (loggedInUser.role !== 'SUPER_ADMIN') {
-    if (loggedInUser.role === 'ADMIN') {
+  if (loggedInUser.role !== ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
+    if (loggedInUser.role === ROLE_CONSTANT.ROLE.ADMIN) {
       const adminAcademyIds = loggedInUser.adminOfAcademies.map(
         (academy) => academy.id
       );
@@ -692,8 +707,8 @@ const fetchProfileById = async (id, loggedInUser) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found.');
   }
 
-  if (loggedInUser.role !== 'SUPER_ADMIN') {
-    if (loggedInUser.role === 'ADMIN') {
+  if (loggedInUser.role !== ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
+    if (loggedInUser.role === ROLE_CONSTANT.ROLE.ADMIN) {
       const adminAcademyIds = loggedInUser.adminOfAcademies.map(
         (academy) => academy.id
       );
@@ -727,7 +742,10 @@ const fetchProfileById = async (id, loggedInUser) => {
 };
 
 const updatePasswordHandler = async (data, loggedInUser) => {
-  if (loggedInUser.id !== data.userId && loggedInUser.role !== 'SUPER_ADMIN') {
+  if (
+    loggedInUser.id !== data.userId &&
+    loggedInUser.role !== ROLE_CONSTANT.ROLE.SUPER_ADMIN
+  ) {
     return new ApiError(
       httpStatus.FORBIDDEN,
       'You do not have permission to update this password.'
@@ -905,9 +923,9 @@ const getProfileCompletionHandler = async (userId) => {
 
   // Select fields based on user role
   let requiredFields = commonFields;
-  if (user.role.name === 'STUDENT') {
+  if (user.role.name === ROLE_CONSTANT.ROLE.STUDENT) {
     requiredFields = studentFields;
-  } else if (user.role.name === 'COACH') {
+  } else if (user.role.name === ROLE_CONSTANT.ROLE.COACH) {
     requiredFields = coachFields;
   }
 
@@ -951,7 +969,10 @@ const updateProfileHandler = async (id, data, loggedInUser) => {
   }
 
   // Only allow users to update their own profile unless they're a super admin
-  if (loggedInUser.id !== id && loggedInUser.role !== 'SUPER_ADMIN') {
+  if (
+    loggedInUser.id !== id &&
+    loggedInUser.role !== ROLE_CONSTANT.ROLE.SUPER_ADMIN
+  ) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       'You do not have permission to update this profile'

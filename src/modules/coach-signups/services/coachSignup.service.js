@@ -19,6 +19,7 @@ const {
 const { generateOTP } = require('../../../utils/generateOTP');
 const createToken = require('../../../utils/createToken');
 const sendMail = require('../../../utils/sendEmail');
+const ROLE_CONSTANT = require('../../../constants');
 
 const mailGenerator = new Mailgen({
   theme: 'default',
@@ -327,7 +328,8 @@ async function completeCoachSignup(signupId, password, loggedInUser) {
 
   if (
     loggedInUser &&
-    (loggedInUser.role === 'ADMIN' || loggedInUser.role === 'MASTER_ADMIN')
+    (loggedInUser.role === ROLE_CONSTANT.ROLE.ADMIN ||
+      loggedInUser.role === ROLE_CONSTANT.ADMIN_ROLE.MASTER_ADMIN)
   ) {
     updateData.completedBy = { connect: { id: loggedInUser.id } };
   }

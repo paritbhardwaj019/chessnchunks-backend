@@ -1,6 +1,7 @@
 const { PrismaClient, SYSTEM_CODE_MODULE } = require('@prisma/client');
 
 const logger = require('../utils/logger');
+const ROLE_CONSTANT = require('../constants');
 const prisma = new PrismaClient();
 
 /**
@@ -216,7 +217,13 @@ const routes = [
  * Seed Roles into the database.
  */
 async function seedRoles() {
-  const roles = ['SUPER_ADMIN', 'ADMIN', 'COACH', 'STUDENT', 'SUBSCRIBER'];
+  const roles = [
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.STUDENT,
+    ROLE_CONSTANT.ROLE.SUBSCRIBER,
+  ];
 
   for (const roleName of roles) {
     await prisma.role.upsert({
@@ -477,7 +484,7 @@ async function assignRolePermissions(roleName, permissions) {
  */
 async function assignSuperAdminPermissions() {
   const superAdminRole = await prisma.role.findUnique({
-    where: { name: 'SUPER_ADMIN' },
+    where: { name: ROLE_CONSTANT.ROLE.SUPER_ADMIN },
   });
 
   if (!superAdminRole) {
@@ -507,7 +514,10 @@ async function assignSuperAdminPermissions() {
     },
   ];
 
-  await assignRolePermissions('SUPER_ADMIN', superAdminPermissions);
+  await assignRolePermissions(
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    superAdminPermissions
+  );
   logger.info('SUPER_ADMIN permissions assigned successfully.');
 }
 
@@ -580,7 +590,7 @@ async function assignAdminPermissions() {
     },
   ];
 
-  await assignRolePermissions('ADMIN', adminPermissions);
+  await assignRolePermissions(ROLE_CONSTANT.ROLE.ADMIN, adminPermissions);
   logger.info('ADMIN permissions assigned successfully.');
 }
 
@@ -646,7 +656,7 @@ async function assignCoachPermissions() {
     },
   ];
 
-  await assignRolePermissions('COACH', coachPermissions);
+  await assignRolePermissions(ROLE_CONSTANT.ROLE.COACH, coachPermissions);
   logger.info('COACH permissions assigned successfully.');
 }
 
@@ -662,7 +672,7 @@ async function assignStudentPermissions() {
     },
   ];
 
-  await assignRolePermissions('STUDENT', studentPermissions);
+  await assignRolePermissions(ROLE_CONSTANT.ROLE.STUDENT, studentPermissions);
   logger.info('STUDENT permissions assigned successfully.');
 }
 
@@ -676,7 +686,10 @@ async function assignSubscriberPermissions() {
     },
   ];
 
-  await assignRolePermissions('SUBSCRIBER', subscriberPermissions);
+  await assignRolePermissions(
+    ROLE_CONSTANT.ROLE.SUBSCRIBER,
+    subscriberPermissions
+  );
   logger.info('SUBSCRIBER permissions assigned successfully.');
 }
 

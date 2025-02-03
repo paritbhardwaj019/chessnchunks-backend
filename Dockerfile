@@ -16,4 +16,4 @@ RUN npx prisma generate
 
 EXPOSE 5000
 
-CMD ["./startup.sh"]
+CMD ["npm", "start"]

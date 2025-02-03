@@ -3,6 +3,7 @@ const superAdminController = require('../controllers/superAdmin.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 const checkRole = require('../../../middlewares/checkRole');
 const uploadFile = require('../../../middlewares/uploadFile');
+const ROLE_CONSTANT = require('../../../constants');
 
 const superAdminRouter = express.Router();
 
@@ -62,7 +63,7 @@ const superAdminRouter = express.Router();
 superAdminRouter.post(
   '/invite-academy-admin',
   checkJWT,
-  checkRole(['SUPER_ADMIN']),
+  checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN]),
   uploadFile.single('logo'),
   superAdminController.inviteAcademyAdminHandler
 );
@@ -133,7 +134,7 @@ superAdminRouter.post(
 superAdminRouter.get(
   '/all-admins',
   checkJWT,
-  checkRole(['SUPER_ADMIN']),
+  checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN]),
   superAdminController.fetchAllAdminsByAcademyId
 );
 
@@ -157,7 +158,11 @@ superAdminRouter.get(
 superAdminRouter.get(
   '/all-academies',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+  ]),
   superAdminController.fetchAllAcademiesHandler
 );
 
@@ -207,7 +212,7 @@ superAdminRouter.get(
 superAdminRouter.post(
   '/plans',
   checkJWT,
-  checkRole(['SUPER_ADMIN']),
+  checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN]),
   superAdminController.createPlanHandler
 );
 
@@ -264,7 +269,7 @@ superAdminRouter.post(
 superAdminRouter.put(
   '/plans/:planId',
   checkJWT,
-  checkRole(['SUPER_ADMIN']),
+  checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN]),
   superAdminController.updatePlanHandler
 );
 
@@ -418,7 +423,7 @@ superAdminRouter.post(
 superAdminRouter.delete(
   '/plans/:planId',
   checkJWT,
-  checkRole(['SUPER_ADMIN']),
+  checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN]),
   superAdminController.deletePlanHandler
 );
 

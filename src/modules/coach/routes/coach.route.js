@@ -3,6 +3,7 @@ const coachController = require('../controllers/coach.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 const checkPermission = require('../../../middlewares/checkPermission');
 const checkRole = require('../../../middlewares/checkRole');
+const ROLE_CONSTANT = require('../../../constants');
 
 const coachRouter = express.Router();
 
@@ -18,14 +19,22 @@ coachRouter.post('/verify-coach', coachController.verifyCoachInvitationHandler);
 coachRouter.get(
   '/all-coaches',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+  ]),
   coachController.fetchAllCoachesHandler
 );
 
 coachRouter.get(
   '/coaches',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+  ]),
   coachController.fetchPaginatedCoachesHandler
 );
 

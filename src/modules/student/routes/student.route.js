@@ -2,6 +2,7 @@ const express = require('express');
 const studentController = require('../controllers/student.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 const checkRole = require('../../../middlewares/checkRole');
+const ROLE_CONSTANT = require('../../../constants');
 
 const studentRouter = express.Router();
 
@@ -76,7 +77,11 @@ const studentRouter = express.Router();
 studentRouter.post(
   '/invite-student',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'COACH', 'ADMIN']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.ADMIN,
+  ]),
   studentController.inviteStudentHandler
 );
 
@@ -288,7 +293,11 @@ studentRouter.post('/verify-student', studentController.verifyStudentHandler);
 studentRouter.get(
   '/all-students',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN', 'COACH']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+  ]),
   studentController.fetchAllStudentsHandler
 );
 
@@ -454,7 +463,11 @@ studentRouter.get(
 studentRouter.get(
   '/all-students-from-batch',
   checkJWT,
-  checkRole(['COACH', 'SUPER_ADMIN', 'ADMIN']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+  ]),
   studentController.fetchAllStudentsByBatchId
 );
 
@@ -509,7 +522,11 @@ studentRouter.get(
 studentRouter.patch(
   '/move-student',
   checkJWT,
-  checkRole(['COACH', 'SUPER_ADMIN', 'ADMIN']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+    ROLE_CONSTANT.ROLE.ADMIN,
+  ]),
   studentController.moveStudentToBatchHandler
 );
 
@@ -588,7 +605,7 @@ studentRouter.patch(
 studentRouter.get(
   '/batchmates',
   checkJWT,
-  checkRole(['STUDENT']),
+  checkRole([ROLE_CONSTANT.ROLE.STUDENT]),
   studentController.getBatchmatesHandler
 );
 

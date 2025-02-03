@@ -8,6 +8,7 @@ const createDefaultPagesForAcademy = require('../utils/createDefaultPages');
 const formatNumberWithPrefix = require('./formatNumberWithPrefix');
 const hashPassword = require('./hashPassword');
 const logger = require('./logger');
+const ROLE_CONSTANT = require('../constants');
 
 const createNavigationItems = async (items, academyId, parentId = null) => {
   for (const item of items) {
@@ -127,7 +128,7 @@ function createSuperAdmin() {
         });
 
         const superAdminRole = await db.role.findUnique({
-          where: { name: 'SUPER_ADMIN' },
+          where: { name: ROLE_CONSTANT.ROLE.SUPER_ADMIN },
         });
 
         const superAdmin = await db.user.create({

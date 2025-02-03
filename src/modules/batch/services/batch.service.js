@@ -8,6 +8,7 @@ const {
   validateBatchCapacity,
   validateUserAcademy,
 } = require('../validation/batch.validators');
+const ROLE_CONSTANT = require('../../../constants');
 
 const createBatchHandler = async (data, loggedInUser) => {
   const {
@@ -62,7 +63,7 @@ const createBatchHandler = async (data, loggedInUser) => {
       academy: { connect: { id: academyId } },
       coaches: {
         connect:
-          loggedInUser.role === 'COACH'
+          loggedInUser.role === ROLE_CONSTANT.ROLE.COACH
             ? [...coaches.map((id) => ({ id })), { id: loggedInUser.id }]
             : coaches.map((id) => ({ id })),
       },
@@ -294,7 +295,7 @@ const fetchAllBatches = async (loggedInUser, { page, limit, query }) => {
 const fetchAllBatchesForOptions = async (loggedInUser) => {
   let batchFilter = {};
 
-  if (loggedInUser.role === 'ADMIN') {
+  if (loggedInUser.role === ROLE_CONSTANT.ROLE.ADMIN) {
     batchFilter = {
       academy: {
         admins: {
@@ -304,7 +305,7 @@ const fetchAllBatchesForOptions = async (loggedInUser) => {
         },
       },
     };
-  } else if (loggedInUser.role === 'COACH') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.COACH) {
     batchFilter = {
       coaches: {
         some: {
@@ -350,7 +351,7 @@ const fetchBatchById = async (loggedInUser, id) => {
     id: id,
   };
 
-  if (loggedInUser.role === 'ADMIN') {
+  if (loggedInUser.role === ROLE_CONSTANT.ROLE.ADMIN) {
     batchFilter.academy = {
       admins: {
         some: {
@@ -358,7 +359,7 @@ const fetchBatchById = async (loggedInUser, id) => {
         },
       },
     };
-  } else if (loggedInUser.role === 'COACH') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.COACH) {
     batchFilter.coaches = {
       some: {
         id: loggedInUser.id,
@@ -478,7 +479,7 @@ const addStudentToBatch = async (batchId, studentId) => {
         { id: studentId },
         {
           role: {
-            name: 'STUDENT',
+            name: ROLE_CONSTANT.ROLE.STUDENT,
           },
         },
       ],
@@ -534,7 +535,7 @@ const addCoachToBatch = async (batchId, coachId) => {
     where: {
       id: coachId,
       role: {
-        name: 'COACH',
+        name: ROLE_CONSTANT.ROLE.COACH,
       },
     },
   });

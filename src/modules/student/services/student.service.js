@@ -14,12 +14,13 @@ const sendMail = require('../../../utils/sendEmail');
 const {
   getSingleAcademyForUser,
 } = require('../../academy/services/academy.service');
+const ROLE_CONSTANT = require('../../../constants');
 
 const inviteStudentHandler = async (data, loggedInUser) => {
   const { firstName, lastName, email, academyId: providedAcademyId } = data;
 
   const academyId =
-    loggedInUser.role === 'SUPER_ADMIN'
+    loggedInUser.role === ROLE_CONSTANT.ROLE.SUPER_ADMIN
       ? await validateAcademyId(providedAcademyId)
       : (await getSingleAcademyForUser(loggedInUser)).id;
 
@@ -246,7 +247,7 @@ const verifyStudentHandler = async (token) => {
 
   const studentRole = await db.role.findFirst({
     where: {
-      name: 'STUDENT',
+      name: ROLE_CONSTANT.ROLE.STUDENT,
     },
   });
 
@@ -303,7 +304,7 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
   const take = numberLimit;
 
   const studentRole = await db.role.findFirst({
-    where: { name: 'STUDENT' },
+    where: { name: ROLE_CONSTANT.ROLE.STUDENT },
   });
 
   if (!studentRole) {
@@ -396,7 +397,7 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
   let students = [];
   let total = 0;
 
-  if (loggedInUser.role.name === 'SUPER_ADMIN') {
+  if (loggedInUser.role.name === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     [students, total] = await Promise.all([
       db.user.findMany({
         where: baseFilter,
@@ -466,7 +467,7 @@ const fetchAllStudentsByBatchId = async (batchId, { query }) => {
   }
 
   const studentRole = await db.role.findFirst({
-    where: { name: 'STUDENT' },
+    where: { name: ROLE_CONSTANT.ROLE.STUDENT },
   });
 
   if (!studentRole) {
@@ -741,7 +742,7 @@ const getBatchmatesHandler = async (loggedInUser) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Student not found');
   }
 
-  if (student.role.name !== 'STUDENT') {
+  if (student.role.name !== ROLE_CONSTANT.ROLE.STUDENT) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User is not a student');
   }
 
@@ -760,7 +761,7 @@ const getBatchmatesHandler = async (loggedInUser) => {
       },
       assignedToAcademyId: student.assignedToAcademy?.id,
       id: { not: loggedInUser.id },
-      role: { name: 'STUDENT' },
+      role: { name: ROLE_CONSTANT.ROLE.STUDENT },
     },
     include: {
       profile: {

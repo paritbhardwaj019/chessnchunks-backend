@@ -2,6 +2,7 @@ const express = require('express');
 const adminController = require('../controllers/admin.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 const checkRole = require('../../../middlewares/checkRole');
+const ROLE_CONSTANT = require('../../../constants');
 
 const adminRouter = express.Router();
 
@@ -58,7 +59,7 @@ const adminRouter = express.Router();
 adminRouter.post(
   '/',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN']),
+  checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN, ROLE_CONSTANT.ROLE.ADMIN]),
   adminController.createAdminHandler
 );
 
@@ -136,7 +137,7 @@ adminRouter.post(
 adminRouter.get(
   '/',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN']),
+  checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN, ROLE_CONSTANT.ROLE.ADMIN]),
   adminController.getAllAdmins
 );
 
@@ -237,7 +238,7 @@ adminRouter.post('/set-password', adminController.setAdminPassword);
 adminRouter.post(
   '/transfer-ownership',
   checkJWT,
-  checkRole(['ADMIN']),
+  checkRole([ROLE_CONSTANT.ROLE.ADMIN]),
   adminController.transferOwnership
 );
 
@@ -270,7 +271,7 @@ adminRouter.post(
 adminRouter.delete(
   '/:id',
   checkJWT,
-  checkRole(['SUPER_ADMIN', 'ADMIN']),
+  checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN, ROLE_CONSTANT.ROLE.ADMIN]),
   adminController.deleteAdmin
 );
 

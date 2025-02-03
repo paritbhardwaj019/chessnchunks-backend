@@ -1,8 +1,9 @@
 const cron = require('node-cron');
 const db = require('../database/prisma');
 const logger = require('../utils/logger');
+const config = require('../config');
 
-let cachedOrigins = new Set(['http://localhost:3001', 'http://localhost:3000']);
+let cachedOrigins = new Set([config.chessinChunksUrl, config.frontendUrl]);
 
 async function updateOrigins() {
   try {
@@ -11,10 +12,7 @@ async function updateOrigins() {
       select: { domain: true },
     });
 
-    const newOrigins = new Set([
-      'http://localhost:3001',
-      'http://localhost:3000',
-    ]);
+    const newOrigins = new Set([config.chessinChunksUrl, config.frontendUrl]);
 
     academies.forEach((academy) => {
       if (academy.domain) {

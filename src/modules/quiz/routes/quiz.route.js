@@ -2,6 +2,7 @@ const express = require('express');
 const quizController = require('../controllers/quiz.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 const checkRole = require('../../../middlewares/checkRole');
+const ROLE_CONSTANT = require('../../../constants');
 
 const quizRouter = express.Router();
 
@@ -13,7 +14,7 @@ const quizRouter = express.Router();
 quizRouter.patch(
   '/complete/:attemptId',
   checkJWT,
-  checkRole(['STUDENT']),
+  checkRole([ROLE_CONSTANT.ROLE.STUDENT]),
   quizController.completeQuizAttemptHandler
 );
 
@@ -25,7 +26,11 @@ quizRouter.patch(
 quizRouter.get(
   '/id/:quizId',
   checkJWT,
-  checkRole(['ADMIN', 'COACH', 'STUDENT']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.STUDENT,
+  ]),
   quizController.getQuizByIdHandler
 );
 
@@ -37,7 +42,7 @@ quizRouter.get(
 quizRouter.get(
   '/student-attempts',
   checkJWT,
-  checkRole(['STUDENT']),
+  checkRole([ROLE_CONSTANT.ROLE.STUDENT]),
   quizController.getStudentQuizAttemptsHandler
 );
 
@@ -49,7 +54,7 @@ quizRouter.get(
 quizRouter.post(
   '/assign',
   checkJWT,
-  checkRole(['ADMIN', 'COACH']),
+  checkRole([ROLE_CONSTANT.ROLE.ADMIN, ROLE_CONSTANT.ROLE.COACH]),
   quizController.assignQuizHandler
 );
 
@@ -61,14 +66,14 @@ quizRouter.post(
 quizRouter.get(
   '/options',
   checkJWT,
-  checkRole(['ADMIN', 'COACH']),
+  checkRole([ROLE_CONSTANT.ROLE.ADMIN, ROLE_CONSTANT.ROLE.COACH]),
   quizController.getQuizOptionsHandler
 );
 
 quizRouter.get(
   '/',
   checkJWT,
-  checkRole(['ADMIN', 'COACH']),
+  checkRole([ROLE_CONSTANT.ROLE.ADMIN, ROLE_CONSTANT.ROLE.COACH]),
   quizController.listQuizzesHandler
 );
 
@@ -80,7 +85,7 @@ quizRouter.get(
 quizRouter.post(
   '/',
   checkJWT,
-  checkRole(['ADMIN', 'COACH']),
+  checkRole([ROLE_CONSTANT.ROLE.ADMIN, ROLE_CONSTANT.ROLE.COACH]),
   quizController.createQuizHandler
 );
 
@@ -92,7 +97,11 @@ quizRouter.post(
 quizRouter.get(
   '/:taskId',
   checkJWT,
-  checkRole(['ADMIN', 'COACH', 'STUDENT']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.STUDENT,
+  ]),
   quizController.getQuizByTaskIdHandler
 );
 
@@ -104,7 +113,7 @@ quizRouter.get(
 quizRouter.post(
   '/attempt/:quizId',
   checkJWT,
-  checkRole(['STUDENT']),
+  checkRole([ROLE_CONSTANT.ROLE.STUDENT]),
   quizController.startQuizAttemptHandler
 );
 
@@ -116,7 +125,7 @@ quizRouter.post(
 quizRouter.post(
   '/submit/:attemptId/:questionId',
   checkJWT,
-  checkRole(['STUDENT']),
+  checkRole([ROLE_CONSTANT.ROLE.STUDENT]),
   quizController.submitQuizAnswerHandler
 );
 
@@ -128,7 +137,11 @@ quizRouter.post(
 quizRouter.get(
   '/review/:attemptId',
   checkJWT,
-  checkRole(['ADMIN', 'COACH', 'STUDENT']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.STUDENT,
+  ]),
   quizController.reviewQuizAttemptHandler
 );
 

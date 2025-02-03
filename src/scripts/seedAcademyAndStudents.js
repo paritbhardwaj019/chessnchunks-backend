@@ -7,6 +7,7 @@ const createDefaultPagesForAcademy = require('../utils/createDefaultPages');
 const {
   createNavigationItems,
 } = require('../modules/superAdmin/services/superAdmin.service');
+const ROLE_CONSTANT = require('../constants');
 const prisma = new PrismaClient();
 
 const academyData = {
@@ -111,7 +112,7 @@ const coaches = [
     city: 'Chess City',
     state: 'Chess State',
     country: 'USA',
-    subRole: 'HEAD_COACH',
+    subRole: ROLE_CONSTANT.COACH_ROLE.HEAD_COACH,
   },
   {
     email: 'senior.coach@example.com',
@@ -124,7 +125,7 @@ const coaches = [
     city: 'Chess City',
     state: 'Chess State',
     country: 'USA',
-    subRole: 'SENIOR_COACH',
+    subRole: ROLE_CONSTANT.COACH_ROLE.SENIOR_COACH,
   },
 ];
 
@@ -162,21 +163,21 @@ async function main() {
     }
 
     const adminRole = await prisma.role.upsert({
-      where: { name: 'ADMIN' },
+      where: { name: ROLE_CONSTANT.ROLE.ADMIN },
       update: {},
-      create: { name: 'ADMIN' },
+      create: { name: ROLE_CONSTANT.ROLE.ADMIN },
     });
 
     const studentRole = await prisma.role.upsert({
-      where: { name: 'STUDENT' },
+      where: { name: ROLE_CONSTANT.ROLE.STUDENT },
       update: {},
-      create: { name: 'STUDENT' },
+      create: { name: ROLE_CONSTANT.ROLE.STUDENT },
     });
 
     const coachRole = await prisma.role.upsert({
-      where: { name: 'COACH' },
+      where: { name: ROLE_CONSTANT.ROLE.COACH },
       update: {},
-      create: { name: 'COACH' },
+      create: { name: ROLE_CONSTANT.ROLE.COACH },
     });
 
     logger.info('Roles created successfully');

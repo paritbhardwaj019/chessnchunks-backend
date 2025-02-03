@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const dashboardService = require('../services/dashboard.service');
 const ApiError = require('../../../utils/apiError');
 const catchAsync = require('../../../utils/catchAsync');
+const ROLE_CONSTANT = require('../../../constants');
 
 const fetchAllDashboard = catchAsync(async (req, res) => {
   const loggedInUser = req.user;
@@ -9,15 +10,15 @@ const fetchAllDashboard = catchAsync(async (req, res) => {
   let dashboardData = {};
 
   switch (loggedInUser.role) {
-    case 'SUPER_ADMIN':
+    case ROLE_CONSTANT.ROLE.SUPER_ADMIN:
       dashboardData =
         await dashboardService.getSuperAdminDashboardData(loggedInUser);
       break;
-    case 'ADMIN':
+    case ROLE_CONSTANT.ROLE.ADMIN:
       dashboardData =
         await dashboardService.getAdminDashboardData(loggedInUser);
       break;
-    case 'COACH':
+    case ROLE_CONSTANT.ROLE.COACH:
       dashboardData =
         await dashboardService.getCoachDashboardData(loggedInUser);
       break;
@@ -40,8 +41,6 @@ const getCoachBatchStats = catchAsync(async (req, res) => {
   const performanceData = await dashboardService.getCoachBatchPerformance(
     req.user
   );
-
-  'PERFORMANCE_DATA', performanceData;
 
   res.status(httpStatus.OK).send(performanceData);
 });

@@ -13,6 +13,7 @@ const sendMail = require('../../../utils/sendEmail');
 const {
   getSingleAcademyForUser,
 } = require('../../academy/services/academy.service');
+const ROLE_CONSTANT = require('../../../constants');
 
 const checkAcademyAccess = async (user, academyDomain) => {
   const normalizeDomain = (domain) => {
@@ -21,7 +22,7 @@ const checkAcademyAccess = async (user, academyDomain) => {
     return parts[0];
   };
 
-  if (user.role.name === 'SUPER_ADMIN') {
+  if (user.role.name === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     return null;
   }
 
@@ -29,7 +30,7 @@ const checkAcademyAccess = async (user, academyDomain) => {
     const normalizedRequestDomain = normalizeDomain(academyDomain);
     let academy;
 
-    if (user.role.name === 'ADMIN') {
+    if (user.role.name === ROLE_CONSTANT.ROLE.ADMIN) {
       academy = await db.academy.findFirst({
         where: {
           domain: {
@@ -74,7 +75,7 @@ const checkAcademyAccess = async (user, academyDomain) => {
     return academy;
   }
 
-  if (!academyDomain && user.role.name !== 'SUPER_ADMIN') {
+  if (!academyDomain && user.role.name !== ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       'Please login through your academy domain'
@@ -134,7 +135,7 @@ const loginWithPasswordHandler = async (data, host) => {
       id: user.id,
       role: user.role.name,
       subRole: user.subRole,
-      ...(user.role.name !== 'SUPER_ADMIN' && {
+      ...(user.role.name !== ROLE_CONSTANT.ROLE.SUPER_ADMIN && {
         academyDomain: host,
       }),
     },
@@ -295,10 +296,17 @@ const verifyLoginWithoutPasswordHandler = async (data) => {
 
   let academy = null;
 
-  if (user.role === 'COACH' || user.role === 'ADMIN') {
+  if (
+    user.role === ROLE_CONSTANT.ROLE.COACH ||
+    user.role === ROLE_CONSTANT.ROLE.ADMIN
+  ) {
     academy = await getSingleAcademyForUser(user);
 
-    if (user.role === 'ADMIN' && academy && academy.status === 'INACTIVE') {
+    if (
+      user.role === ROLE_CONSTANT.ROLE.ADMIN &&
+      academy &&
+      academy.status === 'INACTIVE'
+    ) {
       throw new ApiError(
         httpStatus.FORBIDDEN,
         'Your academy is marked as inactive, contact support'
@@ -439,7 +447,10 @@ const updatePasswordHandler = async (data, loggedInUser) => {
     );
   }
 
-  if (loggedInUser.role !== 'SUPER_ADMIN' && loggedInUser.id !== id) {
+  if (
+    loggedInUser.role !== ROLE_CONSTANT.ROLE.SUPER_ADMIN &&
+    loggedInUser.id !== id
+  ) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       'You do not have permission to change this password.'
@@ -520,7 +531,7 @@ const loginWithCicIdHandler = async (data, host) => {
       id: user.id,
       role: user.role.name,
       subRole: user.subRole,
-      ...(user.role.name !== 'SUPER_ADMIN' && {
+      ...(user.role.name !== ROLE_CONSTANT.ROLE.SUPER_ADMIN && {
         academyDomain: host,
       }),
     },

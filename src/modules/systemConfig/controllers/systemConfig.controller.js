@@ -5,8 +5,6 @@ const catchAsync = require('../../../utils/catchAsync');
 const ApiError = require('../../../utils/apiError');
 
 const createSystemConfigHandler = catchAsync(async (req, res) => {
-  console.log('CONTROLLER', req.body);
-
   const systemConfigData = _.pick(req.body, [
     'type',
     'code',

@@ -4,6 +4,7 @@ const db = require('../../../database/prisma');
 const ApiError = require('../../../utils/apiError');
 const formatNumberWithPrefix = require('../../../utils/formatNumberWithPrefix');
 const studentService = require('../../student/services/student.service');
+const ROLE_CONSTANT = require('../../../constants');
 
 const createSeasonalGoalHandler = async (data) => {
   const { startDate, endDate, batchId } = data;
@@ -215,7 +216,7 @@ const getAllSeasonalGoalsHandler = async (page, limit, query, loggedInUser) => {
 
   let batchFilter = {};
 
-  if (loggedInUser.role === 'ADMIN') {
+  if (loggedInUser.role === ROLE_CONSTANT.ROLE.ADMIN) {
     batchFilter = {
       batch: {
         academy: {
@@ -227,7 +228,7 @@ const getAllSeasonalGoalsHandler = async (page, limit, query, loggedInUser) => {
         },
       },
     };
-  } else if (loggedInUser.role === 'COACH') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.COACH) {
     batchFilter = {
       batch: {
         coaches: {
@@ -237,7 +238,7 @@ const getAllSeasonalGoalsHandler = async (page, limit, query, loggedInUser) => {
         },
       },
     };
-  } else if (loggedInUser.role === 'STUDENT') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.STUDENT) {
     batchFilter = {
       batch: {
         students: {
@@ -274,7 +275,7 @@ const getAllMonthlyGoalsHandler = async (page, limit, query, loggedInUser) => {
 
   let batchFilter = {};
 
-  if (loggedInUser.role === 'ADMIN') {
+  if (loggedInUser.role === ROLE_CONSTANT.ROLE.ADMIN) {
     batchFilter = {
       seasonalGoal: {
         batch: {
@@ -288,7 +289,7 @@ const getAllMonthlyGoalsHandler = async (page, limit, query, loggedInUser) => {
         },
       },
     };
-  } else if (loggedInUser.role === 'COACH') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.COACH) {
     batchFilter = {
       seasonalGoal: {
         batch: {
@@ -300,7 +301,7 @@ const getAllMonthlyGoalsHandler = async (page, limit, query, loggedInUser) => {
         },
       },
     };
-  } else if (loggedInUser.role === 'STUDENT') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.STUDENT) {
     batchFilter = {
       seasonalGoal: {
         batch: {
@@ -339,7 +340,7 @@ const getAllWeeklyGoalsHandler = async (page, limit, query, loggedInUser) => {
 
   let batchFilter = {};
 
-  if (loggedInUser.role === 'ADMIN') {
+  if (loggedInUser.role === ROLE_CONSTANT.ROLE.ADMIN) {
     batchFilter = {
       monthlyGoal: {
         seasonalGoal: {
@@ -355,7 +356,7 @@ const getAllWeeklyGoalsHandler = async (page, limit, query, loggedInUser) => {
         },
       },
     };
-  } else if (loggedInUser.role === 'COACH') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.COACH) {
     batchFilter = {
       monthlyGoal: {
         seasonalGoal: {
@@ -369,7 +370,7 @@ const getAllWeeklyGoalsHandler = async (page, limit, query, loggedInUser) => {
         },
       },
     };
-  } else if (loggedInUser.role === 'STUDENT') {
+  } else if (loggedInUser.role === ROLE_CONSTANT.ROLE.STUDENT) {
     batchFilter = {
       monthlyGoal: {
         seasonalGoal: {

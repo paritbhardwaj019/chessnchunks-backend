@@ -2,6 +2,7 @@ const express = require('express');
 const authController = require('../controllers/auth.controller');
 const checkJWT = require('../../../middlewares/checkJWT');
 const checkRole = require('../../../middlewares/checkRole');
+const ROLE_CONSTANT = require('../../../constants');
 
 const authRouter = express.Router();
 
@@ -220,7 +221,11 @@ authRouter.post(
 authRouter.post(
   '/update-password',
   checkJWT,
-  checkRole(['ADMIN', 'COACH', 'SUPER_ADMIN']),
+  checkRole([
+    ROLE_CONSTANT.ROLE.ADMIN,
+    ROLE_CONSTANT.ROLE.COACH,
+    ROLE_CONSTANT.ROLE.SUPER_ADMIN,
+  ]),
   authController.updatePasswordHandler
 );
 

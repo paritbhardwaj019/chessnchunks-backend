@@ -3,6 +3,7 @@ const { mysqlPool } = require('../../../config/db');
 const db = require('../../../database/prisma');
 const ApiError = require('../../../utils/apiError');
 const logger = require('../../../utils/logger');
+const ROLE_CONSTANT = require('../../../constants');
 
 /**
  * Service to fetch dashboard data for Super Admins.
@@ -10,7 +11,7 @@ const logger = require('../../../utils/logger');
  * @returns {Object} - Aggregated dashboard data.
  */
 async function getSuperAdminDashboardData(loggedInUser) {
-  if (loggedInUser.role !== 'SUPER_ADMIN') {
+  if (loggedInUser.role !== ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       'Access denied. Only Super Admins can access this data.'
@@ -26,14 +27,14 @@ async function getSuperAdminDashboardData(loggedInUser) {
   const totalStudents = await db.user.count({
     where: {
       role: {
-        name: 'STUDENT',
+        name: ROLE_CONSTANT.ROLE.STUDENT,
       },
     },
   });
   const totalCoaches = await db.user.count({
     where: {
       role: {
-        name: 'COACH',
+        name: ROLE_CONSTANT.ROLE.COACH,
       },
     },
   });
@@ -61,8 +62,7 @@ async function getSuperAdminDashboardData(loggedInUser) {
  * @returns {Object} - Aggregated dashboard data.
  */
 async function getAdminDashboardData(loggedInUser) {
-  // Ensure the loggedInUser has the role 'ADMIN'
-  if (loggedInUser.role !== 'ADMIN') {
+  if (loggedInUser.role !== ROLE_CONSTANT.ROLE.ADMIN) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       'Access denied. Only Admins can access this data.'
@@ -90,7 +90,7 @@ async function getAdminDashboardData(loggedInUser) {
   const totalStudents = await db.user.count({
     where: {
       role: {
-        name: 'STUDENT',
+        name: ROLE_CONSTANT.ROLE.STUDENT,
       },
       studentOfBatches: {
         some: {
@@ -103,7 +103,7 @@ async function getAdminDashboardData(loggedInUser) {
   const totalCoaches = await db.user.count({
     where: {
       role: {
-        name: 'COACH',
+        name: ROLE_CONSTANT.ROLE.COACH,
       },
       coachOfBatches: {
         some: {
@@ -142,7 +142,7 @@ async function getAdminDashboardData(loggedInUser) {
  */
 async function getCoachDashboardData(loggedInUser) {
   // Ensure the loggedInUser has the role 'COACH'
-  if (loggedInUser.role !== 'COACH') {
+  if (loggedInUser.role !== ROLE_CONSTANT.ROLE.COACH) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       'Access denied. Only Coaches can access this data.'
@@ -168,7 +168,7 @@ async function getCoachDashboardData(loggedInUser) {
   const totalStudents = await db.user.count({
     where: {
       role: {
-        name: 'STUDENT',
+        name: ROLE_CONSTANT.ROLE.STUDENT,
       },
       studentOfBatches: { some: { id: { in: batchIds } } },
     },

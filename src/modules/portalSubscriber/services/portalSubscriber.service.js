@@ -10,6 +10,7 @@ const { generateOTP } = require('../../../utils/generateOTP');
 const hashPassword = require('../../../utils/hashPassword');
 const sendMail = require('../../../utils/sendEmail');
 const stripe = require('../../../config/stripe');
+const ROLE_CONSTANT = require('../../../constants');
 
 const chessAPI = new ChessWebAPI();
 
@@ -202,7 +203,7 @@ const createPortalSignupHandler = async (data) => {
       signupStage: 'INQUIRY',
       signupStatus: 'INQUIRY',
       mfaEnabled: false,
-      userRole: 'SUBSCRIBER',
+      userRole: ROLE_CONSTANT.ROLE.SUBSCRIBER,
     },
     include: {
       academy: true,
@@ -293,7 +294,7 @@ const completePortalSignup = async (id, data) => {
   });
 
   const role = await db.role.findUnique({
-    where: { name: 'SUBSCRIBER' },
+    where: { name: ROLE_CONSTANT.ROLE.SUBSCRIBER },
   });
 
   const user = await db.user.create({
