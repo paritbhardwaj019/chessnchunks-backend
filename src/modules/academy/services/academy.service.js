@@ -9,6 +9,17 @@ const {
 } = require('../../../utils/cloudinary.utils');
 const ROLE_CONSTANT = require('../../../constants');
 
+/**
+ * Updates academy by ID
+ * @async
+ * @param {Object} data - Academy update data
+ * @param {string} id - Academy ID
+ * @param {Object} loggedInUser - Currently logged in user
+ * @param {string} loggedInUser.role - User's role
+ * @param {string} loggedInUser.id - User's ID
+ * @returns {Promise<Object>} Updated academy data
+ * @throws {ApiError} If academy not found or user unauthorized
+ */
 const updateAcademyByIdHandler = async (data, id, loggedInUser) => {
   if (loggedInUser.role === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     const updatedAcademy = await db.academy.update({
@@ -56,6 +67,16 @@ const updateAcademyByIdHandler = async (data, id, loggedInUser) => {
   }
 };
 
+/**
+ * Fetches academy by ID
+ * @async
+ * @param {string} id - Academy ID
+ * @param {Object} loggedInUser - Currently logged in user
+ * @param {string} loggedInUser.role - User's role
+ * @param {string} loggedInUser.id - User's ID
+ * @returns {Promise<Object>} Academy details
+ * @throws {ApiError} If academy not found or user unauthorized
+ */
 const fetchAcademyByIdHandler = async (id, loggedInUser) => {
   if (loggedInUser.role === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     const academy = await db.academy.findUnique({
@@ -138,6 +159,14 @@ const fetchAcademyByIdHandler = async (id, loggedInUser) => {
   }
 };
 
+/**
+ * Gets single academy for user
+ * @async
+ * @param {Object} loggedInUser - Currently logged in user
+ * @param {string} loggedInUser.id - User's ID
+ * @returns {Promise<Object>} Academy details
+ * @throws {ApiError} If user not found or not associated with any academy
+ */
 const getSingleAcademyForUser = async (loggedInUser) => {
   const user = await db.user.findUnique({
     where: { id: loggedInUser.id },
@@ -200,6 +229,13 @@ const getSingleAcademyForUser = async (loggedInUser) => {
   return academy;
 };
 
+/**
+ * Gets academy by domain
+ * @async
+ * @param {string} domain - Academy domain
+ * @returns {Promise<Object>} Academy data with navigation and pages
+ * @throws {ApiError} If academy not found
+ */
 const getAcademyByDomain = async (domain) => {
   const academy = await db.academy.findUnique({
     where: { domain },
@@ -297,6 +333,14 @@ const parseSlug = (slug) => {
   return `/${cleanedSlug}`;
 };
 
+/**
+ * Gets public page by slug
+ * @async
+ * @param {string} domain - Academy domain
+ * @param {string} slug - Page slug
+ * @returns {Promise<Object>} Page data
+ * @throws {ApiError} If page or academy not found
+ */
 const getPublicPageBySlug = async (domain, slug) => {
   const parsedSlug = parseSlug(slug);
 
@@ -344,6 +388,15 @@ const getPublicPageBySlug = async (domain, slug) => {
   return academy.pages[0];
 };
 
+/**
+ * Updates component by ID
+ * @async
+ * @param {string} pageId - Page ID
+ * @param {string} componentId - Component ID
+ * @param {Object} componentData - Component update data
+ * @returns {Promise<Object>} Updated component and page data
+ * @throws {ApiError} If page or component not found
+ */
 const updateComponentById = async (pageId, componentId, componentData) => {
   return await db.$transaction(async (prisma) => {
     const existingPage = await prisma.page.findUnique({
@@ -397,6 +450,19 @@ const updateComponentById = async (pageId, componentId, componentData) => {
   });
 };
 
+/**
+ * Updates academy settings
+ * @async
+ * @param {string} id - Academy ID
+ * @param {Object} data - Settings data
+ * @param {number} data.signUpFee - Academy signup fee
+ * @param {Object} logoFile - Uploaded logo file
+ * @param {Object} loggedInUser - Currently logged in user
+ * @param {string} loggedInUser.role - User's role
+ * @param {string} loggedInUser.id - User's ID
+ * @returns {Promise<Object>} Updated academy settings
+ * @throws {ApiError} If academy not found or user unauthorized
+ */
 const updateAcademySettings = async (id, data, logoFile, loggedInUser) => {
   const academy = await db.academy.findUnique({
     where: { id },

@@ -5,60 +5,25 @@ const checkRole = require('../../../middlewares/checkRole');
 const uploadFile = require('../../../middlewares/uploadFile');
 const ROLE_CONSTANT = require('../../../constants');
 
+/**
+ * Express router for super admin routes
+ * @type {import('express').Router}
+ */
 const superAdminRouter = express.Router();
 
 /**
- * @swagger
- * tags:
- *   name: Super Admin
- *   description: Endpoints for super admin operations
- */
-
-/**
- * @swagger
- * /super-admin/invite-academy-admin:
- *   post:
- *     summary: Invite an academy admin
- *     description: Invite a new academy admin by sending an email invitation.
- *     tags: [Super Admin]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               firstName:
- *                 type: string
- *                 description: First name of the academy admin
- *               lastName:
- *                 type: string
- *                 description: Last name of the academy admin
- *               email:
- *                 type: string
- *                 format: email
- *                 description: Email address of the academy admin
- *               academyName:
- *                 type: string
- *                 description: Name of the academy
- *               contactNumber:
- *                 type: string
- *                 description: Contact number of the academy admin
- *               logo:
- *                 type: string
- *                 format: binary
- *                 description: Logo of the academy (optional)
- *     responses:
- *       200:
- *         description: Academy admin invited successfully
- *       400:
- *         description: Invalid input
- *       401:
- *         description: Unauthorized - Invalid or missing JWT token
- *       403:
- *         description: Forbidden - User does not have the required role (SUPER_ADMIN)
+ * Route for inviting academy admin
+ * @name POST /invite-academy-admin
+ * @function
+ * @memberof module:routes/superAdmin
+ * @param {Object} body - Request body
+ * @param {string} body.firstName - Admin's first name
+ * @param {string} body.lastName - Admin's last name
+ * @param {string} body.email - Admin's email
+ * @param {string} body.academyName - Academy name
+ * @param {File} body.logo - Academy logo file
+ * @requires authentication
+ * @requires role:SUPER_ADMIN
  */
 superAdminRouter.post(
   '/invite-academy-admin',
@@ -69,38 +34,13 @@ superAdminRouter.post(
 );
 
 /**
- * @swagger
- * /super-admin/verify-academy-admin:
- *   post:
- *     summary: Verify an academy admin
- *     description: Verify the academy admin's invitation and complete the academy setup.
- *     tags: [Super Admin]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               token:
- *                 type: string
- *                 description: Invitation token
- *               domain:
- *                 type: string
- *                 description: Domain for the academy
- *               stripeCustomerId:
- *                 type: string
- *                 description: Stripe customer ID for payment
- *               planId:
- *                 type: string
- *                 description: ID of the selected plan
- *     responses:
- *       200:
- *         description: Academy admin verified and academy created successfully
- *       400:
- *         description: Invalid input or expired token
- *       409:
- *         description: Conflict - Email or domain already exists
+ * Route for verifying academy admin
+ * @name POST /verify-academy-admin
+ * @function
+ * @memberof module:routes/superAdmin
+ * @param {string} query.token - Verification token
+ * @param {string} body.domain - Academy domain
+ * @public
  */
 superAdminRouter.post(
   '/verify-academy-admin',
@@ -108,28 +48,15 @@ superAdminRouter.post(
 );
 
 /**
- * @swagger
- * /super-admin/all-admins:
- *   get:
- *     summary: Fetch all admins by academy ID
- *     description: Retrieve a list of all admins for a specific academy.
- *     tags: [Super Admin]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: academyId
- *         schema:
- *           type: string
- *         required: true
- *         description: ID of the academy
- *     responses:
- *       200:
- *         description: List of admins retrieved successfully
- *       401:
- *         description: Unauthorized - Invalid or missing JWT token
- *       403:
- *         description: Forbidden - User does not have the required role (SUPER_ADMIN)
+ * Route for fetching all admins by academy ID
+ * @name GET /all-admins
+ * @function
+ * @memberof module:routes/superAdmin
+ * @param {string} query.academyId - Academy ID
+ * @param {number} [query.page=1] - Page number
+ * @param {number} [query.limit=10] - Items per page
+ * @requires authentication
+ * @requires role:SUPER_ADMIN
  */
 superAdminRouter.get(
   '/all-admins',
@@ -139,21 +66,15 @@ superAdminRouter.get(
 );
 
 /**
- * @swagger
- * /super-admin/all-academies:
- *   get:
- *     summary: Fetch all academies
- *     description: Retrieve a list of all academies.
- *     tags: [Super Admin]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of academies retrieved successfully
- *       401:
- *         description: Unauthorized - Invalid or missing JWT token
- *       403:
- *         description: Forbidden - User does not have the required role (SUPER_ADMIN, ADMIN, or COACH)
+ * Route for fetching all academies
+ * @name GET /all-academies
+ * @function
+ * @memberof module:routes/superAdmin
+ * @param {number} [query.page=1] - Page number
+ * @param {number} [query.limit=10] - Items per page
+ * @param {string} [query.query] - Search query
+ * @requires authentication
+ * @requires role:SUPER_ADMIN,ADMIN,COACH
  */
 superAdminRouter.get(
   '/all-academies',
@@ -167,47 +88,17 @@ superAdminRouter.get(
 );
 
 /**
- * @swagger
- * /super-admin/plans:
- *   post:
- *     summary: Create a new plan
- *     description: Create a new subscription plan for academies.
- *     tags: [Super Admin]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 description: Name of the plan
- *               maxUsers:
- *                 type: integer
- *                 description: Maximum number of users allowed
- *               academyPrice:
- *                 type: number
- *                 description: Price for academies
- *               subscriberPrice:
- *                 type: number
- *                 description: Price for subscribers
- *               features:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: List of features included in the plan
- *     responses:
- *       201:
- *         description: Plan created successfully
- *       400:
- *         description: Invalid input
- *       401:
- *         description: Unauthorized - Invalid or missing JWT token
- *       403:
- *         description: Forbidden - User does not have the required role (SUPER_ADMIN)
+ * Route for creating a plan
+ * @name POST /plans
+ * @function
+ * @memberof module:routes/superAdmin
+ * @param {Object} body - Plan data
+ * @param {string} body.name - Plan name
+ * @param {number} body.maxUsers - Maximum users allowed
+ * @param {number} body.academyPrice - Academy price
+ * @param {number} body.subscriberPrice - Subscriber price
+ * @requires authentication
+ * @requires role:SUPER_ADMIN
  */
 superAdminRouter.post(
   '/plans',
@@ -217,54 +108,20 @@ superAdminRouter.post(
 );
 
 /**
- * @swagger
- * /super-admin/plans/{planId}:
- *   put:
- *     summary: Update a plan
- *     description: Update an existing subscription plan.
- *     tags: [Super Admin]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: planId
- *         schema:
- *           type: string
- *         required: true
- *         description: ID of the plan to update
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 description: Name of the plan
- *               maxUsers:
- *                 type: integer
- *                 description: Maximum number of users allowed
- *               academyPrice:
- *                 type: number
- *                 description: Price for academies
- *               subscriberPrice:
- *                 type: number
- *                 description: Price for subscribers
- *               features:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: List of features included in the plan
- *     responses:
- *       200:
- *         description: Plan updated successfully
- *       400:
- *         description: Invalid input
- *       401:
- *         description: Unauthorized - Invalid or missing JWT token
- *       403:
- *         description: Forbidden - User does not have the required role (SUPER_ADMIN)
+ * Route for updating a plan
+ * @name PUT /plans/:planId
+ * @function
+ * @memberof module:routes/superAdmin
+ * @param {string} params.planId - Plan ID to update
+ * @param {Object} body - Plan update data
+ * @param {string} [body.name] - Updated plan name
+ * @param {number} [body.maxUsers] - Updated maximum users
+ * @param {number} [body.academyPrice] - Updated academy price
+ * @param {number} [body.subscriberPrice] - Updated subscriber price
+ * @param {Array} [body.features] - Updated plan features
+ * @param {boolean} [body.isFeatured] - Updated featured status
+ * @requires authentication
+ * @requires role:SUPER_ADMIN
  */
 superAdminRouter.put(
   '/plans/:planId',
@@ -274,44 +131,26 @@ superAdminRouter.put(
 );
 
 /**
- * @swagger
- * /super-admin/plans:
- *   get:
- *     summary: Fetch all plans
- *     description: Retrieve a list of all subscription plans.
- *     tags: [Super Admin]
- *     responses:
- *       200:
- *         description: List of plans retrieved successfully
+ * Route for fetching all plans
+ * @name GET /plans
+ * @function
+ * @memberof module:routes/superAdmin
+ * @param {number} [query.page=1] - Page number
+ * @param {number} [query.limit=10] - Items per page
+ * @param {string} [query.type] - Plan type filter
+ * @param {string} [query.search] - Search query
+ * @param {string} [query.signupId] - Signup ID for discount calculation
+ * @public
  */
 superAdminRouter.get('/plans', superAdminController.fetchAllPlansHandler);
 
 /**
- * @swagger
- * /super-admin/check-domain:
- *   get:
- *     summary: Check domain availability
- *     description: Check if a domain is available for use.
- *     tags: [Super Admin]
- *     parameters:
- *       - in: query
- *         name: domain
- *         schema:
- *           type: string
- *         required: true
- *         description: Domain to check
- *     responses:
- *       200:
- *         description: Domain availability status
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 domain:
- *                   type: string
- *                 available:
- *                   type: boolean
+ * Route for checking domain availability
+ * @name GET /check-domain
+ * @function
+ * @memberof module:routes/superAdmin
+ * @param {string} query.domain - Domain to check
+ * @public
  */
 superAdminRouter.get(
   '/check-domain',
@@ -319,73 +158,29 @@ superAdminRouter.get(
 );
 
 /**
- * @swagger
- * /super-admin/select-plan:
- *   post:
- *     summary: Select an academy plan
- *     description: Select a plan for an academy during the signup process.
- *     tags: [Super Admin]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               signupId:
- *                 type: string
- *                 description: ID of the academy signup
- *               planId:
- *                 type: string
- *                 description: ID of the selected plan
- *               domain:
- *                 type: string
- *                 description: Domain for the academy
- *     responses:
- *       200:
- *         description: Plan selected successfully
- *       400:
- *         description: Invalid input
- *       404:
- *         description: Signup or plan not found
- *       409:
- *         description: Conflict - Domain is not available
+ * Route for selecting an academy plan
+ * @name POST /select-plan
+ * @function
+ * @memberof module:routes/superAdmin
+ * @param {Object} body - Plan selection data
+ * @param {string} body.signupId - Signup ID
+ * @param {string} body.planId - Selected plan ID
+ * @param {string} body.domain - Requested academy domain
+ * @public
  */
 superAdminRouter.post('/select-plan', superAdminController.selectAcademyPlan);
 
 /**
- * @swagger
- * /super-admin/create-checkout-session:
- *   post:
- *     summary: Create a checkout session
- *     description: Create a Stripe checkout session for academy plan payment.
- *     tags: [Super Admin]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               signupId:
- *                 type: string
- *                 description: ID of the academy signup
- *               planId:
- *                 type: string
- *                 description: ID of the selected plan
- *               domain:
- *                 type: string
- *                 description: Domain for the academy
- *               token:
- *                 type: string
- *                 description: Invitation token
- *     responses:
- *       200:
- *         description: Checkout session created successfully
- *       400:
- *         description: Invalid input
- *       404:
- *         description: Plan not found
+ * Route for creating a checkout session
+ * @name POST /create-checkout-session
+ * @function
+ * @memberof module:routes/superAdmin
+ * @param {Object} body - Checkout session data
+ * @param {string} body.signupId - Signup ID
+ * @param {string} body.planId - Selected plan ID
+ * @param {string} body.domain - Academy domain
+ * @param {string} body.token - Authentication token
+ * @public
  */
 superAdminRouter.post(
   '/create-checkout-session',
@@ -393,32 +188,13 @@ superAdminRouter.post(
 );
 
 /**
- * @swagger
- * /super-admin/plans/{planId}:
- *   delete:
- *     summary: Delete a plan
- *     description: Delete an existing subscription plan.
- *     tags: [Super Admin]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: planId
- *         schema:
- *           type: string
- *         required: true
- *         description: ID of the plan to delete
- *     responses:
- *       200:
- *         description: Plan deleted successfully
- *       400:
- *         description: Invalid input
- *       401:
- *         description: Unauthorized - Invalid or missing JWT token
- *       403:
- *         description: Forbidden - User does not have the required role (SUPER_ADMIN)
- *       404:
- *         description: Plan not found
+ * Route for deleting a plan
+ * @name DELETE /plans/:planId
+ * @function
+ * @memberof module:routes/superAdmin
+ * @param {string} params.planId - Plan ID to delete
+ * @requires authentication
+ * @requires role:SUPER_ADMIN
  */
 superAdminRouter.delete(
   '/plans/:planId',
@@ -426,5 +202,22 @@ superAdminRouter.delete(
   checkRole([ROLE_CONSTANT.ROLE.SUPER_ADMIN]),
   superAdminController.deletePlanHandler
 );
+
+/**
+ * Route for creating a super admin
+ * @name POST /create
+ * @function
+ * @memberof module:routes/superAdmin
+ * @param {Object} body - Super admin data
+ * @param {string} body.authCode - Authorization code
+ * @param {string} body.firstName - First name
+ * @param {string} body.lastName - Last name
+ * @param {string} body.email - Email address
+ * @param {string} body.password - Password
+ * @param {string} body.dateOfBirth - Date of birth
+ * @param {string} body.cicId - Chess in Chunks ID
+ * @public
+ */
+superAdminRouter.post('/create', superAdminController.createSuperAdminHandler);
 
 module.exports = superAdminRouter;

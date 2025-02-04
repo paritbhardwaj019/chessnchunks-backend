@@ -22,7 +22,24 @@ const generateDomain = require('../../../utils/generateDomain');
 const logger = require('../../../utils/logger');
 const sendMail = require('../../../utils/sendEmail');
 const ROLE_CONSTANT = require('../../../constants');
+const DOMAIN_CONFIG = require('../../../config/domains');
+const _ = require('lodash');
 
+/**
+ * Handles academy admin invitation process
+ * @async
+ * @param {Object} data - Invitation data
+ * @param {string} data.firstName - Admin's first name
+ * @param {string} data.lastName - Admin's last name
+ * @param {string} data.email - Admin's email
+ * @param {string} data.academyName - Academy name
+ * @param {string} data.contactNumber - Contact number
+ * @param {number} data.discountPercentage - Discount percentage
+ * @param {Object} loggedInUser - Currently logged in user
+ * @param {Object} logoFile - Uploaded logo file
+ * @returns {Promise<Object>} Created invitation
+ * @throws {ApiError} If email exists or logo upload fails
+ */
 const inviteAcademyAdminHandler = async (data, loggedInUser, logoFile) => {
   const {
     firstName,
@@ -204,6 +221,14 @@ const inviteAcademyAdminHandler = async (data, loggedInUser, logoFile) => {
   return academyAdminInvitation;
 };
 
+/**
+ * Creates navigation items for academy
+ * @async
+ * @param {Array} items - Navigation items to create
+ * @param {string} academyId - Academy ID
+ * @param {string|null} parentId - Parent navigation item ID
+ * @returns {Promise<void>}
+ */
 const createNavigationItems = async (items, academyId, parentId = null) => {
   for (const item of items) {
     const navItem = await db.academyNavigation.create({
@@ -223,6 +248,16 @@ const createNavigationItems = async (items, academyId, parentId = null) => {
   }
 };
 
+/**
+ * Verifies academy admin and creates academy
+ * @async
+ * @param {string} token - Verification token
+ * @param {string} domain - Academy domain
+ * @param {string} stripeCustomerId - Stripe customer ID
+ * @param {string} planId - Selected plan ID
+ * @returns {Promise<Object>} Created academy and admin details
+ * @throws {ApiError} If token invalid or verification fails
+ */
 const verifyAcademyAdminHandler = async (
   token,
   domain,
@@ -441,6 +476,15 @@ const verifyAcademyAdminHandler = async (
   };
 };
 
+/**
+ * Fetches all admins for a specific academy
+ * @async
+ * @param {number} page - Page number
+ * @param {number} limit - Items per page
+ * @param {string} academyId - Academy ID
+ * @returns {Promise<Object>} Paginated list of admins
+ * @throws {ApiError} If academy not found
+ */
 const fetchAllAdminsByAcademyId = async (page, limit, academyId) => {
   const allAdmins = await db.user.findMany({
     where: {
@@ -458,14 +502,18 @@ const fetchAllAdminsByAcademyId = async (page, limit, academyId) => {
   return allAdmins;
 };
 
-const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
+/**
+ * Fetches all academies with filtering and pagination
+ * @async
+ * @param {number} page - Page number
+ * @param {number} limit - Items per page
+ * @param {string} query - Search query
+ * @param {Object} user - Logged in user
+ * @returns {Promise<Object>} Paginated list of academies
+ */
+const fetchAllAcademiesHandler = async (page, limit, query, user) => {
   const numberPage = Number(page);
   const numberLimit = Number(limit);
-
-  const user = await db.user.findUnique({
-    where: { id: loggedInUser.id },
-    include: { adminOfAcademies: true, role: true },
-  });
 
   let allAcademies = [];
 
@@ -561,6 +609,24 @@ const fetchAllAcademiesHandler = async (page, limit, query, loggedInUser) => {
   return academiesWithStudentCount;
 };
 
+/**
+ * Fetches all users with pagination and filtering
+ * @async
+ * @param {number} [page=1] - Page number for pagination
+ * @param {number} [limit=10] - Number of items per page
+ * @param {string} [query=''] - Search query for filtering users
+ * @param {Object} loggedInUser - Currently logged in user
+ * @param {string} loggedInUser.id - User ID
+ * @returns {Promise<Object>} Object containing array of users
+ * @property {Array} allUsers - Array of user objects with their details
+ * @property {string} allUsers[].email - User's email
+ * @property {Object} allUsers[].role - User's role
+ * @property {Object} allUsers[].subRole - User's sub role
+ * @property {Object} allUsers[].profile - User's profile information
+ * @property {string} allUsers[].profile.firstName - User's first name
+ * @property {string} allUsers[].profile.lastName - User's last name
+ * @throws {ApiError} If user not found
+ */
 const fetchAllUsersHandler = async (
   page = 1,
   limit = 10,
@@ -669,6 +735,7 @@ const fetchAllUsersHandler = async (
     allUsers,
   };
 };
+
 const generatePlanCode = async () => {
   const systemCode = await db.systemCode.findFirst({
     where: {
@@ -694,6 +761,19 @@ const generatePlanCode = async () => {
   return formatNumberWithPrefix(systemCode.prefix, newNumber);
 };
 
+/**
+ * Creates a new plan
+ * @async
+ * @param {Object} planData - Plan data
+ * @param {string} planData.name - Plan name
+ * @param {number} planData.maxUsers - Maximum users allowed
+ * @param {number} planData.academyPrice - Academy price
+ * @param {number} planData.subscriberPrice - Subscriber price
+ * @param {Array} planData.features - Plan features
+ * @param {boolean} planData.isFeatured - Whether plan is featured
+ * @returns {Promise<Object>} Created plan
+ * @throws {ApiError} If plan creation fails
+ */
 const createPlanHandler = async (planData) => {
   const { name, maxUsers, academyPrice, subscriberPrice, features } = planData;
 
@@ -735,6 +815,13 @@ const createPlanHandler = async (planData) => {
   return plan;
 };
 
+/**
+ * Checks domain availability
+ * @async
+ * @param {string} domain - Domain to check
+ * @returns {Promise<Object>} Domain availability status
+ * @throws {ApiError} If domain check fails
+ */
 const checkDomainAvailabilityHandler = async (domain) => {
   const formattedDomain = generateDomain(domain);
 
@@ -748,7 +835,16 @@ const checkDomainAvailabilityHandler = async (domain) => {
   };
 };
 
-const selectAcademyPlanHandler = async (signupId, planId, requestedDomain) => {
+/**
+ * Selects an academy plan
+ * @async
+ * @param {string} signupId - Signup ID
+ * @param {string} planId - Plan ID
+ * @param {string} domain - Academy domain
+ * @returns {Promise<Object>} Selected plan details
+ * @throws {ApiError} If plan selection fails
+ */
+const selectAcademyPlanHandler = async (signupId, planId, domain) => {
   const signup = await db.academySignup.findUnique({
     where: { id: signupId },
     include: { selectedPlan: true },
@@ -758,7 +854,7 @@ const selectAcademyPlanHandler = async (signupId, planId, requestedDomain) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Signup not found');
   }
 
-  const domainCheck = await checkDomainAvailabilityHandler(requestedDomain);
+  const domainCheck = await checkDomainAvailabilityHandler(domain);
   if (!domainCheck.available) {
     throw new ApiError(httpStatus.CONFLICT, 'Domain is not available');
   }
@@ -778,7 +874,18 @@ const selectAcademyPlanHandler = async (signupId, planId, requestedDomain) => {
   return updatedSignup;
 };
 
-const fetchAllPlansHandler = async (filters = {}, page = 1, limit = 10) => {
+/**
+ * Fetches all plans with filtering
+ * @async
+ * @param {Object} filters - Filter parameters
+ * @param {string} [filters.type] - Plan type
+ * @param {string} [filters.search] - Search query
+ * @param {string} [filters.signupId] - Signup ID for discount
+ * @param {number} page - Page number
+ * @param {number} limit - Items per page
+ * @returns {Promise<Object>} Paginated list of plans
+ */
+const fetchAllPlansHandler = async (filters, page, limit) => {
   try {
     const {
       search,
@@ -883,6 +990,20 @@ const fetchAllPlansHandler = async (filters = {}, page = 1, limit = 10) => {
   }
 };
 
+/**
+ * Updates an existing plan
+ * @async
+ * @param {string} planId - Plan ID to update
+ * @param {Object} planData - Plan update data
+ * @param {string} [planData.name] - Plan name
+ * @param {number} [planData.maxUsers] - Maximum users allowed
+ * @param {number} [planData.academyPrice] - Academy price
+ * @param {number} [planData.subscriberPrice] - Subscriber price
+ * @param {Array} [planData.features] - Plan features
+ * @param {boolean} [planData.isFeatured] - Whether plan is featured
+ * @returns {Promise<Object>} Updated plan
+ * @throws {ApiError} If plan not found or update fails
+ */
 const updatePlanHandler = async (planId, planData) => {
   const existingPlan = await db.plan.findUnique({
     where: { id: planId },
@@ -936,6 +1057,16 @@ const updatePlanHandler = async (planId, planData) => {
   return updatedPlan;
 };
 
+/**
+ * Creates a checkout session
+ * @async
+ * @param {string} signupId - Signup ID
+ * @param {string} planId - Plan ID
+ * @param {string} domain - Academy domain
+ * @param {string} token - Authentication token
+ * @returns {Promise<Object>} Stripe checkout session
+ * @throws {ApiError} If session creation fails
+ */
 const createCheckoutSessionHandler = async (
   signupId,
   planId,
@@ -1006,6 +1137,13 @@ const createCheckoutSessionHandler = async (
   return session;
 };
 
+/**
+ * Deletes a plan
+ * @async
+ * @param {string} planId - Plan ID to delete
+ * @returns {Promise<Object>} Deleted plan
+ * @throws {ApiError} If plan not found or has associated academies
+ */
 const deletePlanHandler = async (planId) => {
   const plan = await db.plan.findUnique({
     where: { id: planId },
@@ -1039,6 +1177,132 @@ const deletePlanHandler = async (planId) => {
   return deletedPlan;
 };
 
+/**
+ * Creates a super admin user
+ * @async
+ * @param {Object} data - User data
+ * @param {string} data.firstName - First name
+ * @param {string} data.lastName - Last name
+ * @param {string} data.email - Email address
+ * @param {string} data.password - Password
+ * @param {string} data.dateOfBirth - Date of birth
+ * @param {string} data.cicId - Chess in Chunks ID
+ * @returns {Promise<Object>} Created super admin and default academy
+ * @throws {ApiError} If user creation fails
+ */
+const createSuperAdminHandler = async (data) => {
+  const { firstName, lastName, email, password, dateOfBirth, cicId } = data;
+
+  try {
+    const isEmailAlreadyExists = await db.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (isEmailAlreadyExists) {
+      throw new ApiError(httpStatus.CONFLICT, 'Email is already taken.');
+    }
+
+    const isCicIdExistsInProfile = await db.profile.findUnique({
+      where: {
+        cicId,
+      },
+    });
+
+    if (isCicIdExistsInProfile) {
+      throw new ApiError(
+        httpStatus.CONFLICT,
+        'Chess in Chunks ID is already taken.'
+      );
+    }
+
+    const userCount = await db.user.count();
+    const newCode = formatNumberWithPrefix('U', userCount);
+
+    const hashedPassword = await hashPassword(password, 10);
+
+    const superAdminProfile = await db.profile.create({
+      data: {
+        firstName,
+        lastName,
+        dateOfBirth: new Date(dateOfBirth),
+        cicId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const superAdminRole = await db.role.findUnique({
+      where: { name: ROLE_CONSTANT.ROLE.SUPER_ADMIN },
+    });
+
+    if (!superAdminRole) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Super Admin role not found.');
+    }
+
+    const superAdmin = await db.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        profile: {
+          connect: {
+            id: superAdminProfile.id,
+          },
+        },
+        code: newCode,
+        role: {
+          connect: {
+            id: superAdminRole.id,
+          },
+        },
+        status: 'ACTIVE',
+      },
+    });
+
+    const academyName = 'Chess in Chunks';
+    const newAcademy = await db.academy.create({
+      data: {
+        name: academyName,
+        domain: DOMAIN_CONFIG.getAcademyDomain(academyName),
+        admins: {
+          connect: [{ id: superAdmin.id }],
+        },
+        status: 'ACTIVE',
+        isDefault: true,
+      },
+    });
+
+    await createNavigationItems(defaultNavigation, newAcademy.id);
+
+    await createDefaultPagesForAcademy(newAcademy.id);
+
+    await db.user.update({
+      where: { id: superAdmin.id },
+      data: {
+        adminOfAcademies: {
+          connect: [{ id: newAcademy.id }],
+        },
+      },
+    });
+
+    if (!_.isEmpty(superAdmin)) {
+      logger.info('Superadmin created successfully');
+      logger.info('Default academy created successfully');
+    }
+
+    return {
+      success: true,
+      user: superAdmin,
+      academy: newAcademy,
+    };
+  } catch (error) {
+    logger.error('Error creating superadmin:', error);
+    throw error;
+  }
+};
+
 const superAdminService = {
   inviteAcademyAdminHandler,
   verifyAcademyAdminHandler,
@@ -1053,6 +1317,7 @@ const superAdminService = {
   createCheckoutSessionHandler,
   deletePlanHandler,
   createNavigationItems,
+  createSuperAdminHandler,
 };
 
 module.exports = superAdminService;

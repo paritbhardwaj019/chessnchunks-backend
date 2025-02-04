@@ -28,6 +28,7 @@ const config = {
     publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
   },
+  superAdminAuthCode: process.env.SUPER_ADMIN_AUTH_CODE,
   databaseUrl: process.env.DATABASE_URL,
   cloudinary: {
     cloudName: process.env.CLOUDINARY_CLOUD_NAME,
@@ -53,6 +54,7 @@ const requiredVariables = [
   'CLOUDINARY_CLOUD_NAME',
   'CLOUDINARY_API_KEY',
   'CLOUDINARY_API_SECRET',
+  'SUPER_ADMIN_AUTH_CODE',
 ];
 
 const missingVariables = requiredVariables.filter((key) => !process.env[key]);

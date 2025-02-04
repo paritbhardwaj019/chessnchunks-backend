@@ -2,10 +2,6 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const swaggerJsDoc = require('swagger-jsdoc');
-const swaggerUI = require('swagger-ui-express');
-
-const swaggerOptions = require('./config/swaggerOptions');
 const {
   scheduleBatchExpiryCheck,
 } = require('./cron/batchExpiryNotification.cron');
@@ -17,6 +13,8 @@ const errorHandler = require('./middlewares/errorHandler');
 const router = require('./routes/v1');
 const { isOriginAllowed } = require('./services/origin.service');
 const logger = require('./utils/logger');
+const swaggerUi = require('swagger-ui-express');
+const swaggerFile = require('./swagger-output.json');
 
 const app = express();
 
@@ -70,10 +68,6 @@ app.use((req, res, next) => {
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(helmet());
 
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
-
-app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
-
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -81,6 +75,8 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 app.use('/api/v1', router);
 
