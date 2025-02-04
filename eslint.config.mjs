@@ -1,9 +1,8 @@
 import globals from 'globals';
 import pluginJs from '@eslint/js';
-import prettier from 'eslint-plugin-prettier';
-import eslintConfigPrettier from 'eslint-config-prettier';
+import unusedImports from 'eslint-plugin-unused-imports';
 
-/** @type {import('eslint').Linter.FlatConfig[]} */
+/** @type {import('eslint').Linter.Config[]} */
 export default [
   {
     files: ['**/*.js'],
@@ -11,28 +10,29 @@ export default [
       sourceType: 'commonjs',
       globals: {
         ...globals.node,
-        process: true,
-        __dirname: true,
       },
+    },
+    plugins: {
+      'unused-imports': unusedImports,
+    },
+    rules: {
+      'no-unused-vars': 'off',
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': [
+        'warn',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+        },
+      ],
     },
   },
   {
-    files: ['**/*.js'],
     languageOptions: {
-      globals: {
-        ...globals.browser,
-      },
+      globals: globals.browser,
     },
   },
   pluginJs.configs.recommended,
-  {
-    plugins: {
-      prettier,
-    },
-    rules: {
-      'prettier/prettier': 'error',
-      ...eslintConfigPrettier.rules,
-      'no-console': ['warn'],
-    },
-  },
 ];
