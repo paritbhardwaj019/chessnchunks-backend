@@ -7,9 +7,7 @@
   },
   "host": "localhost:5000",
   "basePath": "/",
-  "schemes": [
-    "http"
-  ],
+  "schemes": ["http"],
   "paths": {
     "/academy/{id}/settings": {
       "patch": {
@@ -3473,9 +3471,7 @@
     "/reports/batches/export": {
       "get": {
         "description": "",
-        "produces": [
-          "xlsx"
-        ],
+        "produces": ["xlsx"],
         "parameters": [
           {
             "name": "x-auth-token",

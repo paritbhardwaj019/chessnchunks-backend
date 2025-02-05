@@ -12,6 +12,11 @@ const hashPassword = require('../../../utils/hashPassword');
 const sendMail = require('../../../utils/sendEmail');
 const logger = require('../../../utils/logger');
 const ROLE_CONSTANT = require('../../../constants');
+const {
+  SIGNUP_STATUS,
+  REGISTRATION_STAGE,
+  PAYMENT_STATUS,
+} = require('@prisma/client');
 
 const stripeWebhookRouter = express.Router();
 
@@ -135,7 +140,7 @@ stripeWebhookRouter.post('/stripe', async (req, res) => {
     const event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      'whsec_BzETu3ZIxFMhpoHuydwzos28aGKq2rEj'
+      config.stripe.webhookSecret
     );
 
     if (event.type === 'checkout.session.completed') {
@@ -179,7 +184,7 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
     const event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      'whsec_7zqpqvaPPrrmUq90xvfh6vV3vrszYA0Z'
+      config.stripe.studentWebhookSecret
     );
 
     if (event.type === 'checkout.session.completed') {
@@ -277,9 +282,9 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
             await prisma.userSignup.update({
               where: { id: signup.id },
               data: {
-                signupStatus: 'CONFIRMED',
-                signupStage: 'POST_ACTIVATION',
-                paymentStatus: 'COMPLETED',
+                signupStatus: SIGNUP_STATUS.CONFIRMED,
+                signupStage: REGISTRATION_STAGE.POST_ACTIVATION,
+                paymentStatus: PAYMENT_STATUS.COMPLETED,
                 userId: user.id,
                 academyId: academy.id,
                 paymentAmount: plan.subscriberPrice,
