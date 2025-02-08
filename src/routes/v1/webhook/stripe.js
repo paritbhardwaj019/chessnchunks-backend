@@ -17,6 +17,7 @@ const {
   REGISTRATION_STAGE,
   PAYMENT_STATUS,
 } = require('@prisma/client');
+const { seedSystemConfigs } = require('../../../utils/systemConfig');
 
 const stripeWebhookRouter = express.Router();
 
@@ -161,6 +162,8 @@ stripeWebhookRouter.post('/stripe', async (req, res) => {
           planId,
           result.academyAdmin
         );
+
+        await seedSystemConfigs(result.newAcademy.id);
       } catch (error) {
         logger.error(`Admin verification failed: ${error.message || error}`);
         return res.json({ received: true });

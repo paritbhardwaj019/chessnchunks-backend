@@ -5,6 +5,13 @@ const checkPermission = require('../../../middlewares/checkPermission');
 
 const systemConfigRouter = express.Router();
 
+systemConfigRouter.get(
+  '/options',
+  checkJWT,
+  checkPermission('view', '/dashboard/system-config'),
+  systemConfigController.getSystemConfigOptionsByTypeHandler
+);
+
 systemConfigRouter.post(
   '/',
   checkJWT,
@@ -38,13 +45,6 @@ systemConfigRouter.delete(
   checkJWT,
   checkPermission('delete', '/dashboard/system-config'),
   systemConfigController.deleteSystemConfigHandler
-);
-
-systemConfigRouter.get(
-  '/options',
-  checkJWT,
-  checkPermission('view', '/dashboard/system-config'),
-  systemConfigController.getSystemConfigOptionsByTypeHandler
 );
 
 module.exports = systemConfigRouter;

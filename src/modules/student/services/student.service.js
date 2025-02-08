@@ -382,7 +382,18 @@ const fetchAllStudentsHandler = async (page, limit, query, loggedInUser) => {
           select: {
             id: true,
             name: true,
-            type: true,
+            description: true,
+            programId: true,
+            seasonPrice: true,
+            monthlyPrice: true,
+            yearlyDiscountPercentage: true,
+            isActive: true,
+            programType: {
+              select: {
+                code: true,
+                label: true,
+              },
+            },
           },
         },
       },

@@ -174,6 +174,8 @@ model Academy {
 
   academyPlans AcademyProgram[]
 
+  systemConfigs SystemConfig[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -202,14 +204,9 @@ model Batch {
   studentCapacity Int
   warningCutoff   Int
   
-  classTypeId     String
-  classType       SystemConfig @relation("ClassTypes", fields: [classTypeId], references: [id])
-  
-  startLevelId    String
-  startLevel      SystemConfig @relation("StartBatchLevels", fields: [startLevelId], references: [id])
-   
-  currentLevelId  String
-  currentLevel    SystemConfig @relation("CurrentBatchLevels", fields: [currentLevelId], references: [id])
+  currentClass    String
+  startLevel      String
+  currentLevel    String
   
   batchDayId      String
   batchDay        SystemConfig @relation("BatchDays", fields: [batchDayId], references: [id])
@@ -1170,16 +1167,8 @@ model SignupOTP  {
 
 enum CONFIG_TYPE {
   PROGRAM_TYPE
-  PROGRAM_CONDITION
   QUESTION_TYPE
-  BATCH_LEVEL
-  CLASS_TYPE
   BATCH_DAY
-  CHESS_TITLE
-  COACH_ROLE
-  PAYMENT_METHOD
-  DISCOUNT_TYPE
-  NOTIFICATION_TYPE
 }
 
 model SystemConfig {
@@ -1191,21 +1180,21 @@ model SystemConfig {
   order       Int       @default(0)
   isActive    Boolean   @default(true)
   metadata    Json?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  
+  academyId   String
+  academy     Academy   @relation(fields: [academyId], references: [id])
 
   programs            AcademyProgram[] @relation("ProgramTypes")
-  quizQuestions      QuizQuestion[]   @relation("QuestionTypes")
-
-  startBatchLevels Batch[] @relation("StartBatchLevels")
-  currentBatchLevels Batch[] @relation("CurrentBatchLevels")
-  batchClassTypes  Batch[] @relation("ClassTypes")
-  batchDays        Batch[] @relation("BatchDays")
+  quizQuestions       QuizQuestion[]   @relation("QuestionTypes")
+  batchDays          Batch[] @relation("BatchDays")
   
   parentId    String?
   parent      SystemConfig?  @relation("ConfigHierarchy", fields: [parentId], references: [id])
   children    SystemConfig[] @relation("ConfigHierarchy")
   
-  @@unique([type, code])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([academyId, type, code])
   @@map("system_configs")
 }

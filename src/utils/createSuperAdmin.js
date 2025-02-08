@@ -29,6 +29,52 @@ const createNavigationItems = async (items, academyId, parentId = null) => {
   }
 };
 
+async function getOrCreateDefaultAcademy(superAdminId) {
+  const academyName = 'Chess in Chunks';
+  try {
+    const existingAcademy = await db.academy.findFirst({
+      where: {
+        isDefault: true,
+      },
+    });
+
+    if (existingAcademy) {
+      await db.academy.update({
+        where: { id: existingAcademy.id },
+        data: {
+          admins: {
+            connect: [{ id: superAdminId }],
+          },
+        },
+      });
+
+      logger.info('Connected superadmin to existing default academy');
+      return existingAcademy;
+    }
+
+    const newAcademy = await db.academy.create({
+      data: {
+        name: academyName,
+        domain: `http://${academyName.toLowerCase().replace(/\s+/g, '')}.localhost:3001`,
+        admins: {
+          connect: [{ id: superAdminId }],
+        },
+        status: 'ACTIVE',
+        isDefault: true,
+      },
+    });
+
+    await createNavigationItems(defaultNavigation, newAcademy.id);
+    await createDefaultPagesForAcademy(newAcademy.id);
+
+    logger.info('Created new default academy successfully');
+    return newAcademy;
+  } catch (error) {
+    logger.error('Error handling default academy:', error);
+    throw error;
+  }
+}
+
 function createSuperAdmin() {
   prompt.message = 'Create Superadmin';
   prompt.start();
@@ -131,6 +177,12 @@ function createSuperAdmin() {
           where: { name: ROLE_CONSTANT.ROLE.SUPER_ADMIN },
         });
 
+        if (!superAdminRole) {
+          throw new Error(
+            'Super Admin role not found. Please run seed.js first.'
+          );
+        }
+
         const superAdmin = await db.user.create({
           data: {
             email,
@@ -150,36 +202,23 @@ function createSuperAdmin() {
           },
         });
 
-        const newAcademy = await db.academy.create({
-          data: {
-            name: academyName,
-            domain: `http://${academyName
-              .toLowerCase()
-              .replace(/\s+/g, '')}.localhost:3001`,
-            admins: {
-              connect: [{ id: superAdmin.id }],
-            },
-            status: 'ACTIVE',
-            isDefault: true,
-          },
-        });
+        const academy = await getOrCreateDefaultAcademy(superAdmin.id);
 
-        await createNavigationItems(defaultNavigation, newAcademy.id);
+        await createNavigationItems(defaultNavigation, academy.id);
 
-        await createDefaultPagesForAcademy(newAcademy.id);
+        await createDefaultPagesForAcademy(academy.id);
 
         await db.user.update({
           where: { id: superAdmin.id },
           data: {
             adminOfAcademies: {
-              connect: [{ id: newAcademy.id }],
+              connect: [{ id: academy.id }],
             },
           },
         });
 
         if (!_.isEmpty(superAdmin)) {
           logger.info('Superadmin created successfully');
-          logger.info('Default academy created successfully');
         }
       } catch (error) {
         logger.error('Error creating superadmin:', error);

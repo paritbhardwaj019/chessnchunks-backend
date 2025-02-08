@@ -168,8 +168,27 @@ const fetchAcademyByIdHandler = async (id, loggedInUser) => {
  * @throws {ApiError} If user not found or not associated with any academy
  */
 const getSingleAcademyForUser = async (loggedInUser) => {
+  if (loggedInUser.role === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
+    const defaultAcademy = await db.academy.findFirst({
+      where: {
+        isDefault: true,
+      },
+    });
+
+    if (!defaultAcademy) {
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        'No default academy found in the system.'
+      );
+    }
+
+    return defaultAcademy;
+  }
+
   const user = await db.user.findUnique({
-    where: { id: loggedInUser.id },
+    where: {
+      id: loggedInUser.id,
+    },
     include: {
       adminOfAcademies: true,
       coachOfBatches: {
@@ -194,6 +213,12 @@ const getSingleAcademyForUser = async (loggedInUser) => {
     user.role.name === ROLE_CONSTANT.ROLE.COACH ||
     user.role.name === ROLE_CONSTANT.ROLE.STUDENT
   ) {
+    if (!user.assignedToAcademy) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'User is not assigned to any academy.'
+      );
+    }
     academyIds = [user.assignedToAcademy.id];
   } else {
     throw new ApiError(
@@ -207,19 +232,21 @@ const getSingleAcademyForUser = async (loggedInUser) => {
   if (academyIds.length === 0) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      `${user.role} is not associated with any academy.`
+      `${user.role.name} is not associated with any academy.`
     );
   }
 
   if (academyIds.length > 1) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      `${user.role} is associated with multiple academies. Please specify the academy.`
+      `${user.role.name} is associated with multiple academies. Please specify the academy.`
     );
   }
 
   const academy = await db.academy.findUnique({
-    where: { id: academyIds[0] },
+    where: {
+      id: academyIds[0],
+    },
   });
 
   if (!academy) {

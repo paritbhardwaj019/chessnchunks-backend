@@ -2,6 +2,7 @@ const { PrismaClient, SYSTEM_CODE_MODULE } = require('@prisma/client');
 
 const logger = require('../utils/logger');
 const ROLE_CONSTANT = require('../constants');
+const { seedSystemConfigs } = require('../utils/systemConfig');
 const prisma = new PrismaClient();
 
 /**
@@ -500,16 +501,11 @@ async function assignSuperAdminPermissions() {
     },
     { path: '/dashboard/invitations', actions: ['view'] },
     { path: '/dashboard/permissions', actions: ['view', 'update'] },
-    { path: '/dashboard/system-code', actions: ['view', 'add'] },
     { path: '/dashboard/plans', actions: ['view', 'add', 'update', 'delete'] },
     { path: '/dashboard/settings', actions: ['view'] },
     { path: '/dashboard/settings/profile', actions: ['view', 'update'] },
     {
       path: '/dashboard/platform-users',
-      actions: ['view', 'add', 'update', 'delete'],
-    },
-    {
-      path: '/dashboard/system-config',
       actions: ['view', 'add', 'update', 'delete'],
     },
   ];
@@ -586,8 +582,9 @@ async function assignAdminPermissions() {
     },
     {
       path: '/dashboard/system-config',
-      actions: ['view'],
+      actions: ['view', 'add', 'update', 'delete'],
     },
+    { path: '/dashboard/system-code', actions: ['view', 'add'] },
   ];
 
   await assignRolePermissions(ROLE_CONSTANT.ROLE.ADMIN, adminPermissions);
@@ -717,97 +714,44 @@ async function seedAndAssignPermissions() {
   await setupRolePermissions();
 }
 
+async function seedDefaultAcademy() {
+  const academyName = 'Chess in Chunks';
+  try {
+    const existingAcademy = await prisma.academy.findFirst({
+      where: {
+        isDefault: true,
+      },
+    });
+
+    if (existingAcademy) {
+      logger.info('Default academy already exists');
+      return existingAcademy;
+    }
+
+    const newAcademy = await prisma.academy.create({
+      data: {
+        name: academyName,
+        domain: `http://${academyName.toLowerCase().replace(/\s+/g, '')}.localhost:3001`,
+        status: 'ACTIVE',
+        isDefault: true,
+      },
+    });
+
+    logger.info('Default academy seeded successfully');
+    return newAcademy;
+  } catch (error) {
+    logger.error('Error seeding default academy:', error);
+    throw error;
+  }
+}
+
 /**
  * Seed System Configurations into the database.
  */
-async function seedSystemConfigs() {
-  const systemConfigs = [
-    {
-      type: 'PROGRAM_TYPE',
-      code: 'P1',
-      label: 'P1 - Coaching',
-      description: 'Coaching Program',
-      order: 1,
-      isActive: true,
-    },
-    {
-      type: 'PROGRAM_TYPE',
-      code: 'P2',
-      label: 'P2 - In person Tournaments',
-      description: 'In-person Tournaments Program',
-      order: 2,
-      isActive: true,
-    },
-    {
-      type: 'PROGRAM_TYPE',
-      code: 'P3',
-      label: 'P3 - Chess Camps',
-      description: 'Chess Camps Program',
-      order: 3,
-      isActive: true,
-    },
-    {
-      type: 'PROGRAM_TYPE',
-      code: 'P4',
-      label: 'P4 - Online Tournaments',
-      description: 'Online Tournaments Program',
-      order: 4,
-      isActive: true,
-    },
-    {
-      type: 'QUESTION_TYPE',
-      code: 'MCQ',
-      label: 'Multiple Choice',
-      description: 'Multiple Choice Question',
-      order: 1,
-      isActive: true,
-    },
-    {
-      type: 'QUESTION_TYPE',
-      code: 'TRUE_FALSE',
-      label: 'True/False',
-      description: 'True or False Question',
-      order: 2,
-      isActive: true,
-    },
-    {
-      type: 'QUESTION_TYPE',
-      code: 'FILL_BLANKS',
-      label: 'Fill in the Blanks',
-      description: 'Fill in the Blanks Question',
-      order: 3,
-      isActive: true,
-    },
-    {
-      type: 'QUESTION_TYPE',
-      code: 'SHORT_ANSWER',
-      label: 'Short Answer',
-      description: 'Short Answer Question',
-      order: 4,
-      isActive: true,
-    },
-    {
-      type: 'QUESTION_TYPE',
-      code: 'LONG_ANSWER',
-      label: 'Long Answer',
-      description: 'Long Answer Question',
-      order: 5,
-      isActive: true,
-    },
-  ];
+async function seedConfigs() {
+  const defaultAcademy = await seedDefaultAcademy();
 
-  for (const config of systemConfigs) {
-    await prisma.systemConfig.upsert({
-      where: {
-        type_code: {
-          type: config.type,
-          code: config.code,
-        },
-      },
-      update: { ...config },
-      create: config,
-    });
-  }
+  await seedSystemConfigs(defaultAcademy.id, true);
   logger.info('System configurations seeded successfully');
 }
 
@@ -819,7 +763,7 @@ async function main() {
     await seedRoles();
     await seedAndAssignPermissions();
     await seedSystemCodes();
-    await seedSystemConfigs();
+    await seedConfigs();
     logger.info('Seeding process completed successfully.');
   } catch (error) {
     logger.error('Error during seeding process:', error);

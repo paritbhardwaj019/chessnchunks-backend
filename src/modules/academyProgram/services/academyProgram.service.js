@@ -98,6 +98,13 @@ const listAllPrograms = async (
     skip,
     take: parseInt(limit),
     include: {
+      programType: {
+        select: {
+          id: true,
+          code: true,
+          label: true,
+        },
+      },
       studentSubscriptions: {
         select: {
           id: true,
@@ -258,6 +265,21 @@ const createProgramHandler = async (data, academyId) => {
     SYSTEM_CODE_MODULE.ACADEMY_PROGRAM
   );
 
+  console.log('DATA', data);
+
+  const programType = await db.systemConfig.findFirst({
+    where: {
+      id: data.programTypeId,
+      type: 'PROGRAM_TYPE',
+      academyId,
+      isActive: true,
+    },
+  });
+
+  if (!programType) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid program type selected');
+  }
+
   const program = await db.academyProgram.create({
     data: {
       academy: {
@@ -269,7 +291,11 @@ const createProgramHandler = async (data, academyId) => {
       creditPoints: data.creditPoints || 0,
       isSignUpFee: data.isSignUpFee || false,
       name: data.name,
-      type: data.type,
+      programType: {
+        connect: {
+          id: data.programTypeId,
+        },
+      },
       seasonPrice: data.seasonPrice,
       monthlyPrice: data.monthlyPrice,
       yearlyDiscountPercentage: data.yearlyDiscountPercentage,

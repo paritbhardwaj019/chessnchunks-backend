@@ -16,8 +16,10 @@ const createSystemConfigHandler = catchAsync(async (req, res) => {
     'parentId',
   ]);
 
-  const systemConfig =
-    await systemConfigService.createSystemConfig(systemConfigData);
+  const systemConfig = await systemConfigService.createSystemConfig(
+    systemConfigData,
+    req.user
+  );
   res.status(httpStatus.CREATED).send(systemConfig);
 });
 
@@ -42,16 +44,18 @@ const getAllSystemConfigsHandler = catchAsync(async (req, res) => {
 
   const systemConfigs = await systemConfigService.getAllSystemConfigs(
     filters,
-    options
+    options,
+    req.user
   );
-
   res.status(httpStatus.OK).send(systemConfigs);
 });
 
 const getSystemConfigByIdHandler = catchAsync(async (req, res) => {
   const { id } = req.params;
-
-  const systemConfig = await systemConfigService.getSystemConfigById(id);
+  const systemConfig = await systemConfigService.getSystemConfigById(
+    id,
+    req.user
+  );
   res.status(httpStatus.OK).send(systemConfig);
 });
 
@@ -70,16 +74,18 @@ const updateSystemConfigHandler = catchAsync(async (req, res) => {
 
   const updatedSystemConfig = await systemConfigService.updateSystemConfigById(
     id,
-    updateData
+    updateData,
+    req.user
   );
   res.status(httpStatus.OK).send(updatedSystemConfig);
 });
 
 const deleteSystemConfigHandler = catchAsync(async (req, res) => {
   const { id } = req.params;
-
-  const deletedSystemConfig =
-    await systemConfigService.deleteSystemConfigById(id);
+  const deletedSystemConfig = await systemConfigService.deleteSystemConfigById(
+    id,
+    req.user
+  );
   res.status(httpStatus.OK).send(deletedSystemConfig);
 });
 
@@ -94,7 +100,7 @@ const getSystemConfigOptionsByTypeHandler = catchAsync(async (req, res) => {
   }
 
   const systemConfigOptions =
-    await systemConfigService.getSystemConfigOptionsByType(type);
+    await systemConfigService.getSystemConfigOptionsByType(type, req.user);
   res.status(httpStatus.OK).send(systemConfigOptions);
 });
 
