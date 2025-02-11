@@ -300,7 +300,7 @@ describe('Student Signup Integration Tests', () => {
   describe('Initial Signup Process', () => {
     it('should create new signup with RESERVED status', async () => {
       const signupData = {
-        email: 'student1@yopmail.com',
+        email: 'jaladhijoshi@gmail.com',
         firstName: 'John',
         lastName: 'Doe',
         phoneNumber: '1234567890',
