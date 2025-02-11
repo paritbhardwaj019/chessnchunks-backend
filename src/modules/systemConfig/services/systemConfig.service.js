@@ -107,7 +107,7 @@ const getAllSystemConfigs = async (
 
   const orderedResults = Object.entries(groupedResults)
     .sort(([typeA], [typeB]) => typeA.localeCompare(typeB))
-    .reduce((acc, [_, items]) => [...acc, ...items], []);
+    .reduce((acc, [_, items]) => [...acc, ...items], []); // eslint-disable-line
 
   return {
     data: orderedResults,

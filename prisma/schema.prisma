@@ -878,69 +878,7 @@ enum AUTH_TYPE {
   MFA
 }
 
-model UserSignup {
- id           String             @id @default(uuid())
-  email        String             @unique
-  firstName    String
-  lastName     String
-  phoneNumber  String
-  userRole     ROLE
-  signupStage  REGISTRATION_STAGE @default(INQUIRY)
-  signupStatus SIGNUP_STATUS      @default(INQUIRY)
 
-  signupId String @unique
-  middleName  String?
-  coachType   COACH_ROLE?
-  dateOfBirth DateTime?
-  parentName  String?
-  parentEmail String?
-  addressLine1 String?
-  addressLine2 String?
-  city         String?
-  state        String?
-  country      String?
-  zipCode      String?
-  chessComId   String? 
-  lichessId    String?
-  uscfId       String?
-  password     String?
-
-  cicId      String? @unique
-
-  invitation Invitation?
-
-  assignedToBatchId String?
-  assignedToBatch   Batch?  @relation("BatchAssignedUserSignups", fields: [assignedToBatchId], references: [id])
-
-  batchInterestId String?
-  interestedBatch Batch?  @relation("BatchInterest", fields: [batchInterestId], references: [id])
-
-  completedById String?
-  completedBy   User?   @relation("CompletedUserSignup", fields: [completedById], references: [id])
-
-  reservationTime   DateTime?
-  reservationExpiry DateTime?
-  emailVerified     Boolean   @default(false)
-  emailVerifiedAt   DateTime?
- 
-  mfaEnabled   Boolean  @default(false)
-  mfaVerified  Boolean  @default(false)
-
-  paymentStatus PAYMENT_STATUS @default(PENDING)
-  paymentAmount Float?
-  paymentDate   DateTime?
-
-  academyId String?
-  academy   Academy? @relation("AcademySignups", fields: [academyId], references: [id])
-
-  userId String? @unique
-  user   User?   @relation(fields: [userId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("user_signups")
-}
 
 enum REGISTRATION_STAGE {
   INQUIRY
@@ -1197,4 +1135,114 @@ model SystemConfig {
 
   @@unique([academyId, type, code])
   @@map("system_configs")
+}
+
+enum STUDENT_STATUS {
+  ACTIVE
+  HOLD
+  WITHDRAWN
+  RESERVED
+  WAITING
+}
+
+enum SPOT_STATUS {
+  OPEN
+  CONFIRMED
+  RESERVED
+  WAITING
+}
+
+model UserSignup {
+  id           String             @id @default(uuid())
+  email        String             @unique
+  firstName    String
+  lastName     String
+  phoneNumber  String
+  userRole     ROLE
+  signupStage  REGISTRATION_STAGE @default(INQUIRY)
+  signupStatus SIGNUP_STATUS      @default(INQUIRY)
+
+  signupId String @unique
+  middleName  String?
+  coachType   COACH_ROLE?
+  dateOfBirth DateTime?
+  parentName  String?
+  parentEmail String?
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  state        String?
+  country      String?
+  zipCode      String?
+  chessComId   String? 
+  lichessId    String?
+  uscfId       String?
+  password     String?
+
+  cicId      String? @unique
+
+  invitation Invitation?
+
+  assignedToBatchId String?
+  assignedToBatch   Batch?  @relation("BatchAssignedUserSignups", fields: [assignedToBatchId], references: [id])
+
+  batchInterestId String?
+  interestedBatch Batch?  @relation("BatchInterest", fields: [batchInterestId], references: [id])
+
+  completedById String?
+  completedBy   User?   @relation("CompletedUserSignup", fields: [completedById], references: [id])
+
+  studentStatus    STUDENT_STATUS @default(RESERVED)
+  spotStatus      SPOT_STATUS    @default(OPEN)
+
+  reservationTime   DateTime?
+  reservationExpiry DateTime?
+  reservationPeriodHours Int?
+
+  lastPaymentDate   DateTime?
+  nextPaymentDue    DateTime?
+  latePaymentFee    Float?
+  totalDue          Float?
+  holdStartDate     DateTime?
+  holdEndDate       DateTime?
+  waitingQueuePosition Int?
+
+  paymentHistory    PaymentHistory[]
+
+  emailVerified     Boolean   @default(false)
+  emailVerifiedAt   DateTime?
+ 
+  mfaEnabled   Boolean  @default(false)
+  mfaVerified  Boolean  @default(false)
+
+  paymentStatus PAYMENT_STATUS @default(PENDING)
+  paymentAmount Float?
+  paymentDate   DateTime?
+
+  academyId String?
+  academy   Academy? @relation("AcademySignups", fields: [academyId], references: [id])
+
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_signups")
+}
+
+model PaymentHistory {
+  id            String   @id @default(uuid())
+  userSignupId  String
+  userSignup    UserSignup @relation(fields: [userSignupId], references: [id])
+
+  amount        Float
+  dueDate       DateTime
+  paidDate      DateTime?
+  lateFeesAdded Float?
+  status        PAYMENT_STATUS
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("payment_history")
 }

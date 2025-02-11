@@ -1,0 +1,6 @@
+{
+  "require": ["dotenv/config", "./tests/setup.js"],
+  "spec": ["tests/**/*.test.js"],
+  "timeout": 60000,
+  "exit": true
+}

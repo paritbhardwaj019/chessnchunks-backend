@@ -265,8 +265,6 @@ const createProgramHandler = async (data, academyId) => {
     SYSTEM_CODE_MODULE.ACADEMY_PROGRAM
   );
 
-  console.log('DATA', data);
-
   const programType = await db.systemConfig.findFirst({
     where: {
       id: data.programTypeId,

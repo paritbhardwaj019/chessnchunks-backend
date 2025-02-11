@@ -1,39 +1,66 @@
-const nodemailer = require('nodemailer');
-const logger = require('./logger');
+// const nodemailer = require('nodemailer');
+// const logger = require('./logger');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+// const transporter = nodemailer.createTransport({
+//   service: 'gmail',
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASSWORD,
+//   },
+// });
+
+// /**
+//  * Sends an email.
+//  *
+//  * @param {string} to - Recipient's email address.
+//  * @param {string} subject - Subject of the email.
+//  * @param {string} text - Plain text content of the email.
+//  * @param {string} [html] - Optional HTML content of the email.
+//  * @returns {Promise<void>}
+//  */
+
+// const sendMail = async (to, subject, text, html = '') => {
+//   const mailOptions = {
+//     from: process.env.EMAIL_USER,
+//     to,
+//     subject,
+//     text,
+//     html,
+//   };
+
+//   try {
+//     const info = await transporter.sendMail(mailOptions);
+//     return info;
+//   } catch (error) {
+//     logger.error(`Error sending email ${error.message || error}`);
+//   }
+// };
+
+// module.exports = sendMail;
+
+const sgMail = require('@sendgrid/mail');
+const config = require('../config');
+
+sgMail.setApiKey(config.sendgrid.apiKey);
 
 /**
- * Sends an email.
- *
- * @param {string} to - Recipient's email address.
- * @param {string} subject - Subject of the email.
- * @param {string} text - Plain text content of the email.
- * @param {string} [html] - Optional HTML content of the email.
+ * Sends an email using SendGrid
+ * @param {string} to - Recipient's email address
+ * @param {string} subject - Subject of the email
+ * @param {string} text - Plain text content of the email
+ * @param {string} [html] - Optional HTML content of the email
  * @returns {Promise<void>}
  */
-
 const sendMail = async (to, subject, text, html = '') => {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
+  const msg = {
     to,
+    from: config.sendgrid.fromEmail,
     subject,
     text,
-    html,
+    html: html || text,
   };
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    return info;
-  } catch (error) {
-    logger.error(`Error sending email ${error.message || error}`);
-  }
+  await sgMail.send(msg);
 };
 
 module.exports = sendMail;

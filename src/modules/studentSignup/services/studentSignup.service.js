@@ -19,6 +19,10 @@ const generateSystemCode = require('../../../utils/generateSystemCode');
 const { getDomainFromAdmin } = require('../../../utils/getDomainFromAdmin');
 const sendMail = require('../../../utils/sendEmail');
 const ROLE_CONSTANT = require('../../../constants');
+const {
+  sendWaitingListEmail,
+  validateBatchCapacity,
+} = require('../utils/studentSignup.utils');
 
 const chessAPI = new ChessWebAPI();
 
@@ -254,30 +258,6 @@ const validateChessComUsername = async (username) => {
   }
 };
 
-const validateBatchCapacity = async (batchId) => {
-  const batch = await db.batch.findUnique({
-    where: { id: batchId },
-    include: {
-      _count: {
-        select: { students: true },
-      },
-    },
-  });
-
-  if (!batch) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Batch not found');
-  }
-
-  if (batch._count.students >= batch.studentCapacity) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      'Batch has reached maximum capacity'
-    );
-  }
-
-  return batch;
-};
-
 const sendSignupEmail = async (signup, otp) => {
   const token = await createToken(
     {
@@ -289,6 +269,7 @@ const sendSignupEmail = async (signup, otp) => {
   );
 
   const domain = getDomainFromAdmin(signup.academy.domain);
+  const reservationHours = signup.reservationPeriodHours || 72;
 
   const ACTIVATION_URL = `${domain}/complete-signup?type=STUDENT&token=${token}&id=${signup.id}`;
 
@@ -306,7 +287,7 @@ const sendSignupEmail = async (signup, otp) => {
       intro: [
         'Welcome to Chess in Chunks!',
         'Your signup process has been initiated successfully.',
-        'Important: You have 72 hours to complete your registration by making the payment.',
+        `Important: You have ${reservationHours} hours to complete your registration by making the payment.`,
       ],
       action: {
         instructions:
@@ -318,7 +299,7 @@ const sendSignupEmail = async (signup, otp) => {
         },
       },
       outro: [
-        'Please note: This link will expire in 72 hours.',
+        `Please note: This link will expire in ${reservationHours} hours.`,
         'If you do not complete the payment within this time, you will need to sign up again.',
         'If you have any questions, feel free to reply to this email.',
       ],
@@ -368,6 +349,7 @@ const createSignupHandler = async (data, academyId) => {
     chessComId,
     lichessId,
     uscfId,
+    reservationPeriodInHours = 72,
   } = data;
 
   const existingSignup = await db.userSignup.findUnique({
@@ -385,31 +367,21 @@ const createSignupHandler = async (data, academyId) => {
     await validateChessComUsername(chessComId);
   }
 
-  await validateBatchCapacity(batchInterestId);
+  const batchCapacity = await validateBatchCapacity(batchInterestId);
 
-  const otp = generateOTP(6);
-  const otpExpiryTime = new Date();
-  otpExpiryTime.setHours(otpExpiryTime.getHours() + 72);
-
-  await db.signupOTP.upsert({
-    where: { email },
-    update: {
-      otp,
-      expiresAt: otpExpiryTime,
-      verified: false,
-    },
-    create: {
-      email,
-      otp,
-      expiresAt: otpExpiryTime,
-      verified: false,
-    },
-  });
+  let initialSignupStatus;
+  if (batchCapacity.isFull) {
+    initialSignupStatus = SIGNUP_STATUS.WAITING;
+  } else {
+    initialSignupStatus = SIGNUP_STATUS.RESERVED;
+  }
 
   const signupId = await generateSystemCode(SYSTEM_CODE_MODULE.USER_SIGNUP);
 
-  const expiryDate = new Date();
-  expiryDate.setHours(expiryDate.getHours() + 72);
+  const reservationTime = new Date();
+  const reservationExpiry = new Date(
+    reservationTime.getTime() + reservationPeriodInHours * 60 * 60 * 1000
+  );
 
   const signup = await db.userSignup.create({
     data: {
@@ -431,7 +403,10 @@ const createSignupHandler = async (data, academyId) => {
       zipCode,
       chessComId,
       signupStage: REGISTRATION_STAGE.INQUIRY,
-      signupStatus: SIGNUP_STATUS.INQUIRY,
+      signupStatus: initialSignupStatus,
+      reservationPeriodHours: reservationPeriodInHours,
+      reservationTime,
+      reservationExpiry,
       interestedBatch: batchInterestId
         ? {
             connect: {
@@ -446,7 +421,6 @@ const createSignupHandler = async (data, academyId) => {
             },
           }
         : undefined,
-      reservationExpiry: expiryDate,
       lichessId,
       uscfId,
     },
@@ -456,7 +430,30 @@ const createSignupHandler = async (data, academyId) => {
     },
   });
 
-  await sendSignupEmail(signup, otp);
+  if (initialSignupStatus === SIGNUP_STATUS.WAITING) {
+    await sendWaitingListEmail(signup);
+  } else {
+    const otp = generateOTP(6);
+    const otpExpiryTime = new Date();
+    otpExpiryTime.setHours(otpExpiryTime.getHours() + reservationPeriodInHours);
+
+    await db.signupOTP.upsert({
+      where: { email },
+      update: {
+        otp,
+        expiresAt: otpExpiryTime,
+        verified: false,
+      },
+      create: {
+        email,
+        otp,
+        expiresAt: otpExpiryTime,
+        verified: false,
+      },
+    });
+
+    await sendSignupEmail(signup, otp);
+  }
 
   return signup;
 };

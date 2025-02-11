@@ -37,6 +37,10 @@ const config = {
     apiSecret: process.env.CLOUDINARY_API_SECRET,
   },
   ngrokAuthToken: process.env.NGROK_AUTH_TOKEN,
+  sendgrid: {
+    apiKey: process.env.SENDGRID_API_KEY,
+    fromEmail: process.env.SENDGRID_FROM_EMAIL,
+  },
 };
 
 const requiredVariables = [

@@ -8,6 +8,7 @@ const {
   createNavigationItems,
 } = require('../modules/superAdmin/services/superAdmin.service');
 const ROLE_CONSTANT = require('../constants');
+const { seedSystemConfigs } = require('../utils/systemConfig');
 const prisma = new PrismaClient();
 
 const academyData = {
@@ -275,14 +276,45 @@ async function main() {
       }
     }
 
+    await seedSystemConfigs(academy.id, false);
+
+    const mondaySystemConfig = await prisma.systemConfig.findFirst({
+      where: {
+        type: 'BATCH_DAY',
+        label: 'Monday',
+        academy: {
+          id: academy.id,
+        },
+      },
+    });
+
+    delete batchData.batchDay;
+
     const batch = await prisma.batch.create({
       data: {
         ...batchData,
-        academyId: academy.id,
-        createdBy: admin.id,
-        modifiedBy: admin.id,
         coaches: {
           connect: createdCoaches.map((coach) => ({ id: coach.id })),
+        },
+        academy: {
+          connect: {
+            id: academy.id,
+          },
+        },
+        batchDay: {
+          connect: {
+            id: mondaySystemConfig.id,
+          },
+        },
+        createdByUser: {
+          connect: {
+            id: admin.id,
+          },
+        },
+        modifiedByUser: {
+          connect: {
+            id: admin.id,
+          },
         },
       },
     });

@@ -128,8 +128,6 @@ function createSuperAdmin() {
       err,
       { firstName, lastName, password, email, dateOfBirth, cicId }
     ) => {
-      const academyName = 'Chess in Chunks';
-
       if (err) {
         logger.error(err);
         return;

@@ -261,6 +261,17 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
                 },
                 assignedToAcademyId: academy.id,
                 mfaEnabled: signup.mfaEnabled,
+                studentStatus: 'ACTIVE',
+              },
+            });
+
+            await prisma.paymentHistory.create({
+              data: {
+                userSignupId: signup.id,
+                amount: plan.subscriberPrice,
+                dueDate: new Date(),
+                paidDate: new Date(),
+                status: 'COMPLETED',
               },
             });
 
@@ -292,6 +303,11 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
                 academyId: academy.id,
                 paymentAmount: plan.subscriberPrice,
                 paymentDate: new Date(),
+                nextPaymentDue: new Date(
+                  new Date().setMonth(new Date().getMonth() + 1)
+                ),
+                studentStatus: 'ACTIVE',
+                lastPaymentDate: new Date(),
               },
             });
 
@@ -364,6 +380,7 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
               studentOfBatches: signup.interestedBatch
                 ? { connect: { id: signup.interestedBatch.id } }
                 : undefined,
+              studentStatus: 'ACTIVE',
             },
           });
 
@@ -375,12 +392,11 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
           });
 
           if (program) {
+            const now = new Date();
             const endDate =
               program.duration === 'MONTHLY'
-                ? new Date(new Date().setMonth(new Date().getMonth() + 1))
-                : new Date(new Date().setMonth(new Date().getMonth() + 4));
-
-            const now = new Date();
+                ? new Date(now.setMonth(now.getMonth() + 1))
+                : new Date(now.setMonth(now.getMonth() + 4));
 
             await prisma.studentSubscription.create({
               data: {
@@ -395,6 +411,16 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
                 nextBillingDate: endDate,
               },
             });
+
+            await prisma.paymentHistory.create({
+              data: {
+                userSignupId: signup.id,
+                amount: program.monthlyPrice,
+                dueDate: now,
+                paidDate: now,
+                status: 'COMPLETED',
+              },
+            });
           }
 
           await prisma.userSignup.update({
@@ -404,8 +430,14 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
               signupStage: 'POST_ACTIVATION',
               paymentStatus: 'COMPLETED',
               userId: user.id,
-              paymentAmount: program?.price,
+              paymentAmount: program?.monthlyPrice,
               paymentDate: new Date(),
+              nextPaymentDue: new Date(
+                new Date().setMonth(new Date().getMonth() + 1)
+              ),
+              studentStatus: 'ACTIVE',
+              lastPaymentDate: new Date(),
+              spotStatus: 'CONFIRMED',
             },
           });
 
