@@ -133,7 +133,7 @@ const coaches = [
 const batchData = {
   batchCode: 'BATCH-2024-01',
   description: 'Advanced Chess Training Batch',
-  studentCapacity: 20,
+  studentCapacity: 1,
   warningCutoff: 15,
   currentClass: 'Advanced',
   startLevel: 'Intermediate',

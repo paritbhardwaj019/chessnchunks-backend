@@ -50,7 +50,7 @@ app.use((req, res, next) => {
       return res.status(200).end();
     }
   } else {
-    logger.warn(`Blocked request from unauthorized origin: ${origin}`);
+    logger.error(`Blocked request from unauthorized origin: ${origin}`);
     return res.status(403).json({ message: 'Forbidden: Origin not allowed' });
   }
 

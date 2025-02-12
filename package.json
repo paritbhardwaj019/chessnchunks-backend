@@ -16,8 +16,8 @@
     "seed:data": "node src/scripts/seedAcademyAndStudents.js",
     "tunnel": "node src/scripts/start-ngrok.js",
     "swagger-autogen": "node ./src/config/swagger.js",
-    "test": "cross-env NODE_ENV=test mocha \"tests/**/*.test.js\" --timeout 60000 --exit  --debug",
-    "test:watch": "cross-env NODE_ENV=test mocha \"tests/**/*.test.js\" --timeout 60000 --watch  --debug"
+    "test": "cross-env NODE_ENV=test mocha \"tests/**/*.test.js\" --timeout 60000 --exit --debug",
+    "test:watch": "cross-env NODE_ENV=test mocha \"tests/**/*.test.js\" --timeout 60000 --watch --debug"
   },
   "keywords": [],
   "author": "",

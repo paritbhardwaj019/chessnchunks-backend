@@ -18,6 +18,7 @@ const {
   PAYMENT_STATUS,
 } = require('@prisma/client');
 const { seedSystemConfigs } = require('../../../utils/systemConfig');
+const { processWaitingList } = require('../../../utils/processWaitingList');
 
 const stripeWebhookRouter = express.Router();
 
@@ -449,6 +450,10 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
             getDomainFromAdmin(program.academy.domain),
             signup.cicId
           );
+
+          if (signup.interestedBatch) {
+            await processWaitingList(signup.interestedBatch.id);
+          }
         });
       }
     }

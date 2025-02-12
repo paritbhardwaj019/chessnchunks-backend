@@ -8,6 +8,7 @@ const request = require('supertest')(app);
 const jwt = require('jsonwebtoken');
 const { expect } = require('chai');
 const { SIGNUP_STATUS } = require('@prisma/client');
+const { processWaitingList } = require('../../src/utils/processWaitingList');
 
 const DAYS_OF_WEEK = [
   { value: 'Monday', code: 'MON', label: 'Monday' },
@@ -370,6 +371,93 @@ describe('Student Signup Integration Tests', () => {
 
       expect(waitingSignup.signupStatus).to.equal(SIGNUP_STATUS.WAITING);
       expect(waitingSignup.batchInterestId).to.equal(testBatch.id);
+    });
+  });
+
+  describe('Waiting List Processing', () => {
+    it('should process waiting list after student confirmation and send email to next waiting student', async () => {
+      for (let i = 0; i < 4; i++) {
+        await createStudentAndAssignToBatch(testBatch.id, {
+          email: `student${i}@example.com`,
+        });
+      }
+
+      const waitingSignup1 = await createSignup(testBatch.id, {
+        email: 'waiting1@example.com',
+      });
+
+      const waitingSignup2 = await createSignup(testBatch.id, {
+        email: 'waiting2@example.com',
+      });
+
+      const normalSignup = await createSignup(testBatch.id, {
+        email: 'normal@example.com',
+      });
+
+      const profileData = {
+        firstName: normalSignup.firstName,
+        lastName: normalSignup.lastName,
+        phoneNumber: normalSignup.phoneNumber,
+        dateOfBirth: new Date(normalSignup.dateOfBirth),
+      };
+
+      const profile = await prisma.profile.create({
+        data: profileData,
+      });
+
+      const hashedPassword = await hashPassword(normalSignup.password, 10);
+      const user = await prisma.user.create({
+        data: {
+          email: normalSignup.email,
+          password: hashedPassword,
+          code: `USER-${Date.now()}`,
+          roleId: studentRole.id,
+          profile: {
+            connect: { id: profile.id },
+          },
+          assignedToAcademyId: testAcademy.id,
+          studentOfBatches: {
+            connect: { id: testBatch.id },
+          },
+        },
+      });
+
+      await prisma.userSignup.update({
+        where: { id: normalSignup.id },
+        data: {
+          signupStatus: SIGNUP_STATUS.CONFIRMED,
+          userId: user.id,
+        },
+      });
+
+      await processWaitingList(testBatch.id);
+
+      const updatedWaitingSignup1 = await prisma.userSignup.findUnique({
+        where: { id: waitingSignup1.id },
+      });
+
+      expect(updatedWaitingSignup1.signupStatus).to.equal(
+        SIGNUP_STATUS.RESERVED
+      );
+      expect(updatedWaitingSignup1.reservationTime).to.exist;
+      expect(updatedWaitingSignup1.reservationExpiry).to.exist;
+
+      const updatedWaitingSignup2 = await prisma.userSignup.findUnique({
+        where: { id: waitingSignup2.id },
+      });
+
+      expect(updatedWaitingSignup2.signupStatus).to.equal(
+        SIGNUP_STATUS.WAITING
+      );
+
+      const updatedBatch = await prisma.batch.findUnique({
+        where: { id: testBatch.id },
+        include: {
+          students: true,
+        },
+      });
+
+      expect(updatedBatch.students.length).to.equal(5);
     });
   });
 });

@@ -52,15 +52,19 @@ sgMail.setApiKey(config.sendgrid.apiKey);
  * @returns {Promise<void>}
  */
 const sendMail = async (to, subject, text, html = '') => {
-  const msg = {
-    to,
-    from: config.sendgrid.fromEmail,
-    subject,
-    text,
-    html: html || text,
-  };
+  try {
+    const msg = {
+      to,
+      from: config.sendgrid.fromEmail,
+      subject,
+      text,
+      html: html || text,
+    };
 
-  await sgMail.send(msg);
+    await sgMail.send(msg);
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 module.exports = sendMail;

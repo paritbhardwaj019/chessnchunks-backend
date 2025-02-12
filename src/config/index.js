@@ -3,13 +3,15 @@ const logger = require('../utils/logger');
 
 const dotenv = require('dotenv');
 
-dotenv.config({ path: path.join(__dirname, '../../.env') });
+dotenv.config({
+  path: path.join(__dirname, '../../.env'),
+});
 
 const config = {
   env: process.env.NODE_ENV,
   port: process.env.PORT,
   allowedOrigins:
-    process.env.NODE_ENV === 'development'
+    process.env.NODE_ENV !== 'production'
       ? [process.env.FRONTEND_URL, process.env.CHESSINCHUNKS_URL]
       : [],
   jwt: {
