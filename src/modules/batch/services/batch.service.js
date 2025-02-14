@@ -33,6 +33,19 @@ const createBatchHandler = async (data, loggedInUser) => {
 
   await validateHeadCoach(db, coaches);
 
+  const batchDayConfig = await db.systemConfig.findFirst({
+    where: {
+      id: batchDay,
+      type: 'BATCH_DAY',
+      academyId,
+      isActive: true,
+    },
+  });
+
+  if (!batchDayConfig) {
+    throw new Error('Invalid batch day selected');
+  }
+
   const batchCode = await generateBatchCode(db);
 
   const batch = await db.batch.create({
@@ -44,7 +57,11 @@ const createBatchHandler = async (data, loggedInUser) => {
       currentClass,
       startLevel,
       currentLevel,
-      batchDay,
+      batchDay: {
+        connect: {
+          id: batchDay,
+        },
+      },
       startTime: startTime,
       startDate: new Date(startDate),
       endDate: endDate ? new Date(endDate) : null,
@@ -75,6 +92,7 @@ const createBatchHandler = async (data, loggedInUser) => {
       academy: true,
       coaches: true,
       students: true,
+      batchDay: true,
       createdByUser: {
         select: {
           email: true,
@@ -242,6 +260,7 @@ const fetchAllBatches = async (loggedInUser, { page, limit, query }) => {
           },
         },
       },
+      batchDay: true,
       coaches: {
         select: {
           id: true,
