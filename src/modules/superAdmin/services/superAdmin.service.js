@@ -517,7 +517,7 @@ const fetchAllAcademiesHandler = async (page, limit, query, user) => {
 
   let allAcademies = [];
 
-  if (user.role.name === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
+  if (user.role === ROLE_CONSTANT.ROLE.SUPER_ADMIN) {
     allAcademies = await db.academy.findMany({
       skip: (numberPage - 1) * numberLimit,
       take: numberLimit,
@@ -555,7 +555,9 @@ const fetchAllAcademiesHandler = async (page, limit, query, user) => {
         },
       },
     });
-  } else if (user.role.name === ROLE_CONSTANT.ROLE.ADMIN) {
+
+    console.log('ALL ACADEMIES', allAcademies);
+  } else if (user.role === ROLE_CONSTANT.ROLE.ADMIN) {
     const academyIDs = user.adminOfAcademies.map((el) => el.id);
 
     allAcademies = await db.academy.findMany({
@@ -605,6 +607,8 @@ const fetchAllAcademiesHandler = async (page, limit, query, user) => {
       },
     };
   });
+
+  console.log('academiesWithStudentCount', academiesWithStudentCount);
 
   return academiesWithStudentCount;
 };
