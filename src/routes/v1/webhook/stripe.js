@@ -196,6 +196,8 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
 
       const { programId, type, planId, userEmail } = session.metadata;
 
+      console.log('METADATA', session.metadata);
+
       if (type === 'PORTAL_SUBSCRIPTION') {
         try {
           const signup = await db.userSignup.findFirst({
@@ -333,6 +335,8 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
           },
         });
 
+        console.log('SIGNUP', signup);
+
         if (!signup) {
           return res.json({ received: true });
         }
@@ -381,7 +385,7 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
               studentOfBatches: signup.interestedBatch
                 ? { connect: { id: signup.interestedBatch.id } }
                 : undefined,
-              studentStatus: 'ACTIVE',
+              status: 'ACTIVE',
             },
           });
 
@@ -460,6 +464,7 @@ stripeWebhookRouter.post('/stripe/student', async (req, res) => {
 
     res.json({ received: true });
   } catch (err) {
+    console.log(err);
     return res
       .status(httpStatus.BAD_REQUEST)
       .send(`Webhook Error: ${err.message}`);

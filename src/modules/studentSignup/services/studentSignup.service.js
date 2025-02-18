@@ -309,7 +309,7 @@ const sendSignupEmail = async (signup, otp) => {
   if (signup.interestedBatch) {
     emailContent.body.dictionary = {
       'Selected Batch': signup.interestedBatch.batchCode,
-      'Batch Day': signup.interestedBatch.batchDay,
+      'Batch Day': signup.interestedBatch.label,
       'Start Time': signup.interestedBatch.startTime,
       'Start Date': new Date(
         signup.interestedBatch.startDate

@@ -2,12 +2,17 @@ const httpStatus = require('http-status');
 const _ = require('lodash');
 const quizService = require('../services/quiz.service');
 const catchAsync = require('../../../utils/catchAsync');
+const {
+  getSingleAcademyForUser,
+} = require('../../academy/services/academy.service');
 
 /**
  * Create Quiz Handler
  */
 const createQuizHandler = catchAsync(async (req, res) => {
-  const quiz = await quizService.createQuiz(req.body, req.user.id);
+  const academy = await getSingleAcademyForUser(req.user);
+
+  const quiz = await quizService.createQuiz(req.body, req.user.id, academy.id);
   res.status(httpStatus.CREATED).send(quiz);
 });
 

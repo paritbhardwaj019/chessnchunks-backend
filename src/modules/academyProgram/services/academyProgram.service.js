@@ -539,14 +539,8 @@ const getProgramOptions = async (academyId) => {
       academyId,
       isActive: true,
     },
-    select: {
-      id: true,
-      name: true,
-      type: true,
-      duration: true,
-      price: true,
-      startDate: true,
-      endDate: true,
+    include: {
+      programType: true,
     },
     orderBy: {
       name: 'asc',
@@ -648,6 +642,7 @@ const getAcademyPrograms = async (academyId) => {
           },
         },
       },
+      programType: true,
     },
     orderBy: {
       createdAt: 'desc',

@@ -13,7 +13,7 @@ const questionTypeMapping = {
   'long-answer': 'LONG_ANSWER',
 };
 
-const createQuiz = async (data, userId) => {
+const createQuiz = async (data, userId, academyId) => {
   const { title, description, timeLimit, passingScore, taskId, questions } =
     data;
 
@@ -31,17 +31,20 @@ const createQuiz = async (data, userId) => {
         SYSTEM_CODE_MODULE.QUIZ_QUESTION
       );
 
-      const mappedType = questionTypeMapping[q.type] || q.type;
+      console.log(q.type);
 
-      mappedType;
-
-      if (!Object.values(QUESTION_TYPE).includes(mappedType)) {
-        throw new Error(`Invalid question type: ${mappedType}`);
-      }
+      const questionType = await db.systemConfig.findFirst({
+        where: {
+          code: q.type,
+          academy: {
+            id: academyId,
+          },
+        },
+      });
 
       const questionData = {
         questionText: q.questionText,
-        type: mappedType,
+        type: { connect: { id: questionType.id } },
         marks: q.marks,
         orderIndex: index + 1,
         questionCode,
@@ -49,22 +52,18 @@ const createQuiz = async (data, userId) => {
         options: [],
       };
 
-      if (['MULTIPLE_CHOICE', 'TRUE_FALSE'].includes(mappedType)) {
+      if (['MCQ', 'TRUE-FALSE'].includes(q.type)) {
         if (!Array.isArray(q.options) || q.options.length < 2) {
           throw new Error(
             `Question ${
               index + 1
-            }: At least two options are required for ${mappedType} type.`
+            }: At least two options are required for ${q.type} type.`
           );
         }
         questionData.options = q.options;
       }
 
-      if (
-        ['FILL_IN_THE_BLANKS', 'SHORT_ANSWER', 'LONG_ANSWER'].includes(
-          mappedType
-        )
-      ) {
+      if (['FILL-BLANKS', 'SHORT-ANSWER', 'LONG-ANSWER'].includes(q.type)) {
         if (!q.wordLimit || q.wordLimit < 1) {
           throw new Error(
             `Question ${index + 1}: Word limit must be at least 1.`
@@ -480,6 +479,7 @@ const getQuizById = async (quizId, userId = null) => {
               },
             },
           },
+          type: true,
         },
       },
       studentQuizAttempts: {
